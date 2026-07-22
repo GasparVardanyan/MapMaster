@@ -16,11 +16,10 @@ void Map::loadFile (const std::string & path) {
 		return;
 	}
 
-	parse (mapXml);
+	parse (mapXml.child ("map"));
 }
 
-void Map::parse (pugi::xml_node mapXml) {
-	const pugi::xml_node map = mapXml.child ("map");
+void Map::parse (pugi::xml_node map) {
 	const std::string mapVersion = map.attribute ("version").value ();
 
 	if ("1.0.Light" == mapVersion) {

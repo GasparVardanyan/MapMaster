@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-static constexpr float scale = 0.025F;
+static constexpr float scale = 0.005F;
 
 // NOLINTBEGIN(*)
 int main(void)
@@ -32,6 +32,7 @@ int main(void)
 		map.loadFile(DATA_DIR "map.xml");
 
 		PropResourceManager resManager;
+		std::map <std::string, std::map <std::string, std::vector <std::string>>> propsToLoad;
 
 		for (const auto & [libraryName, groups] : map.mapObjects ()) {
 			{
@@ -41,10 +42,13 @@ int main(void)
 			}
 			for (const auto & [groupName, props] : groups) {
 				for (const auto & [propName, propInfo] : props) {
-					resManager.loadResources (libraryName, groupName, propName);
+					propsToLoad [libraryName] [groupName].push_back (propName);
+					// resManager.loadResources (libraryName, groupName, propName);
 				}
 			}
 		}
+
+		resManager.loadResources (propsToLoad);
 
 		struct RayMesh {
 			Mesh mesh;
@@ -140,14 +144,14 @@ int main(void)
 	camera.fovy = 45.0f;
 	camera.projection = CAMERA_PERSPECTIVE;
 
-	PropMesh castle (DATA_DIR "smhouse5.3ds");
-
-	Model & model = castle.model;
-
-	Texture2D texture = LoadTexture(DATA_DIR "smhouse5.jpg");
-	model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
-
-	Vector3 position = { 0.0f, 0.0f, 0.0f };
+	// PropMesh castle (DATA_DIR "smhouse5.3ds");
+	//
+	// Model & model = castle.model;
+	//
+	// Texture2D texture = LoadTexture(DATA_DIR "smhouse5.jpg");
+	// model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+	//
+	// Vector3 position = { 0.0f, 0.0f, 0.0f };
 
 
 	SetTargetFPS(60);
@@ -179,7 +183,7 @@ int main(void)
 		EndDrawing();
 	}
 
-	UnloadTexture(texture);
+	// UnloadTexture(texture);
 
 	CloseWindow();
 
