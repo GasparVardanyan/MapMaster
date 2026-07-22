@@ -57,7 +57,6 @@ public:
 		ScaleType scale = ScaleDefault <ScaleType>::value;
 
 		std::string diffuseFile;
-		std::string opacityFile;
 	};
 
 	struct Group {

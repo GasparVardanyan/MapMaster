@@ -6,6 +6,7 @@
 # include <execution>
 # include <iostream>
 # include <map>
+# include <memory>
 # include <set>
 # include <string>
 # include <utility>
@@ -19,7 +20,9 @@
 # include <assimp/postprocess.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
+# include <stb_image.h>
 
+# include "Map.hpp"
 # include "PropLibrary.hpp"
 
 void PropResourceManager::addPropLibrary (const PropLibrary & propLibrary) {
@@ -58,8 +61,8 @@ void PropResourceManager::addPropLibrary (PropLibrary && propLibrary) {
 // 	// }
 // }
 
-PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (const std::string & libraryName, const std::string & fileName) {
-	const std::string meshPath = m_propLibraries.at (libraryName).path () + "/" + fileName;
+PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (const std::string & libraryName, const std::string & meshFile) {
+	const std::string meshPath = m_propLibraries.at (libraryName).path () + "/" + meshFile;
 	auto & libraryResources = m_propMeshResources [libraryName];
 
 	Assimp::Importer importer;
@@ -94,7 +97,7 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (co
 	}
 
 	const aiMesh * mesh = scene->mMeshes [0];
-	PropMeshResource resources = libraryResources [fileName];
+	PropMeshResource resources = libraryResources [meshFile];
 
 	aiString diffuseMapUrl;
 	scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
@@ -144,14 +147,8 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (co
 }
 
 void PropResourceManager::loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy) {
-	// struct MeshResourceDescriptor {
-	// 	std::string libraryName;
-	// 	std::string meshFile;
-	// 	bool operator= (const MeshResourceDescriptor & other) const = default;
-	// };
-	//
-	// std::unordered_set <MeshResourceDescriptor> resourcesToLoad;
-	std::set <std::pair <std::string, std::string>> resourceSet;
+	std::set <std::pair <std::string, std::string>> meshDescriptors;
+	std::set <std::pair <std::string, std::string>> textureDescriptors;
 
 	for (const auto & [libraryName, groups] : propHierarchy) {
 		const PropLibrary & library = m_propLibraries.at (libraryName);
@@ -160,11 +157,11 @@ void PropResourceManager::loadResources (const std::map <std::string, std::map <
 			const auto & group = library.groups ().at (groupName);
 
 			for (const std::string & propName : props) {
-				if (true == group.meshes.contains (propName)) {
-					resourceSet.insert ({
+				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
+					meshDescriptors.emplace (
 						libraryName,
-						group.meshes.at (propName).file,
-					});
+						mIt->second.file
+					);
 				}
 				else if (true == group.sprites.contains (propName)) {
 				}
@@ -172,18 +169,221 @@ void PropResourceManager::loadResources (const std::map <std::string, std::map <
 		}
 	}
 
-	std::vector <std::pair <std::string, std::string>> resourcesToLoad (resourceSet.cbegin (), resourceSet.cend ());
+	loadMeshResources (meshDescriptors);
+}
 
+void PropResourceManager::loadMapResources (const Map & map) {
+	std::set <std::pair <std::string, std::string>> meshDescriptors;
+	std::set <std::pair <std::string, std::pair <std::string, std::string>>> textureDescriptors;
+
+	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
+
+	for (const auto & [libraryName, groups] : map.mapObjects ()) {
+		const PropLibrary & library = m_propLibraries.at (libraryName);
+
+		for (const auto & [groupName, props] : groups) {
+			const auto & group = library.groups ().at (groupName);
+
+			for (const auto & [propName, propList] : props) {
+				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
+					meshDescriptors.emplace (
+						libraryName,
+						mIt->second.file
+					);
+
+					for (const auto & prop : propList) {
+						if (false == prop.textureName.empty ()) {
+							std::string diffuseFile = mIt->second.textures.at (prop.textureName);
+							std::string opacityFile;
+
+							if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
+								opacityFile = it->second;
+							}
+							if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+								diffuseFile = it->second;
+							}
+							textureDescriptors.emplace (
+								libraryName,
+								std::pair <std::string, std::string> {diffuseFile, opacityFile}
+							);
+						}
+						else {
+							defaultTextures [libraryName] [groupName].insert (propName);
+						}
+					}
+				}
+				else if (auto sIt = group.sprites.find (propName); group.sprites.end () != sIt) {
+					std::string diffuseFile = sIt->second.diffuseFile;
+					std::string opacityFile;
+
+					if (library.opacityMap().contains (diffuseFile)) {
+						std::cout << "FFFFFFFFFFFFFFFFFFF\n";
+						std::terminate ();
+					}
+
+					if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
+						opacityFile = it->second;
+					}
+					if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+						diffuseFile = it->second;
+					}
+
+					textureDescriptors.emplace (
+						libraryName,
+						std::pair <std::string, std::string> {diffuseFile, opacityFile}
+					);
+				}
+			}
+		}
+	}
+
+	loadMeshResources (meshDescriptors);
+
+	for (const auto & [libraryName, groups] : defaultTextures) {
+		const PropLibrary & library = m_propLibraries.at (libraryName);
+		const auto & libraryMeshResources = m_propMeshResources.at (libraryName);
+
+		for (const auto & [groupName, props] : groups) {
+			const auto & group = library.groups ().at (groupName);
+
+			for (const auto & propName : props) {
+				const auto & prop = group.meshes.at (propName);
+
+				std::string diffuseFile = libraryMeshResources.at (prop.file).textureFile;
+				std::string opacityFile;
+
+				if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
+					opacityFile = it->second;
+				}
+				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+					diffuseFile = it->second;
+				}
+				textureDescriptors.emplace (
+					libraryName,
+					std::pair <std::string, std::string> {diffuseFile, opacityFile}
+				);
+			}
+		}
+	}
+
+	loadTextureResources (textureDescriptors);
+}
+
+PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile) {
+	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
+	// const std::string opacityPath = m_propLibraries.at (libraryName).path ();
+
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+
+    unsigned char *pixels = stbi_load(
+        diffusePath.c_str (),
+        &width,
+        &height,
+        &channels,
+        STBI_rgb_alpha
+    );
+
+	if (width == 0 || height == 0) {
+		std::cout << "ERR\n";
+		std::terminate ();
+	}
+
+  //   if (false == opacityPath.empty ())
+  //   {
+  //       int alphaWidth = 0;
+  //       int alphaHeight = 0;
+  //       int alphaChannels = 0;
+		// std::cout << "ALPHA: " << opacityPath << '\n';
+		//
+  //       unsigned char *alphaPixels = stbi_load(
+  //           opacityPath.c_str (),
+  //           &alphaWidth,
+  //           &alphaHeight,
+  //           &alphaChannels,
+  //           STBI_grey
+  //       );
+		//
+  //       if (alphaPixels == nullptr)
+  //       {
+  //           TraceLog(LOG_WARNING,
+  //                    "STB: failed to load alpha image %s: %s",
+  //                    opacityPath.c_str (),
+  //                    stbi_failure_reason());
+  //       }
+  //       else
+  //       {
+  //           if (alphaWidth != width || alphaHeight != height)
+  //           {
+  //               TraceLog(LOG_WARNING,
+  //                        "STB: alpha image size mismatch (%dx%d vs %dx%d)",
+  //                        alphaWidth, alphaHeight,
+  //                        width, height);
+  //           }
+  //           else
+  //           {
+  //               for (int i = 0; i < width * height; i++)
+  //               {
+  //                   pixels[i * 4 + 3] = alphaPixels[i];
+  //               }
+  //           }
+		//
+  //           stbi_image_free(alphaPixels);
+  //       }
+  //   }
+	return {
+		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
+		.width = width,
+		.height = height,
+		.channels = channels
+	};
+}
+
+void PropResourceManager::loadMeshResources (const std::set <std::pair <std::string, std::string>> & meshDescriptors) {
 	std::vector <PropMeshResource> resources;
-	resources.resize (resourcesToLoad.size ());
+	resources.resize (meshDescriptors.size ());
 
-	std::transform (std::execution::par_unseq, resourcesToLoad.cbegin (), resourcesToLoad.cend (), resources.begin (), [this] (const auto & inf) {
-		return loadMeshResources (inf.first, inf.second);
-	});
+	std::transform (
+		std::execution::par_unseq,
+		meshDescriptors.cbegin (),
+		meshDescriptors.cend (),
+		resources.begin (),
+		[this] (const auto & descriptor) {
+			return loadMeshResources (descriptor.first, descriptor.second);
+		}
+	);
 
-	for (std::size_t rI = 0; rI < resourcesToLoad.size (); rI++) {
-		auto & resourceDescriptor = resourcesToLoad [rI];
-		m_propMeshResources [std::move (resourceDescriptor.first)] [std::move (resourceDescriptor.second)] = std::move (resources [rI]);
+	std::size_t mI = 0;
+
+	for (const auto & descriptor : meshDescriptors) {
+		m_propMeshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
+		mI++;
+	}
+}
+
+void PropResourceManager::loadTextureResources (const std::set <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors) {
+	std::vector <PropTextureResource> resources;
+	resources.resize (textureDescriptors.size ());
+
+	// for (const auto & [libraryName, textureInfo] : textureDescriptors) {
+	// 	std::cout << "L: " << libraryName << ", T: " << textureInfo.first << ", A: " << textureInfo.second << '\n';
+	// }
+
+	std::transform (
+		std::execution::par_unseq,
+		textureDescriptors.cbegin (),
+		textureDescriptors.cend (),
+		resources.begin (),
+		[this] (const auto & descriptor) {
+			return loadTextureResources (descriptor.first, descriptor.second.first, descriptor.second.second);
+		}
+	);
+
+	std::size_t tI = 0;
+	for (const auto & descriptor : textureDescriptors) {
+		m_propTextureResources [descriptor.first] [descriptor.second.first] = std::move (resources [tI]);
+		tI++;
 	}
 }
 
@@ -191,7 +391,26 @@ const std::map <std::string, PropLibrary> & PropResourceManager::propLibraries (
 	return m_propLibraries;
 }
 
-const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource(const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
+const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
 	const std::string & meshFile = m_propLibraries.at (libraryName).groups ().at (groupName).meshes.at (propName).file;
 	return m_propMeshResources.at (libraryName).at (meshFile);
+}
+
+const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const {
+	const PropLibrary & library = m_propLibraries.at (libraryName);
+
+	if (false == textureName.empty ()) {
+		const std::string & textureFile = library.groups ().at (groupName).meshes.at (propMeshName).textures.at (textureName);
+		return m_propTextureResources.at (libraryName).at (library.actualTextureFile (textureFile));
+	}
+	else {
+		const std::string & meshFile = m_propLibraries.at (libraryName).groups ().at (groupName).meshes.at (propMeshName).file;
+		return m_propTextureResources.at (libraryName).at (library.actualTextureFile (m_propMeshResources.at (libraryName).at (meshFile).textureFile));
+	}
+}
+
+const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const {
+	const PropLibrary & library = m_propLibraries.at (libraryName);
+
+	return m_propTextureResources.at (libraryName).at (library.actualTextureFile(library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
 }

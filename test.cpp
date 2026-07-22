@@ -1,6 +1,7 @@
 # include <iostream>
 # define SUPPORT_FILEFORMAT_JPG 1
 
+# include <chrono>
 # include <cmath>
 # include <map>
 # include <string>
@@ -16,14 +17,35 @@
 # include <stb_image.h>
 
 
-Texture2D LoadTextureStb(const std::string & filePath, const std::string & alphaFilePath = "")
+Texture2D LoadTextureStb(const PropResourceManager::PropTextureResource & res) {
+	std::cout << "IW: " << res.width << '\n';
+	std::cout << "IH: " << res.height << '\n';
+
+	if (res.pixBuffer.get () == nullptr) {
+		std::cout << "NPTR\n";
+	}
+
+    Image image = {
+        .data = static_cast <void *> (res.pixBuffer.get ()),
+        .width = res.width,
+        .height = res.height,
+        .mipmaps = 1,
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+    };
+
+    Texture2D texture = LoadTextureFromImage(image);
+
+	return texture;
+}
+
+Texture2D LoadTextureStb(const std::string & diffusePath, const std::string & opacityPath = "")
 {
     int width = 0;
     int height = 0;
     int channels = 0;
 
     unsigned char *pixels = stbi_load(
-        filePath.c_str (),
+        diffusePath.c_str (),
         &width,
         &height,
         &channels,
@@ -33,21 +55,21 @@ Texture2D LoadTextureStb(const std::string & filePath, const std::string & alpha
     if (pixels == nullptr)
     {
         TraceLog(LOG_ERROR, "STB: failed to load image %s: %s",
-                 filePath.c_str (),
+                 diffusePath.c_str (),
                  stbi_failure_reason());
 
         return {};
     }
 
-    if (false == alphaFilePath.empty ())
+    if (false == opacityPath.empty ())
     {
         int alphaWidth = 0;
         int alphaHeight = 0;
         int alphaChannels = 0;
-		std::cout << "ALPHA: " << alphaFilePath << '\n';
+		std::cout << "ALPHA: " << opacityPath << '\n';
 
         unsigned char *alphaPixels = stbi_load(
-            alphaFilePath.c_str (),
+            opacityPath.c_str (),
             &alphaWidth,
             &alphaHeight,
             &alphaChannels,
@@ -58,7 +80,7 @@ Texture2D LoadTextureStb(const std::string & filePath, const std::string & alpha
         {
             TraceLog(LOG_WARNING,
                      "STB: failed to load alpha image %s: %s",
-                     alphaFilePath.c_str (),
+                     opacityPath.c_str (),
                      stbi_failure_reason());
         }
         else
@@ -92,10 +114,14 @@ Texture2D LoadTextureStb(const std::string & filePath, const std::string & alpha
 
     Texture2D texture = LoadTextureFromImage(image);
 
-    stbi_image_free(pixels);
+    stbi_image_free (pixels);
 
     return texture;
 }
+
+
+
+
 
 
 
@@ -115,29 +141,35 @@ int main(void)
 
 	InitWindow(screenWidth, screenHeight, "raylib [models] example - loading");
 
+		auto start = std::chrono::steady_clock::now();
+
+
+
 		Map map;
-		// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+		map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
 		// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
-		map.loadFile(DATA_DIR "map.xml");
+		// map.loadFile(DATA_DIR "map.xml");
 
 		PropResourceManager resManager;
-		std::map <std::string, std::map <std::string, std::vector <std::string>>> propsToLoad;
+		// std::map <std::string, std::map <std::string, std::vector <std::string>>> propsToLoad;
 
 		for (const auto & [libraryName, groups] : map.mapObjects ()) {
 			{
 				PropLibrary library;
-				library.loadDirectory (DATA_DIR "/pl2/" + libraryName);
+				library.loadDirectory (DATA_DIR "propslibs/" + libraryName);
+				// library.loadDirectory (DATA_DIR "/pl2/" + libraryName);
 				resManager.addPropLibrary (std::move (library));
 			}
-			for (const auto & [groupName, props] : groups) {
-				for (const auto & [propName, propInfo] : props) {
-					propsToLoad [libraryName] [groupName].push_back (propName);
-					// resManager.loadResources (libraryName, groupName, propName);
-				}
-			}
+			// for (const auto & [groupName, props] : groups) {
+			// 	for (const auto & [propName, propInfo] : props) {
+			// 		propsToLoad [libraryName] [groupName].push_back (propName);
+			// 		// resManager.loadResources (libraryName, groupName, propName);
+			// 	}
+			// }
 		}
 
-		resManager.loadResources (propsToLoad);
+		resManager.loadMapResources (map);
+		// return 0;
 
 		struct RayMesh {
 			Mesh mesh;
@@ -185,24 +217,24 @@ int main(void)
 				const auto & group = library.groups ().at (groupName);
 				for (const auto & [propName, propInfo] : props) {
 					if (true == group.meshes.contains (propName)) {
-						PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (resManager.getMeshResource (libraryName, groupName, propName));
+						PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resManager.getMeshResource (libraryName, groupName, propName));
 						SceneMesh obj;
 						std::string meshFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
 						if (false == meshes.contains (libraryName) || false == meshes.at (libraryName).contains (meshFile)) {
 							RayMesh & m = meshes [libraryName] [meshFile];
 
-							m.mesh.vertices = res.vertexBuffer.data ();
-							m.mesh.vertexCount = static_cast <int> (res.vertexBuffer.size () / 3);
-							if (false == res.uvBuffer.empty ()) {
-								m.mesh.texcoords = res.uvBuffer.data ();
+							m.mesh.vertices = meshResource.vertexBuffer.data ();
+							m.mesh.vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
+							if (false == meshResource.uvBuffer.empty ()) {
+								m.mesh.texcoords = meshResource.uvBuffer.data ();
 							}
-							if (false == res.normalBuffer.empty ()) {
-								m.mesh.normals = res.normalBuffer.data ();
+							if (false == meshResource.normalBuffer.empty ()) {
+								m.mesh.normals = meshResource.normalBuffer.data ();
 							}
 
-							m.mesh.triangleCount = static_cast <int> (res.indexBuffer.size () / 3);
+							m.mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
 
-							m.mesh.indices = res.indexBuffer.data();
+							m.mesh.indices = meshResource.indexBuffer.data();
 
 							UploadMesh (& m.mesh, false);
 							m.model = LoadModelFromMesh (m.mesh);
@@ -211,23 +243,18 @@ int main(void)
 							std::string textureName = prop.textureName;
 							std::string textureFile;
 							if (true == textureName.empty ()) {
-								textureFile = res.textureFile;
+								textureFile = meshResource.textureFile;
 							}
 							else {
 								textureFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 							}
 
-							std::string old = textureFile;
 							textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
 
 							if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
-								std::string texturePath = library.path () + "/" + textureFile;
-								std::string alpha;
-								if (true == library.opacityMap().contains (old)) {
-									alpha = library.path () + "/" + library.opacityMap().at (old);
-								}
+								const PropResourceManager::PropTextureResource & textureResource = resManager.getTextureResource (libraryName, groupName, propName, textureName);
 								textures [libraryName] [textureFile] = {
-									.texture = LoadTextureStb (texturePath.c_str (), alpha)
+									.texture = LoadTextureStb (textureResource)
 								};
 							}
 
@@ -246,13 +273,9 @@ int main(void)
 						const auto & sprite = group.sprites.at (propName);
 						std::string textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
 						if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
-							std::string texturePath = library.path () + "/" + textureFile;
-							std::string alpha;
-							if (true == library.opacityMap().contains (sprite.diffuseFile)) {
-								alpha = library.path () + "/" + library.opacityMap().at (sprite.diffuseFile);
-							}
+							auto const & res = resManager.getTextureResource (libraryName, groupName, propName);
 							textures [libraryName] [textureFile] = {
-								.texture = LoadTextureStb (texturePath.c_str (), alpha)
+								.texture = LoadTextureStb (res)
 							};
 						}
 						if (false == sprites.contains (libraryName) || false == sprites.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
@@ -275,6 +298,12 @@ int main(void)
 				}
 			}
 		}
+
+		auto end = std::chrono::steady_clock::now();
+
+		std::cout << "Elapsed: "
+			<< std::chrono::duration<double>(end - start).count()
+			<< " s\n";
 
 
 	Camera camera = { 0 };

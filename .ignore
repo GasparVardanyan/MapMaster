@@ -2,3 +2,4 @@ out/**
 .cache/**
 compile_commands.json
 .vim.session
+external/**

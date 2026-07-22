@@ -118,14 +118,6 @@ void PropLibrary::parsePropSprite (pugi::xml_node spriteXml, PropSprite & sprite
 		return static_cast <char> (std::tolower (c));
 	});
 
-	if (true == m_xmlData.opacityMap.contains (sprite.diffuseFile)) {
-		sprite.opacityFile = m_xmlData.opacityMap.at (sprite.diffuseFile);
-	}
-
-	if (true == m_xmlData.diffuseMap.contains (sprite.diffuseFile)) {
-		sprite.diffuseFile = m_xmlData.diffuseMap.at (sprite.diffuseFile);
-	}
-
 	if constexpr (true == std::is_same_v <PropSprite::OriginType, float>) {
 		sprite.originX = spriteXml.attribute ("origin-x").as_float (PropSprite::OriginXDefault <PropSprite::OriginType>::value);
 		sprite.originY = spriteXml.attribute ("origin-y").as_float (PropSprite::OriginYDefault <PropSprite::OriginType>::value);
