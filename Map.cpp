@@ -5,7 +5,7 @@
 # include <string>
 # include <vector>
 
-# include "PropLibrary.hpp"
+# include <pugixml.hpp>
 
 void Map::loadFile (const std::string & path) {
 	pugi::xml_document mapXml;

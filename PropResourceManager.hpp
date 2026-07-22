@@ -33,7 +33,7 @@ public:
 	void addPropLibrary (const PropLibrary & propLibrary);
 	void addPropLibrary (PropLibrary && propLibrary);
 
-	void loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName);
+	// void loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName);
 	void loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy);
 
 	const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;

@@ -9,6 +9,8 @@
 # include <string>
 # include <type_traits>
 
+# include <pugixml.hpp>
+
 void PropLibrary::loadDirectory (const std::string & path) {
 	m_path = path;
 

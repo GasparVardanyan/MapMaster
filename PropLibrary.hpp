@@ -5,7 +5,9 @@
 # include <string>
 # include <type_traits>
 
-# include <pugixml.hpp>
+namespace pugi {
+class xml_document; class xml_node;
+}  // namespace pugi
 
 // cppcheck-suppress-begin unusedStructMember
 class PropLibrary {

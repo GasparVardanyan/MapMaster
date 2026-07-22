@@ -5,7 +5,7 @@
 # include <type_traits>
 # include <vector>
 
-# include <pugixml.hpp>
+namespace pugi { class xml_node; }  // namespace pugi
 
 // cppcheck-suppress-begin unusedStructMember
 class Map {

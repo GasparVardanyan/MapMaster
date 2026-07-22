@@ -1,28 +1,24 @@
 # include "PropResourceManager.hpp"
 
 # include <algorithm>
+# include <cctype>
+# include <cstring>
+# include <execution>
+# include <iostream>
+# include <map>
+# include <set>
+# include <string>
+# include <utility>
+# include <vector>
+
 # include <assimp/Importer.hpp>
 # include <assimp/config.h>
 # include <assimp/material.h>
+# include <assimp/material.inl>
 # include <assimp/mesh.h>
 # include <assimp/postprocess.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
-# include <cctype>
-# include <cstring>
-#include <execution>
-# include <iostream>
-# include <map>
-#include <set>
-# include <string>
-#include <unordered_set>
-# include <utility>
-#include <vector>
-
-
-
-// FIXME: store mesh resources based on mesh files, not prop names
-
 
 # include "PropLibrary.hpp"
 
@@ -41,26 +37,26 @@ void PropResourceManager::addPropLibrary (PropLibrary && propLibrary) {
 	);
 }
 
-void PropResourceManager::loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName) {
-	const auto & library = m_propLibraries.at (libraryName);
-	const auto & group = library.groups ().at (groupName);
-
-
-	// if (true == group.meshes.contains (propName)) {
-	// 	const auto & propMesh = group.meshes.at (propName);
-	// 	auto & libraryResources = m_propMeshResources [libraryName];
-	//
-	// 	if (false == libraryResources.contains (propMesh.file)) {
-	// 		m_propMeshResources [libraryName] [propMesh.file] = loadMeshResources (libraryName, propMesh.file);
-	// 	}
-	//
-	// 	m_propResources [libraryName] [groupName].meshResources [propName] = libraryResources.at (propMesh.file);
-	// }
-	// else if (true == group.sprites.contains (propName)) {
-	// 	PropSpriteResource & resources = m_propResources [libraryName] [groupName].spriteResources [propName];
-	// 	(void) resources;
-	// }
-}
+// void PropResourceManager::loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName) {
+// 	const auto & library = m_propLibraries.at (libraryName);
+// 	const auto & group = library.groups ().at (groupName);
+//
+//
+// 	// if (true == group.meshes.contains (propName)) {
+// 	// 	const auto & propMesh = group.meshes.at (propName);
+// 	// 	auto & libraryResources = m_propMeshResources [libraryName];
+// 	//
+// 	// 	if (false == libraryResources.contains (propMesh.file)) {
+// 	// 		m_propMeshResources [libraryName] [propMesh.file] = loadMeshResources (libraryName, propMesh.file);
+// 	// 	}
+// 	//
+// 	// 	m_propResources [libraryName] [groupName].meshResources [propName] = libraryResources.at (propMesh.file);
+// 	// }
+// 	// else if (true == group.sprites.contains (propName)) {
+// 	// 	PropSpriteResource & resources = m_propResources [libraryName] [groupName].spriteResources [propName];
+// 	// 	(void) resources;
+// 	// }
+// }
 
 PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (const std::string & libraryName, const std::string & fileName) {
 	const std::string meshPath = m_propLibraries.at (libraryName).path () + "/" + fileName;
