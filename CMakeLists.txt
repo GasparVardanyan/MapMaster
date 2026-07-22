@@ -11,9 +11,11 @@ set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
+project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES CXX)
+
 include (/desktop/nvim/cmake/config.cmake OPTRIONAL)
 
-project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES CXX)
+add_subdirectory (external_libraries/stb)
 
 find_package (raylib REQUIRED)
 find_package (assimp REQUIRED)
@@ -31,6 +33,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries (${PROJECT_NAME} raylib)
 target_link_libraries (${PROJECT_NAME} assimp)
 target_link_libraries (${PROJECT_NAME} TBB::tbb)
+target_link_libraries (${PROJECT_NAME} stb)
 
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
 

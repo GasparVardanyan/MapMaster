@@ -1,3 +1,4 @@
+# include <iostream>
 # define SUPPORT_FILEFORMAT_JPG 1
 
 # include <cmath>
@@ -11,6 +12,92 @@
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 # include "PropResourceManager.hpp"
+
+# include <stb_image.h>
+
+
+Texture2D LoadTextureStb(const std::string & filePath, const std::string & alphaFilePath = "")
+{
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+
+    unsigned char *pixels = stbi_load(
+        filePath.c_str (),
+        &width,
+        &height,
+        &channels,
+        STBI_rgb_alpha
+    );
+
+    if (pixels == nullptr)
+    {
+        TraceLog(LOG_ERROR, "STB: failed to load image %s: %s",
+                 filePath.c_str (),
+                 stbi_failure_reason());
+
+        return {};
+    }
+
+    if (false == alphaFilePath.empty ())
+    {
+        int alphaWidth = 0;
+        int alphaHeight = 0;
+        int alphaChannels = 0;
+		std::cout << "ALPHA: " << alphaFilePath << '\n';
+
+        unsigned char *alphaPixels = stbi_load(
+            alphaFilePath.c_str (),
+            &alphaWidth,
+            &alphaHeight,
+            &alphaChannels,
+            STBI_grey
+        );
+
+        if (alphaPixels == nullptr)
+        {
+            TraceLog(LOG_WARNING,
+                     "STB: failed to load alpha image %s: %s",
+                     alphaFilePath.c_str (),
+                     stbi_failure_reason());
+        }
+        else
+        {
+            if (alphaWidth != width || alphaHeight != height)
+            {
+                TraceLog(LOG_WARNING,
+                         "STB: alpha image size mismatch (%dx%d vs %dx%d)",
+                         alphaWidth, alphaHeight,
+                         width, height);
+            }
+            else
+            {
+                for (int i = 0; i < width * height; i++)
+                {
+                    pixels[i * 4 + 3] = alphaPixels[i];
+                }
+            }
+
+            stbi_image_free(alphaPixels);
+        }
+    }
+
+    Image image = {
+        .data = pixels,
+        .width = width,
+        .height = height,
+        .mipmaps = 1,
+        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+    };
+
+    Texture2D texture = LoadTextureFromImage(image);
+
+    stbi_image_free(pixels);
+
+    return texture;
+}
+
+
 
 static constexpr float scale = 0.01F;
 
@@ -30,7 +117,8 @@ int main(void)
 
 		Map map;
 		// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-		map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
+		// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
+		map.loadFile(DATA_DIR "map.xml");
 
 		PropResourceManager resManager;
 		std::map <std::string, std::map <std::string, std::vector <std::string>>> propsToLoad;
@@ -38,7 +126,7 @@ int main(void)
 		for (const auto & [libraryName, groups] : map.mapObjects ()) {
 			{
 				PropLibrary library;
-				library.loadDirectory (DATA_DIR "/propslibs/" + libraryName);
+				library.loadDirectory (DATA_DIR "/pl2/" + libraryName);
 				resManager.addPropLibrary (std::move (library));
 			}
 			for (const auto & [groupName, props] : groups) {
@@ -129,12 +217,17 @@ int main(void)
 								textureFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 							}
 
+							std::string old = textureFile;
 							textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
 
 							if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
 								std::string texturePath = library.path () + "/" + textureFile;
+								std::string alpha;
+								if (true == library.opacityMap().contains (old)) {
+									alpha = library.path () + "/" + library.opacityMap().at (old);
+								}
 								textures [libraryName] [textureFile] = {
-									.texture = LoadTexture (texturePath.c_str ())
+									.texture = LoadTextureStb (texturePath.c_str (), alpha)
 								};
 							}
 
@@ -154,8 +247,12 @@ int main(void)
 						std::string textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
 						if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
 							std::string texturePath = library.path () + "/" + textureFile;
+							std::string alpha;
+							if (true == library.opacityMap().contains (sprite.diffuseFile)) {
+								alpha = library.path () + "/" + library.opacityMap().at (sprite.diffuseFile);
+							}
 							textures [libraryName] [textureFile] = {
-								.texture = LoadTexture (texturePath.c_str ())
+								.texture = LoadTextureStb (texturePath.c_str (), alpha)
 							};
 						}
 						if (false == sprites.contains (libraryName) || false == sprites.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
