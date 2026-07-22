@@ -22,7 +22,8 @@ void Map::loadFile (const std::string & path) {
 void Map::parse (pugi::xml_node map) {
 	const std::string mapVersion = map.attribute ("version").value ();
 
-	if ("1.0.Light" == mapVersion) {
+	// FIXME: implement the other versions
+	if (true || "1.0.Light" == mapVersion) {
 		const pugi::xml_node staticGeometry = map.child ("static-geometry");
 		for (const pugi::xml_node prop : staticGeometry.children ("prop")) {
 			const std::string libraryName = prop.attribute ("library-name").value ();

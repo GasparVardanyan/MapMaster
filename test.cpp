@@ -3,7 +3,6 @@
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
-# include "PropMesh.hpp"
 #include "PropResourceManager.hpp"
 
 #include <map>
@@ -29,7 +28,7 @@ int main(void)
 	InitWindow(screenWidth, screenHeight, "raylib [models] example - loading");
 
 		Map map;
-		map.loadFile(DATA_DIR "map.xml");
+		map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
 
 		PropResourceManager resManager;
 		std::map <std::string, std::map <std::string, std::vector <std::string>>> propsToLoad;
@@ -72,15 +71,15 @@ int main(void)
 
 		std::vector <SceneObject> sceneObjects;
 
-		const auto & resources = resManager.propResources ();
+		const auto & libraries = resManager.propLibraries ();
 
 		for (const auto & [libraryName, groups] : map.mapObjects ()) {
-			const auto & library = resources.at (libraryName);
+			const auto & library = libraries.at (libraryName);
 			for (const auto & [groupName, props] : groups) {
-				const auto & group = library.at (groupName);
+				const auto & group = library.groups ().at (groupName);
 				for (const auto & [propName, propInfo] : props) {
-					if (true == group.meshResources.contains (propName)) {
-						PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (group.meshResources.at (propName));
+					if (true == group.meshes.contains (propName)) {
+						PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (resManager.getMeshResource (libraryName, groupName, propName));
 						SceneObject obj;
 						std::string meshFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
 						if (false == meshes.contains (libraryName) || false == meshes.at (libraryName).contains (meshFile)) {
@@ -106,7 +105,7 @@ int main(void)
 							std::string textureName = prop.textureName;
 							std::string textureFile;
 							if (true == textureName.empty ()) {
-								textureFile = resManager.propResources ().at (libraryName).at (groupName).meshResources.at (propName).textureFile;
+								textureFile = res.textureFile;
 							}
 							else {
 								textureFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
@@ -115,7 +114,7 @@ int main(void)
 							textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
 
 							if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
-								std::string texturePath = DATA_DIR "propslibs/" + libraryName + "/" + textureFile;
+								std::string texturePath = library.path () + "/" + textureFile;
 								textures [libraryName] [textureFile] = {
 									.texture = LoadTexture (texturePath.c_str ())
 								};

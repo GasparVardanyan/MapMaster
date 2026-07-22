@@ -12,10 +12,10 @@
 # include <cstring>
 #include <execution>
 # include <iostream>
-#include <iterator>
 # include <map>
 #include <set>
 # include <string>
+#include <unordered_set>
 # include <utility>
 #include <vector>
 
@@ -46,20 +46,20 @@ void PropResourceManager::loadResources (const std::string & libraryName, const 
 	const auto & group = library.groups ().at (groupName);
 
 
-	if (true == group.meshes.contains (propName)) {
-		const auto & propMesh = group.meshes.at (propName);
-		auto & libraryResources = m_propMeshResources [libraryName];
-
-		if (false == libraryResources.contains (propMesh.file)) {
-			m_propMeshResources [libraryName] [propMesh.file] = loadMeshResources (libraryName, propMesh.file);
-		}
-
-		m_propResources [libraryName] [groupName].meshResources [propName] = libraryResources.at (propMesh.file);
-	}
-	else if (true == group.sprites.contains (propName)) {
-		PropSpriteResource & resources = m_propResources [libraryName] [groupName].spriteResources [propName];
-		(void) resources;
-	}
+	// if (true == group.meshes.contains (propName)) {
+	// 	const auto & propMesh = group.meshes.at (propName);
+	// 	auto & libraryResources = m_propMeshResources [libraryName];
+	//
+	// 	if (false == libraryResources.contains (propMesh.file)) {
+	// 		m_propMeshResources [libraryName] [propMesh.file] = loadMeshResources (libraryName, propMesh.file);
+	// 	}
+	//
+	// 	m_propResources [libraryName] [groupName].meshResources [propName] = libraryResources.at (propMesh.file);
+	// }
+	// else if (true == group.sprites.contains (propName)) {
+	// 	PropSpriteResource & resources = m_propResources [libraryName] [groupName].spriteResources [propName];
+	// 	(void) resources;
+	// }
 }
 
 PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (const std::string & libraryName, const std::string & fileName) {
@@ -147,9 +147,17 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (co
 	return resources;
 }
 
-void PropResourceManager::loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & props) {
-	std::set <std::pair <std::string, std::string>> resToLoad;
-	for (const auto & [libraryName, groups] : props) {
+void PropResourceManager::loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy) {
+	// struct MeshResourceDescriptor {
+	// 	std::string libraryName;
+	// 	std::string meshFile;
+	// 	bool operator= (const MeshResourceDescriptor & other) const = default;
+	// };
+	//
+	// std::unordered_set <MeshResourceDescriptor> resourcesToLoad;
+	std::set <std::pair <std::string, std::string>> resourceSet;
+
+	for (const auto & [libraryName, groups] : propHierarchy) {
 		const PropLibrary & library = m_propLibraries.at (libraryName);
 
 		for (const auto & [groupName, props] : groups) {
@@ -157,51 +165,37 @@ void PropResourceManager::loadResources (const std::map <std::string, std::map <
 
 			for (const std::string & propName : props) {
 				if (true == group.meshes.contains (propName)) {
-					resToLoad.insert ({libraryName, group.meshes.at (propName).file});
+					resourceSet.insert ({
+						libraryName,
+						group.meshes.at (propName).file,
+					});
 				}
 				else if (true == group.sprites.contains (propName)) {
-					(void) m_propResources [libraryName] [groupName];
 				}
 			}
 		}
 	}
 
-	std::vector <std::pair <std::pair <std::string, std::string>, PropMeshResource>> resList;
-	resList.resize (resToLoad.size ());
+	std::vector <std::pair <std::string, std::string>> resourcesToLoad (resourceSet.cbegin (), resourceSet.cend ());
 
-	std::transform (std::execution::par_unseq, resToLoad.cbegin (), resToLoad.cend (), resList.begin (), [this] (const auto & inf) {
-		return std::pair <std::pair <std::string, std::string>, PropMeshResource> (
-			std::pair <std::string, std::string> (inf.first, inf.second),
-			loadMeshResources (inf.first, inf.second)
-		);
+	std::vector <PropMeshResource> resources;
+	resources.resize (resourcesToLoad.size ());
+
+	std::transform (std::execution::par_unseq, resourcesToLoad.cbegin (), resourcesToLoad.cend (), resources.begin (), [this] (const auto & inf) {
+		return loadMeshResources (inf.first, inf.second);
 	});
 
-	for (auto & [lN, mF] : resList) {
-		m_propMeshResources [lN.first] [lN.second] = std::move (mF);
+	for (std::size_t rI = 0; rI < resourcesToLoad.size (); rI++) {
+		auto & resourceDescriptor = resourcesToLoad [rI];
+		m_propMeshResources [std::move (resourceDescriptor.first)] [std::move (resourceDescriptor.second)] = std::move (resources [rI]);
 	}
-
-	for (const auto & [libraryName, groups] : props) {
-		const PropLibrary & library = m_propLibraries.at (libraryName);
-
-		for (const auto & [groupName, props] : groups) {
-			const auto & group = library.groups ().at (groupName);
-
-			for (const std::string & propName : props) {
-				if (true == group.meshes.contains (propName)) {
-					m_propResources [libraryName] [groupName].meshResources [propName] = m_propMeshResources.at (libraryName).at (group.meshes.at (propName).file);
-				}
-				else if (true == group.sprites.contains (propName)) {
-					(void) m_propResources [libraryName] [groupName].spriteResources [propName];
-				}
-			}
-		}
-	}
-}
-
-const std::map <std::string, std::map <std::string, PropResourceManager::Group>> & PropResourceManager::propResources () const {
-	return m_propResources;
 }
 
 const std::map <std::string, PropLibrary> & PropResourceManager::propLibraries () const {
 	return m_propLibraries;
+}
+
+const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource(const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
+	const std::string & meshFile = m_propLibraries.at (libraryName).groups ().at (groupName).meshes.at (propName).file;
+	return m_propMeshResources.at (libraryName).at (meshFile);
 }

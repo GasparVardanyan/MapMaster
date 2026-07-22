@@ -17,6 +17,7 @@ project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES CXX)
 
 find_package (raylib REQUIRED)
 find_package (assimp REQUIRED)
+find_package (TBB REQUIRED)
 
 add_compile_options (-pedantic-errors -Werror=pedantic)
 
@@ -24,12 +25,12 @@ add_executable(${PROJECT_NAME}
 	test.cpp
 	PropLibrary.cpp
 	PropResourceManager.cpp
-	PropMesh.cpp
 	Map.cpp
 )
 
 target_link_libraries (${PROJECT_NAME} raylib)
 target_link_libraries (${PROJECT_NAME} assimp)
+target_link_libraries (${PROJECT_NAME} TBB::tbb)
 
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
 

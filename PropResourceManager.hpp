@@ -29,27 +29,22 @@ public:
 
 	struct PropSpriteResource {};
 
-	struct Group {
-		std::map <std::string, PropMeshResource> meshResources;
-		std::map <std::string, PropSpriteResource> spriteResources;
-	};
-
 public:
 	void addPropLibrary (const PropLibrary & propLibrary);
 	void addPropLibrary (PropLibrary && propLibrary);
 
 	void loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName);
-	void loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & props);
+	void loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy);
+
+	const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
 
 	const std::map <std::string, PropLibrary> & propLibraries () const;
-	const std::map <std::string, std::map <std::string, Group>> & propResources () const;
 
 private:
 	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & fileName);
 
 private:
 	std::map <std::string, PropLibrary> m_propLibraries;
-	std::map <std::string, std::map <std::string, Group>> m_propResources;
 	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
 };
 // cppcheck-suppress-end unusedStructMember
