@@ -140,10 +140,7 @@ int main(void)
 	const int screenHeight = 450;
 
 	InitWindow(screenWidth, screenHeight, "raylib [models] example - loading");
-
 		auto start = std::chrono::steady_clock::now();
-
-
 
 		Map map;
 		map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");

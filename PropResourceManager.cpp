@@ -146,35 +146,39 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (co
 	return resources;
 }
 
-void PropResourceManager::loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy) {
-	std::set <std::pair <std::string, std::string>> meshDescriptors;
-	std::set <std::pair <std::string, std::string>> textureDescriptors;
-
-	for (const auto & [libraryName, groups] : propHierarchy) {
-		const PropLibrary & library = m_propLibraries.at (libraryName);
-
-		for (const auto & [groupName, props] : groups) {
-			const auto & group = library.groups ().at (groupName);
-
-			for (const std::string & propName : props) {
-				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
-					meshDescriptors.emplace (
-						libraryName,
-						mIt->second.file
-					);
-				}
-				else if (true == group.sprites.contains (propName)) {
-				}
-			}
-		}
-	}
-
-	loadMeshResources (meshDescriptors);
-}
+// void PropResourceManager::loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy) {
+// 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
+// 	std::vector <std::pair <std::string, std::string>> textureDescriptors;
+//
+// 	for (const auto & [libraryName, groups] : propHierarchy) {
+// 		const PropLibrary & library = m_propLibraries.at (libraryName);
+//
+// 		for (const auto & [groupName, props] : groups) {
+// 			const auto & group = library.groups ().at (groupName);
+//
+// 			for (const std::string & propName : props) {
+// 				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
+// 					meshDescriptors.emplace_back (
+// 						libraryName,
+// 						mIt->second.file
+// 					);
+// 				}
+// 				else if (true == group.sprites.contains (propName)) {
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
+// 	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
+//
+//
+// 	loadMeshResources (meshDescriptors);
+// }
 
 void PropResourceManager::loadMapResources (const Map & map) {
-	std::set <std::pair <std::string, std::string>> meshDescriptors;
-	std::set <std::pair <std::string, std::pair <std::string, std::string>>> textureDescriptors;
+	std::vector <std::pair <std::string, std::string>> meshDescriptors;
+	std::vector <std::pair <std::string, std::pair <std::string, std::string>>> textureDescriptors;
 
 	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
 
@@ -186,7 +190,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 			for (const auto & [propName, propList] : props) {
 				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
-					meshDescriptors.emplace (
+					meshDescriptors.emplace_back (
 						libraryName,
 						mIt->second.file
 					);
@@ -202,7 +206,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 							if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 								diffuseFile = it->second;
 							}
-							textureDescriptors.emplace (
+							textureDescriptors.emplace_back (
 								libraryName,
 								std::pair <std::string, std::string> {diffuseFile, opacityFile}
 							);
@@ -228,7 +232,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 						diffuseFile = it->second;
 					}
 
-					textureDescriptors.emplace (
+					textureDescriptors.emplace_back (
 						libraryName,
 						std::pair <std::string, std::string> {diffuseFile, opacityFile}
 					);
@@ -236,6 +240,9 @@ void PropResourceManager::loadMapResources (const Map & map) {
 			}
 		}
 	}
+
+	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
+	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
 
 	loadMeshResources (meshDescriptors);
 
@@ -258,13 +265,16 @@ void PropResourceManager::loadMapResources (const Map & map) {
 				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 					diffuseFile = it->second;
 				}
-				textureDescriptors.emplace (
+				textureDescriptors.emplace_back (
 					libraryName,
 					std::pair <std::string, std::string> {diffuseFile, opacityFile}
 				);
 			}
 		}
 	}
+
+	std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
+	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
 
 	loadTextureResources (textureDescriptors);
 }
@@ -340,7 +350,7 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 	};
 }
 
-void PropResourceManager::loadMeshResources (const std::set <std::pair <std::string, std::string>> & meshDescriptors) {
+void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
 	std::vector <PropMeshResource> resources;
 	resources.resize (meshDescriptors.size ());
 
@@ -362,13 +372,9 @@ void PropResourceManager::loadMeshResources (const std::set <std::pair <std::str
 	}
 }
 
-void PropResourceManager::loadTextureResources (const std::set <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors) {
+void PropResourceManager::loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors) {
 	std::vector <PropTextureResource> resources;
 	resources.resize (textureDescriptors.size ());
-
-	// for (const auto & [libraryName, textureInfo] : textureDescriptors) {
-	// 	std::cout << "L: " << libraryName << ", T: " << textureInfo.first << ", A: " << textureInfo.second << '\n';
-	// }
 
 	std::transform (
 		std::execution::par_unseq,

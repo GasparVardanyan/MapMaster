@@ -44,9 +44,9 @@ public:
 
 	// void loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName);
 	void loadMapResources (const Map & map);
-	void loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy);
-	void loadMeshResources (const std::set <std::pair <std::string, std::string>> & meshDescriptors);
-	void loadTextureResources (const std::set <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors);
+	// void loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy);
+	void loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors);
+	void loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors);
 
 	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
