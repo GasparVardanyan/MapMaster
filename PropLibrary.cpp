@@ -22,7 +22,7 @@ void PropLibrary::loadDirectory (const std::string & path) {
 	pugi::xml_parse_result parseResult = libXml.load_file (libXmlPath.c_str ());
 
 	if (pugi::xml_parse_status::status_ok != parseResult.status) {
-		std::cout << "PropLibrary failed to parse " << libXmlPath << ". " << parseResult.description () << ".\n";
+		std::cerr << "PropLibrary failed to parse " << libXmlPath << ". " << parseResult.description () << ".\n";
 		return;
 	}
 
@@ -88,7 +88,10 @@ void PropLibrary::parseGroup (pugi::xml_node groupXml) {
 			);
 		}
 		else {
-			std::cerr << "Unknown prop type\n";
+			std::cerr << "Unknown prop type " << propData.name () << '\n';
+			std::cerr << "group: " << groupXml.attribute ("name").value () << '\n';
+			std::cerr << "prop: " << prop.attribute ("name").value () << '\n';
+			std::cerr << path () << '\n';
 			std::terminate ();
 		}
 	}

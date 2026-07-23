@@ -236,7 +236,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 	}
 }
 
-PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & /*opacityFile*/) {
+PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile) {
 	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
 
 	int width = 0;
@@ -251,48 +251,50 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 		STBI_rgb_alpha
 	);
 
-	// if (false == opacityFile.empty ()) {
-	// 	const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
-	// 	int alphaWidth = 0;
-	// 	int alphaHeight = 0;
-	// 	int alphaChannels = 0;
-	// 	std::cout << "ALPHA: " << opacityPath << '\n';
-	//
-	// 	unsigned char *alphaPixels = stbi_load(
-	// 			opacityPath.c_str (),
-	// 			&alphaWidth,
-	// 			&alphaHeight,
-	// 			&alphaChannels,
-	// 			STBI_grey
-	// 			);
-	//
-	// 	if (alphaPixels == nullptr)
-	// 	{
-	// 		TraceLog(LOG_WARNING,
-	// 				"STB: failed to load alpha image %s: %s",
-	// 				opacityPath.c_str (),
-	// 				stbi_failure_reason());
-	// 	}
-	// 	else
-	// 	{
-	// 		if (alphaWidth != width || alphaHeight != height)
-	// 		{
-	// 			TraceLog(LOG_WARNING,
-	// 					"STB: alpha image size mismatch (%dx%d vs %dx%d)",
-	// 					alphaWidth, alphaHeight,
-	// 					width, height);
-	// 		}
-	// 		else
-	// 		{
-	// 			for (int i = 0; i < width * height; i++)
-	// 			{
-	// 				pixels[i * 4 + 3] = alphaPixels[i];
-	// 			}
-	// 		}
-	//
-	// 		stbi_image_free(alphaPixels);
-	// 	}
-	// }
+	if (false == opacityFile.empty ()) {
+		std::cout << "OPMAPFOUND!!\n";
+		std::terminate ();
+		// const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
+		// int alphaWidth = 0;
+		// int alphaHeight = 0;
+		// int alphaChannels = 0;
+		// std::cout << "ALPHA: " << opacityPath << '\n';
+		//
+		// unsigned char *alphaPixels = stbi_load(
+		// 		opacityPath.c_str (),
+		// 		&alphaWidth,
+		// 		&alphaHeight,
+		// 		&alphaChannels,
+		// 		STBI_grey
+		// 		);
+		//
+		// if (alphaPixels == nullptr)
+		// {
+		// 	TraceLog(LOG_WARNING,
+		// 			"STB: failed to load alpha image %s: %s",
+		// 			opacityPath.c_str (),
+		// 			stbi_failure_reason());
+		// }
+		// else
+		// {
+		// 	if (alphaWidth != width || alphaHeight != height)
+		// 	{
+		// 		TraceLog(LOG_WARNING,
+		// 				"STB: alpha image size mismatch (%dx%d vs %dx%d)",
+		// 				alphaWidth, alphaHeight,
+		// 				width, height);
+		// 	}
+		// 	else
+		// 	{
+		// 		for (int i = 0; i < width * height; i++)
+		// 		{
+		// 			pixels[i * 4 + 3] = alphaPixels[i];
+		// 		}
+		// 	}
+		//
+		// 	stbi_image_free(alphaPixels);
+		// }
+	}
 
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
@@ -385,4 +387,14 @@ const std::map <std::string, std::map <std::string, PropResourceManager::PropMes
 
 const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & PropResourceManager::propTextureResources () const {
 	return m_propTextureResources;
+}
+
+void PropResourceManager::setMeshResourceLoadCallback (const ResourceLoadCallback & callback) {
+	m_meshResourceLoadCallback = callback;
+}
+void PropResourceManager::setTextureResourceLoadCallback (const ResourceLoadCallback & callback) {
+	m_textureResourceLoadCallback = callback;
+}
+void PropResourceManager::setMapResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
+	m_mapResourceLoadCallback = callback;
 }

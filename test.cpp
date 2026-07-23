@@ -39,6 +39,7 @@ int main(void)
 
 	Map map;
 	map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	// map.loadFile(DATA_DIR "finalboss.xml");
 	// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// map.loadFile(DATA_DIR "map.xml");
 
@@ -156,7 +157,6 @@ int main(void)
 
 		BeginMode3D(camera);
 
-		// DrawModel(model, position, 0.05f, WHITE);
 		for (const auto & mesh : sceneMeshes) {
 			auto & model = m_meshResources.at (mesh.library).at (mesh.meshFile).model;
 			auto & texture = m_textureResources.at (mesh.library).at (mesh.textureFile).texture;

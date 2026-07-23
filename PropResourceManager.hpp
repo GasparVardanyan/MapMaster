@@ -68,6 +68,10 @@ public:
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
 
+	void setMeshResourceLoadCallback (const ResourceLoadCallback & callback);
+	void setTextureResourceLoadCallback (const ResourceLoadCallback & callback);
+	void setMapResourcesLoadCallback (const MapResourcesLoadCallback & callback);
+
 private:
 	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & meshFile);
 	PropTextureResource loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile);
