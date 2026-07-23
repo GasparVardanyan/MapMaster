@@ -1,11 +1,8 @@
 # include <iostream>
-#include <memory>
-
-# include "PropRaylibResourceManager.hpp"
+# include <memory>
 
 # define SUPPORT_FILEFORMAT_JPG 1
 
-# include <raylib.h>
 # include <chrono>
 # include <cmath>
 # include <map>
@@ -13,35 +10,14 @@
 # include <utility>
 # include <vector>
 
+# include <raylib.h>
+
 # include "Map.hpp"
 # include "PropLibrary.hpp"
+# include "PropRaylibResourceManager.hpp"
 # include "PropResourceManager.hpp"
 
 
-Texture2D LoadTextureStb(const PropResourceManager::PropTextureResource & res) {
-	std::cout << "IW: " << res.width << '\n';
-	std::cout << "IH: " << res.height << '\n';
-
-	if (res.pixBuffer.get () == nullptr) {
-		std::cout << "NPTR\n";
-	}
-
-    Image image = {
-        .data = static_cast <void *> (res.pixBuffer.get ()),
-        .width = res.width,
-        .height = res.height,
-        .mipmaps = 1,
-        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
-    };
-
-    Texture2D texture = LoadTextureFromImage (image);
-
-	// GenTextureMipmaps(&texture);
-	// SetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
-	// SetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
-
-	return texture;
-}
 
 static constexpr float scale = 0.01F;
 
@@ -57,45 +33,35 @@ int main(void)
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
-	// SetConfigFlags(FLAG_MSAA_4X_HINT);
-	InitWindow(screenWidth, screenHeight, "raylib [models] example - loading");
+	SetConfigFlags (FLAG_MSAA_4X_HINT);
+	InitWindow (screenWidth, screenHeight, "raylib [models] example - loading");
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;
-	map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
+	// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// map.loadFile(DATA_DIR "map.xml");
 
 	PropRaylibResourceManager raylibResManager;
-	PropResourceManager & resManager = raylibResManager.resourceManager ();
+	PropResourceManager & m_resourceManager = raylibResManager.resourceManager ();
 
-	// std::map <std::string, std::map <std::string, std::vector <std::string>>> propsToLoad;
-
-	for (const auto & [libraryName, groups] : map.mapObjects ()) {
+	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
 		raylibResManager.loadLibrary (DATA_DIR "propslibs/" + libraryName);
 	}
 
-	resManager.loadMapResources (map);
+	raylibResManager.loadMapResources (map);
 	// return 0;
 
-	struct RayMesh {
-		Mesh mesh;
-		Model model;
-	};
+	using RaylibMeshResource = PropRaylibResourceManager::RaylibMeshResource;
+	using RaylibTextureResource = PropRaylibResourceManager::RaylibTextureResource;
+	using RaylibSpriteInfo = PropRaylibResourceManager::RaylibSpriteInfo;
 
-	struct RayTexture {
-		Texture2D texture = {};
-	};
+	const std::map <std::string, std::map <std::string, RaylibMeshResource>> & m_meshResources = raylibResManager.meshResources();
+	const std::map <std::string, std::map <std::string, RaylibTextureResource>> & m_textureResources = raylibResManager.textureResources();
+	const std::map <std::string, std::map <std::string, RaylibSpriteInfo>> & m_spriteInfos = raylibResManager.spriteInfos();
 
-	struct RaySprite {
-		PropLibrary::PropSprite::OriginType originX;
-		PropLibrary::PropSprite::OriginType originY;
-		PropLibrary::PropSprite::ScaleType scale;
-	};
 
-	std::map <std::string, std::map <std::string, RayMesh>> meshes;
-	std::map <std::string, std::map <std::string, RayTexture>> textures;
-	std::map <std::string, std::map <std::string, RaySprite>> sprites;
+	const auto & libraries = m_resourceManager.propLibraries ();
 
 	struct SceneMesh {
 		Vector3 position = {};
@@ -109,14 +75,11 @@ int main(void)
 
 	struct SceneSprite {
 		Vector3 position = {};
-		Vector3 rotation = {};
 		std::string library;
 		std::string textureFile; // FIXME: use propName
 	};
 
 	std::vector <SceneSprite> sceneSprites;
-
-	const auto & libraries = resManager.propLibraries ();
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const auto & library = libraries.at (libraryName);
@@ -124,28 +87,9 @@ int main(void)
 			const auto & group = library.groups ().at (groupName);
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
-					PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resManager.getMeshResource (libraryName, groupName, propName));
-					SceneMesh obj;
-					std::string meshFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
-					if (false == meshes.contains (libraryName) || false == meshes.at (libraryName).contains (meshFile)) {
-						RayMesh & m = meshes [libraryName] [meshFile];
+					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.getMeshResource (libraryName, groupName, propName));
+					const std::string meshFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
 
-						m.mesh.vertices = meshResource.vertexBuffer.data ();
-						m.mesh.vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
-						if (false == meshResource.uvBuffer.empty ()) {
-							m.mesh.texcoords = meshResource.uvBuffer.data ();
-						}
-						if (false == meshResource.normalBuffer.empty ()) {
-							m.mesh.normals = meshResource.normalBuffer.data ();
-						}
-
-						m.mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
-
-						m.mesh.indices = meshResource.indexBuffer.data();
-
-						UploadMesh (& m.mesh, false);
-						m.model = LoadModelFromMesh (m.mesh);
-					}
 					for (const auto & prop : propInfo) {
 						std::string textureName = prop.textureName;
 						std::string textureFile;
@@ -153,51 +97,28 @@ int main(void)
 							textureFile = meshResource.textureFile;
 						}
 						else {
-							textureFile = resManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
+							textureFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 						}
 
-						textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
-
-						if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
-							const PropResourceManager::PropTextureResource & textureResource = resManager.getTextureResource (libraryName, groupName, propName, textureName);
-							textures [libraryName] [textureFile] = {
-								.texture = LoadTextureStb (textureResource)
-							};
-						}
+						textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
 
 						sceneMeshes.push_back ({
 							.library = libraryName,
 							.meshFile = meshFile,
 							.textureFile = textureFile,
 							.position = {scale * static_cast<float>(prop.positionX), scale * static_cast<float>(prop.positionY), scale * static_cast<float>(prop.positionZ)},
-							.rotation = {0, 0, static_cast<float>(prop.rotationZ)}
+							.rotation = {0, 0, static_cast<float>(prop.rotationZ * 180 / M_PI)}
 						});
 					}
-
-					// if (false == textures.contains (library) || false == textures.at (libraryName).contains ())
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = resManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
-					if (false == textures.contains (libraryName) || false == textures.at (libraryName).contains (textureFile)) {
-						auto const & res = resManager.getTextureResource (libraryName, groupName, propName);
-						textures [libraryName] [textureFile] = {
-							.texture = LoadTextureStb (res)
-						};
-					}
-					if (false == sprites.contains (libraryName) || false == sprites.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
-						sprites [libraryName] [textureFile] = {
-							.originX = sprite.originX,
-							.originY = sprite.originY,
-							.scale = sprite.scale
-						};
-					}
+					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
 
 					for (const auto & prop : propInfo) {
 						sceneSprites.push_back ({
 							.library = libraryName,
 							.position = {scale * static_cast<float>(prop.positionX), scale * static_cast<float>(prop.positionY), scale * static_cast<float>(prop.positionZ)},
-							.rotation = {0, 0, static_cast<float>(prop.rotationZ)},
 							.textureFile = textureFile
 						});
 					}
@@ -237,26 +158,25 @@ int main(void)
 
 		// DrawModel(model, position, 0.05f, WHITE);
 		for (const auto & mesh : sceneMeshes) {
-			auto & model = meshes.at (mesh.library).at (mesh.meshFile).model;
-			auto & texture = textures.at (mesh.library).at (mesh.textureFile).texture;
+			auto & model = m_meshResources.at (mesh.library).at (mesh.meshFile).model;
+			auto & texture = m_textureResources.at (mesh.library).at (mesh.textureFile).texture;
 			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
-			DrawModelEx(model, mesh.position, {0, 0, 1}, mesh.rotation.z * 180 / M_PI, {scale, scale, scale}, WHITE);
+			DrawModelEx(model, mesh.position, {0, 0, 1}, mesh.rotation.z, {scale, scale, scale}, WHITE);
 		}
 
 		for (const auto & sprite : sceneSprites) {
-			auto & texture = textures.at (sprite.library).at (sprite.textureFile).texture;
-			auto & spdata = sprites.at (sprite.library).at (sprite.textureFile);
+			auto & texture = m_textureResources.at (sprite.library).at (sprite.textureFile).texture;
+			auto & spdata = m_spriteInfos.at (sprite.library).at (sprite.textureFile);
 			// DrawTexturePro(Texture2D texture, Rectangle srcrec, Rectangle dstrec, Vector2 origin, float rotation, Color tint) -> void
 
-			Vector2 size = {static_cast <float> (texture.width * spdata.scale * scale), static_cast <float> (texture.height * spdata.scale * scale)};
 			DrawBillboardPro (
 				camera,
-				textures.at (sprite.library).at (sprite.textureFile).texture,
+				m_textureResources.at (sprite.library).at (sprite.textureFile).texture,
 				{0, 0, static_cast <float> (texture.width), static_cast <float> (texture.height)},
 				sprite.position,
 				{0, 0, 1},
-				size,
-				{static_cast <float> (spdata.originX) * size.x, (1 - static_cast <float> (spdata.originY)) * size.y},
+				spdata.size,
+				spdata.origin,
 				0,
 				WHITE
 			);

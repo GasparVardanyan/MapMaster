@@ -88,7 +88,7 @@ void PropLibrary::parseGroup (pugi::xml_node groupXml) {
 			);
 		}
 		else {
-			std::cout << "Unknown prop type\n";
+			std::cerr << "Unknown prop type\n";
 			std::terminate ();
 		}
 	}

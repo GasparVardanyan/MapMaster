@@ -43,7 +43,7 @@ void PropResourceManager::addPropLibrary (PropLibrary && propLibrary) {
 
 PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (const std::string & libraryName, const std::string & meshFile) {
 	const std::string meshPath = m_propLibraries.at (libraryName).path () + "/" + meshFile;
-	auto & libraryResources = m_propMeshResources [libraryName];
+	std::map <std::string, PropMeshResource> & libraryResources = m_propMeshResources [libraryName];
 
 	Assimp::Importer importer;
 	importer.SetPropertyInteger (
@@ -133,22 +133,23 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
 
-	for (const auto & [libraryName, groups] : map.mapObjects ()) {
+	for (const auto & [libraryName, groupNames] : map.mapObjects ()) {
 		const PropLibrary & library = m_propLibraries.at (libraryName);
+		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
 
-		for (const auto & [groupName, props] : groups) {
-			const auto & group = library.groups ().at (groupName);
+		for (const auto & [groupName, propNames] : groupNames) {
+			const PropLibrary::Group & group = groups.at (groupName);
 
-			for (const auto & [propName, propList] : props) {
+			for (const auto & [propName, propList] : propNames) {
 				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
 					meshDescriptors.emplace_back (
 						libraryName,
 						mIt->second.file
 					);
 
-					for (const auto & prop : propList) {
-						if (false == prop.textureName.empty ()) {
-							std::string diffuseFile = mIt->second.textures.at (prop.textureName);
+					for (const Map::MapObject & propObject : propList) {
+						if (false == propObject.textureName.empty ()) {
+							std::string diffuseFile = mIt->second.textures.at (propObject.textureName);
 							std::string opacityFile;
 
 							if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
@@ -197,15 +198,16 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 	loadMeshResources (meshDescriptors);
 
-	for (const auto & [libraryName, groups] : defaultTextures) {
+	for (const auto & [libraryName, groupData] : defaultTextures) {
 		const PropLibrary & library = m_propLibraries.at (libraryName);
-		const auto & libraryMeshResources = m_propMeshResources.at (libraryName);
+		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
+		const std::map <std::string, PropMeshResource> & libraryMeshResources = m_propMeshResources.at (libraryName);
 
-		for (const auto & [groupName, props] : groups) {
-			const auto & group = library.groups ().at (groupName);
+		for (const auto & [groupName, props] : groupData) {
+			const PropLibrary::Group & group = groups.at (groupName);
 
-			for (const auto & propName : props) {
-				const auto & prop = group.meshes.at (propName);
+			for (const std::string & propName : props) {
+				const PropLibrary::PropMesh & prop = group.meshes.at (propName);
 
 				std::string diffuseFile = libraryMeshResources.at (prop.file).textureFile;
 				std::string opacityFile;
@@ -305,14 +307,14 @@ void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::
 		meshDescriptors.cbegin (),
 		meshDescriptors.cend (),
 		resources.begin (),
-		[this] (const auto & descriptor) {
+		[this] (const std::pair <std::string, std::string> & descriptor) {
 			return loadMeshResources (descriptor.first, descriptor.second);
 		}
 	);
 
 	std::size_t mI = 0;
 
-	for (const auto & descriptor : meshDescriptors) {
+	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
 		m_propMeshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
 		mI++;
 	}
@@ -327,13 +329,13 @@ void PropResourceManager::loadTextureResources (const std::vector <std::pair <st
 		textureDescriptors.cbegin (),
 		textureDescriptors.cend (),
 		resources.begin (),
-		[this] (const auto & descriptor) {
+		[this] (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor) {
 			return loadTextureResources (descriptor.first, descriptor.second.first, descriptor.second.second);
 		}
 	);
 
 	std::size_t tI = 0;
-	for (const auto & descriptor : textureDescriptors) {
+	for (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor : textureDescriptors) {
 		m_propTextureResources [descriptor.first] [descriptor.second.first] = std::move (resources [tI]);
 		tI++;
 	}
