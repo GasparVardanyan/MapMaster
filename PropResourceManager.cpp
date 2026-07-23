@@ -235,17 +235,17 @@ void PropResourceManager::loadMapResources (const Map & map) {
 PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile) {
 	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
 
-    int width = 0;
-    int height = 0;
-    int channels = 0;
+	int width = 0;
+	int height = 0;
+	int channels = 0;
 
-    unsigned char * pixels = stbi_load (
-        diffusePath.c_str (),
-        &width,
-        &height,
-        &channels,
-        STBI_rgb_alpha
-    );
+	unsigned char * pixels = stbi_load (
+		diffusePath.c_str (),
+		&width,
+		&height,
+		&channels,
+		STBI_rgb_alpha
+	);
 
 	// if (false == opacityFile.empty ()) {
 	// 	const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
@@ -367,4 +367,12 @@ const PropResourceManager::PropTextureResource & PropResourceManager::getTexture
 	const PropLibrary & library = m_propLibraries.at (libraryName);
 
 	return m_propTextureResources.at (libraryName).at (library.actualTextureFile(library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
+}
+
+const std::map <std::string, std::map <std::string, PropResourceManager::PropMeshResource>> & PropResourceManager::propMeshResources () const {
+	return m_propMeshResources;
+}
+
+const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & PropResourceManager::propTextureResources () const {
+	return m_propTextureResources;
 }

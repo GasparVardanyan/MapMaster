@@ -38,8 +38,8 @@ int main(void)
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;
-	// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
+	map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// map.loadFile(DATA_DIR "map.xml");
 
 	PropRaylibResourceManager raylibResManager;

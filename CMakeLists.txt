@@ -43,14 +43,14 @@ target_link_libraries (${PROJECT_NAME} stb)
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
 
 target_compile_options (${PROJECT_NAME} PRIVATE
-    $<$<CONFIG:Release>:-O3>
-    $<$<CONFIG:Release>:-march=native>
-    $<$<CONFIG:Release>:-mtune=native>
-    $<$<CONFIG:Release>:-flto>
+	$<$<CONFIG:Release>:-O3>
+	$<$<CONFIG:Release>:-march=native>
+	$<$<CONFIG:Release>:-mtune=native>
+	$<$<CONFIG:Release>:-flto>
 )
 
 target_link_options (${PROJECT_NAME} PRIVATE
-    $<$<CONFIG:Release>:-flto>
+	$<$<CONFIG:Release>:-flto>
 )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

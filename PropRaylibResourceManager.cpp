@@ -4,27 +4,13 @@
 # include <string>
 # include <utility>
 
+# include <raylib.h>
+
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 # include "PropResourceManager.hpp"
 
-Texture2D LoadTextureStb(const PropResourceManager::PropTextureResource & res) {
 
-    Image image = {
-        .data = static_cast <void *> (res.pixBuffer.get ()),
-        .width = res.width,
-        .height = res.height,
-        .mipmaps = 1,
-        .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
-    };
-
-    Texture2D texture = LoadTextureFromImage (image);
-
-	GenTextureMipmaps(&texture);
-	SetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
-
-	return texture;
-}
 
 static constexpr float scale = 0.01F;
 
@@ -49,6 +35,9 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 
 	const auto & libraries = m_resourceManager.propLibraries ();
 
+	std::vector <std::pair <std::string, std::string>> meshDescriptors;
+	std::vector <std::pair <std::string, std::string>> textureDescriptors;
+
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const auto & library = libraries.at (libraryName);
 		for (const auto & [groupName, props] : groups) {
@@ -57,24 +46,9 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 				if (true == group.meshes.contains (propName)) {
 					PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.getMeshResource (libraryName, groupName, propName));
 					std::string meshFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
+
 					if (false == m_meshResources.contains (libraryName) || false == m_meshResources.at (libraryName).contains (meshFile)) {
-						RaylibMeshResource & m = m_meshResources [libraryName] [meshFile];
-
-						m.mesh.vertices = meshResource.vertexBuffer.data ();
-						m.mesh.vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
-						if (false == meshResource.uvBuffer.empty ()) {
-							m.mesh.texcoords = meshResource.uvBuffer.data ();
-						}
-						if (false == meshResource.normalBuffer.empty ()) {
-							m.mesh.normals = meshResource.normalBuffer.data ();
-						}
-
-						m.mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
-
-						m.mesh.indices = meshResource.indexBuffer.data();
-
-						UploadMesh (& m.mesh, false);
-						m.model = LoadModelFromMesh (m.mesh);
+						m_meshResources [libraryName] [meshFile] = loadMeshResources (meshResource);
 					}
 					for (const auto & prop : propInfo) {
 						std::string textureName = prop.textureName;
@@ -90,41 +64,49 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 
 						if (false == m_textureResources.contains (libraryName) || false == m_textureResources.at (libraryName).contains (textureFile)) {
 							const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.getTextureResource (libraryName, groupName, propName, textureName);
-							m_textureResources [libraryName] [textureFile] = {
-								.texture = LoadTextureStb (textureResource)
-							};
+							m_textureResources [libraryName] [textureFile] = loadTextureResources (textureResource);
 						}
 					}
-
-					// if (false == textures.contains (library) || false == textures.at (libraryName).contains ())
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
 					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
 					if (false == m_textureResources.contains (libraryName) || false == m_textureResources.at (libraryName).contains (textureFile)) {
 						auto const & res = m_resourceManager.getTextureResource (libraryName, groupName, propName);
-						m_textureResources [libraryName] [textureFile] = {
-							.texture = LoadTextureStb (res)
-						};
+						m_textureResources [libraryName] [textureFile] = loadTextureResources (res);
 					}
 
 					const RaylibTextureResource & textureResource = m_textureResources [libraryName] [textureFile];
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 						const Vector2 size = {
-							static_cast <float> (textureResource.texture.width * sprite.scale * scale),
-							static_cast <float> (textureResource.texture.height * sprite.scale * scale),
+							.x = static_cast <float> (textureResource.texture.width * sprite.scale * scale),
+							.y = static_cast <float> (textureResource.texture.height * sprite.scale * scale),
 						};
 
 						m_spriteInfos [libraryName] [textureFile] = {
 							.origin = {
-								static_cast <float> (sprite.originX * size.x),
-								static_cast <float> ((1 - sprite.originY) * size.y),
+								.x = static_cast <float> (sprite.originX * size.x),
+								.y = static_cast <float> ((1 - sprite.originY) * size.y),
 							},
 							.size = size,
 						};
 					}
 				}
 			}
+		}
+	}
+
+	for (auto & [libraryName, textureFiles] : m_textureResources) {
+		for (auto & [textureFile, textureResource] : textureFiles) {
+			GenTextureMipmaps (&textureResource.texture);
+			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
+		}
+	}
+
+	for (auto & [libraryName, meshFiles] : m_meshResources) {
+		for (auto & [meshFile, meshResource] : meshFiles) {
+			UploadMesh (& meshResource.mesh, false);
+			meshResource.model = LoadModelFromMesh (meshResource.mesh);
 		}
 	}
 }
@@ -139,4 +121,39 @@ const std::map <std::string, std::map <std::string, PropRaylibResourceManager::R
 
 const std::map <std::string, std::map <std::string, PropRaylibResourceManager::RaylibSpriteInfo>> & PropRaylibResourceManager::spriteInfos () const {
 	return m_spriteInfos;
+}
+
+PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMeshResources (PropResourceManager::PropMeshResource & meshResource) {
+	RaylibMeshResource m = {};
+
+	m.mesh.vertices = meshResource.vertexBuffer.data ();
+	m.mesh.vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
+	if (false == meshResource.uvBuffer.empty ()) {
+		m.mesh.texcoords = meshResource.uvBuffer.data ();
+	}
+	if (false == meshResource.normalBuffer.empty ()) {
+		m.mesh.normals = meshResource.normalBuffer.data ();
+	}
+
+	m.mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
+
+	m.mesh.indices = meshResource.indexBuffer.data();
+
+	return m;
+}
+
+PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::loadTextureResources (const PropResourceManager::PropTextureResource & textureResource) {
+	Image image = {
+		.data = static_cast <void *> (textureResource.pixBuffer.get ()),
+		.width = textureResource.width,
+		.height = textureResource.height,
+		.mipmaps = 1,
+		.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+	};
+
+	Texture2D texture = LoadTextureFromImage (image);
+
+	return {
+		.texture = texture
+	};
 }

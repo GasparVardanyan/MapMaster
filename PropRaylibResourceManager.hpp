@@ -35,6 +35,10 @@ public:
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibSpriteInfo>> & spriteInfos () const;
 
 private:
+	RaylibMeshResource loadMeshResources (PropResourceManager::PropMeshResource & meshResource);
+	RaylibTextureResource loadTextureResources (const PropResourceManager::PropTextureResource & textureResource);
+
+private:
 	PropResourceManager m_resourceManager;
 	std::string m_libraryRootDir;
 

@@ -61,6 +61,8 @@ public:
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
 	[[nodiscard]] const std::map <std::string, PropLibrary> & propLibraries () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
 
 private:
 	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & meshFile);
