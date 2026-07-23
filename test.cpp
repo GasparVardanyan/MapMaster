@@ -157,6 +157,11 @@ int main(void)
 
 		BeginMode3D(camera);
 
+		// NOTE: remember this for prop selection with mouse:
+		// prop can be selected with raycast, then in the next rendering
+		// step of this loop we can identify that props's proplib parameters
+		// checking all props against the raycast
+
 		for (const auto & mesh : sceneMeshes) {
 			auto & model = m_meshResources.at (mesh.library).at (mesh.meshFile).model;
 			auto & texture = m_textureResources.at (mesh.library).at (mesh.textureFile).texture;

@@ -70,7 +70,8 @@ public:
 
 	void setMeshResourceLoadCallback (const ResourceLoadCallback & callback);
 	void setTextureResourceLoadCallback (const ResourceLoadCallback & callback);
-	void setMapResourcesLoadCallback (const MapResourcesLoadCallback & callback);
+	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
+	void setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 
 private:
 	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & meshFile);
@@ -83,6 +84,7 @@ private:
 
 	ResourceLoadCallback m_meshResourceLoadCallback = nullptr;
 	ResourceLoadCallback m_textureResourceLoadCallback = nullptr;
-	MapResourcesLoadCallback m_mapResourceLoadCallback = nullptr;
+	MapResourcesLoadCallback m_mapMeshResourcesLoadCallback = nullptr;
+	MapResourcesLoadCallback m_mapTextureResourcesLoadCallback = nullptr;
 };
 // cppcheck-suppress-end unusedStructMember

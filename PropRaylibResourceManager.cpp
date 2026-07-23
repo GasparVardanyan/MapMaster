@@ -3,8 +3,13 @@
 # include <algorithm>
 # include <cstddef>
 # include <execution>
+# include <iostream>
 # include <map>
+# include <mutex>
+# include <queue>
 # include <string>
+# include <syncstream>
+# include <thread>
 # include <utility>
 # include <vector>
 
@@ -35,7 +40,28 @@ void PropRaylibResourceManager::loadMapLibraries (const Map & map, const std::st
 }
 
 void PropRaylibResourceManager::loadMapResources (const Map & map) {
-	m_resourceManager.loadMapResources (map);
+	std::queue <std::pair <std::string, std::string>> meshQueue;
+	std::queue <std::pair <std::string, std::string>> textureQueue;
+
+	m_resourceManager.setMeshResourceLoadCallback ([this] (const std::string & libraryName, const std::string & meshFile) -> void {
+		// std::osyncstream (std::cout) << "MESH LOADED: " << libraryName << " : " << meshFile << '\n';
+
+		PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
+		m_meshResources [libraryName] [meshFile] = loadMeshResources (res);
+	});
+
+	m_resourceManager.setTextureResourceLoadCallback ([this] (const std::string & libraryName, const std::string & textureFile) -> void {
+		// std::osyncstream (std::cout) << "TEXTURE LOADED: " << libraryName << " : " << textureFile << '\n';
+
+		const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
+		m_textureResources [libraryName] [textureFile] = loadTextureResources (res);
+	});
+
+	std::thread resLoaderThread ([this, & map] () -> void {
+		m_resourceManager.loadMapResources (map);
+	});
+
+	resLoaderThread.join ();
 
 	const auto & libraries = m_resourceManager.propLibraries ();
 
@@ -95,26 +121,26 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		}
 	}
 
-	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
-	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
-	std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
-	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
+	// std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
+	// meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
+	// std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
+	// textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
+	//
+	// loadMeshResources (meshDescriptors);
+	// loadTextureResources (textureDescriptors);
 
-	loadMeshResources (meshDescriptors);
-	loadTextureResources (textureDescriptors);
-
-	for (const auto & [libraryName, groups] : map.mapObjects ()) {
-		const auto & library = libraries.at (libraryName);
-		for (const auto & [groupName, props] : groups) {
-			const auto & group = library.groups ().at (groupName);
-			for (const auto & [propName, propInfo] : props) {
-				if (true == group.meshes.contains (propName)) {
-				}
-				else if (true == group.sprites.contains (propName)) {
-				}
-			}
-		}
-	}
+	// for (const auto & [libraryName, groups] : map.mapObjects ()) {
+	// 	const auto & library = libraries.at (libraryName);
+	// 	for (const auto & [groupName, props] : groups) {
+	// 		const auto & group = library.groups ().at (groupName);
+	// 		for (const auto & [propName, propInfo] : props) {
+	// 			if (true == group.meshes.contains (propName)) {
+	// 			}
+	// 			else if (true == group.sprites.contains (propName)) {
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	for (auto & [libraryName, textureFiles] : m_textureResources) {
 		for (auto & [textureFile, textureResource] : textureFiles) {

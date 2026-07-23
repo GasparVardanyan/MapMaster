@@ -198,6 +198,10 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 	loadMeshResources (meshDescriptors);
 
+	if (nullptr != m_mapMeshResourcesLoadCallback) {
+		m_mapMeshResourcesLoadCallback ();
+	}
+
 	for (const auto & [libraryName, groupData] : defaultTextures) {
 		const PropLibrary & library = m_propLibraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
@@ -231,8 +235,8 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 	loadTextureResources (textureDescriptors);
 
-	if (nullptr != m_mapResourceLoadCallback) {
-		m_mapResourceLoadCallback ();
+	if (nullptr != m_mapTextureResourcesLoadCallback) {
+		m_mapTextureResourcesLoadCallback ();
 	}
 }
 
@@ -395,6 +399,11 @@ void PropResourceManager::setMeshResourceLoadCallback (const ResourceLoadCallbac
 void PropResourceManager::setTextureResourceLoadCallback (const ResourceLoadCallback & callback) {
 	m_textureResourceLoadCallback = callback;
 }
-void PropResourceManager::setMapResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
-	m_mapResourceLoadCallback = callback;
+
+void PropResourceManager::setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
+	m_mapMeshResourcesLoadCallback = callback;
+}
+
+void PropResourceManager::setMapTextureResourcesLoadCallback(const MapResourcesLoadCallback & callback) {
+	m_mapTextureResourcesLoadCallback = callback;
 }
