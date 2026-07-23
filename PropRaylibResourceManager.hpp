@@ -4,6 +4,8 @@
 # include <string>
 
 # include <raylib.h>
+# include <utility>
+# include <vector>
 
 # include "Map.hpp"
 # include "PropResourceManager.hpp"
@@ -16,7 +18,8 @@ public:
 	};
 
 	struct RaylibTextureResource {
-		Texture2D texture = {};
+		Image image;
+		Texture2D texture;
 	};
 
 	struct RaylibSpriteInfo {
@@ -29,6 +32,20 @@ public:
 	void loadLibrary (const std::string & path);
 	void loadMapLibraries (const Map & map, const std::string & libraryRootDir);
 	void loadMapResources (const Map & map);
+
+	/**
+	 * @brief load and parse mesh files
+	 *
+	 * @param meshDescriptors {{libraryName, meshFileName}, ...}
+	 */
+	void loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors);
+
+	/**
+	 * @brief load and parse texture files
+	 *
+	 * @param textureDescriptors {{libraryName, {diffuseFileName, opacityFileName}}}
+	 */
+	void loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors);
 
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibMeshResource>> & meshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibTextureResource>> & textureResources () const;
