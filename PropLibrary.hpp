@@ -66,8 +66,8 @@ public:
 
 public:
 	void loadDirectory (const std::string & path);
-	std::string actualTextureFile (const std::string & oldFile) const;
 
+	[[nodiscard]] std::string actualTextureFile (const std::string & oldFile) const;
 	[[nodiscard]] const std::string & name () const;
 	[[nodiscard]] const std::map <std::string, std::string> & diffuseMap () const;
 	[[nodiscard]] const std::map <std::string, std::string> & opacityMap () const;

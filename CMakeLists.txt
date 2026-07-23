@@ -23,10 +23,15 @@ find_package (TBB REQUIRED)
 
 add_compile_options (-pedantic-errors -Werror=pedantic)
 
-add_executable(${PROJECT_NAME}
+add_executable (${PROJECT_NAME}
 	test.cpp
+	PropLibrary.hpp
 	PropLibrary.cpp
+	PropResourceManager.hpp
 	PropResourceManager.cpp
+	PropRaylibResourceManager.hpp
+	PropRaylibResourceManager.cpp
+	Map.hpp
 	Map.cpp
 )
 
@@ -36,6 +41,17 @@ target_link_libraries (${PROJECT_NAME} TBB::tbb)
 target_link_libraries (${PROJECT_NAME} stb)
 
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
+
+target_compile_options (${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Release>:-O3>
+    $<$<CONFIG:Release>:-march=native>
+    $<$<CONFIG:Release>:-mtune=native>
+    $<$<CONFIG:Release>:-flto>
+)
+
+target_link_options (${PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Release>:-flto>
+)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

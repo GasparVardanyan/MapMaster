@@ -3,6 +3,7 @@
 # include <algorithm>
 # include <cctype>
 # include <cstring>
+# include <exception>
 # include <execution>
 # include <iostream>
 # include <map>
@@ -40,27 +41,6 @@ void PropResourceManager::addPropLibrary (PropLibrary && propLibrary) {
 	);
 }
 
-// void PropResourceManager::loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName) {
-// 	const auto & library = m_propLibraries.at (libraryName);
-// 	const auto & group = library.groups ().at (groupName);
-//
-//
-// 	// if (true == group.meshes.contains (propName)) {
-// 	// 	const auto & propMesh = group.meshes.at (propName);
-// 	// 	auto & libraryResources = m_propMeshResources [libraryName];
-// 	//
-// 	// 	if (false == libraryResources.contains (propMesh.file)) {
-// 	// 		m_propMeshResources [libraryName] [propMesh.file] = loadMeshResources (libraryName, propMesh.file);
-// 	// 	}
-// 	//
-// 	// 	m_propResources [libraryName] [groupName].meshResources [propName] = libraryResources.at (propMesh.file);
-// 	// }
-// 	// else if (true == group.sprites.contains (propName)) {
-// 	// 	PropSpriteResource & resources = m_propResources [libraryName] [groupName].spriteResources [propName];
-// 	// 	(void) resources;
-// 	// }
-// }
-
 PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (const std::string & libraryName, const std::string & meshFile) {
 	const std::string meshPath = m_propLibraries.at (libraryName).path () + "/" + meshFile;
 	auto & libraryResources = m_propMeshResources [libraryName];
@@ -92,7 +72,8 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (co
 		});
 
 		if (0 == std::strcmp (meshName.c_str (), "occl")) {
-			std::cout << "Found occluder" << '\n';
+			std::cerr << "Found occluder! Unhandled!!" << '\n';
+			std::terminate ();
 		}
 	}
 
@@ -146,36 +127,6 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResources (co
 	return resources;
 }
 
-// void PropResourceManager::loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy) {
-// 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
-// 	std::vector <std::pair <std::string, std::string>> textureDescriptors;
-//
-// 	for (const auto & [libraryName, groups] : propHierarchy) {
-// 		const PropLibrary & library = m_propLibraries.at (libraryName);
-//
-// 		for (const auto & [groupName, props] : groups) {
-// 			const auto & group = library.groups ().at (groupName);
-//
-// 			for (const std::string & propName : props) {
-// 				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
-// 					meshDescriptors.emplace_back (
-// 						libraryName,
-// 						mIt->second.file
-// 					);
-// 				}
-// 				else if (true == group.sprites.contains (propName)) {
-// 				}
-// 			}
-// 		}
-// 	}
-//
-// 	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
-// 	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
-//
-//
-// 	loadMeshResources (meshDescriptors);
-// }
-
 void PropResourceManager::loadMapResources (const Map & map) {
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
 	std::vector <std::pair <std::string, std::pair <std::string, std::string>>> textureDescriptors;
@@ -220,8 +171,8 @@ void PropResourceManager::loadMapResources (const Map & map) {
 					std::string diffuseFile = sIt->second.diffuseFile;
 					std::string opacityFile;
 
-					if (library.opacityMap().contains (diffuseFile)) {
-						std::cout << "FFFFFFFFFFFFFFFFFFF\n";
+					if (library.opacityMap ().contains (diffuseFile)) {
+						std::cerr << "Found opacity map! Unhandled!!" << '\n';
 						std::terminate ();
 					}
 
@@ -281,13 +232,12 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile) {
 	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
-	// const std::string opacityPath = m_propLibraries.at (libraryName).path ();
 
     int width = 0;
     int height = 0;
     int channels = 0;
 
-    unsigned char *pixels = stbi_load(
+    unsigned char * pixels = stbi_load (
         diffusePath.c_str (),
         &width,
         &height,
@@ -295,53 +245,49 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
         STBI_rgb_alpha
     );
 
-	if (width == 0 || height == 0) {
-		std::cout << "ERR\n";
-		std::terminate ();
-	}
+	// if (false == opacityFile.empty ()) {
+	// 	const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
+	// 	int alphaWidth = 0;
+	// 	int alphaHeight = 0;
+	// 	int alphaChannels = 0;
+	// 	std::cout << "ALPHA: " << opacityPath << '\n';
+	//
+	// 	unsigned char *alphaPixels = stbi_load(
+	// 			opacityPath.c_str (),
+	// 			&alphaWidth,
+	// 			&alphaHeight,
+	// 			&alphaChannels,
+	// 			STBI_grey
+	// 			);
+	//
+	// 	if (alphaPixels == nullptr)
+	// 	{
+	// 		TraceLog(LOG_WARNING,
+	// 				"STB: failed to load alpha image %s: %s",
+	// 				opacityPath.c_str (),
+	// 				stbi_failure_reason());
+	// 	}
+	// 	else
+	// 	{
+	// 		if (alphaWidth != width || alphaHeight != height)
+	// 		{
+	// 			TraceLog(LOG_WARNING,
+	// 					"STB: alpha image size mismatch (%dx%d vs %dx%d)",
+	// 					alphaWidth, alphaHeight,
+	// 					width, height);
+	// 		}
+	// 		else
+	// 		{
+	// 			for (int i = 0; i < width * height; i++)
+	// 			{
+	// 				pixels[i * 4 + 3] = alphaPixels[i];
+	// 			}
+	// 		}
+	//
+	// 		stbi_image_free(alphaPixels);
+	// 	}
+	// }
 
-  //   if (false == opacityPath.empty ())
-  //   {
-  //       int alphaWidth = 0;
-  //       int alphaHeight = 0;
-  //       int alphaChannels = 0;
-		// std::cout << "ALPHA: " << opacityPath << '\n';
-		//
-  //       unsigned char *alphaPixels = stbi_load(
-  //           opacityPath.c_str (),
-  //           &alphaWidth,
-  //           &alphaHeight,
-  //           &alphaChannels,
-  //           STBI_grey
-  //       );
-		//
-  //       if (alphaPixels == nullptr)
-  //       {
-  //           TraceLog(LOG_WARNING,
-  //                    "STB: failed to load alpha image %s: %s",
-  //                    opacityPath.c_str (),
-  //                    stbi_failure_reason());
-  //       }
-  //       else
-  //       {
-  //           if (alphaWidth != width || alphaHeight != height)
-  //           {
-  //               TraceLog(LOG_WARNING,
-  //                        "STB: alpha image size mismatch (%dx%d vs %dx%d)",
-  //                        alphaWidth, alphaHeight,
-  //                        width, height);
-  //           }
-  //           else
-  //           {
-  //               for (int i = 0; i < width * height; i++)
-  //               {
-  //                   pixels[i * 4 + 3] = alphaPixels[i];
-  //               }
-  //           }
-		//
-  //           stbi_image_free(alphaPixels);
-  //       }
-  //   }
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
 		.width = width,

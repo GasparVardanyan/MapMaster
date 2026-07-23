@@ -25,31 +25,27 @@ public:
 		std::string textureName;
 	};
 
+	/**
+	 * @brief mapObjects {libraryName => groupName => propName => {mapObjects}}
+	 */
+	using MapObjectCollection = std::map <
+		std::string,
+		std::map <
+			std::string,
+			std::map <
+				std::string,
+				std::vector<MapObject>
+			>
+		>
+	>;
+
 public:
 	void loadFile (const std::string & path);
 	void parse (pugi::xml_node mapXml);
 
-	[[nodiscard]] const std::map <
-		std::string,
-		std::map <
-			std::string,
-			std::map <
-				std::string,
-				std::vector<MapObject>
-			>
-		>
-	> & mapObjects () const;
+	[[nodiscard]] const MapObjectCollection & mapObjects () const;
 
 private:
-	std::map <
-		std::string,
-		std::map <
-			std::string,
-			std::map <
-				std::string,
-				std::vector<MapObject>
-			>
-		>
-	> m_mapObjects;
+	MapObjectCollection m_mapObjects;
 };
 // cppcheck-suppress-end unusedStructMember

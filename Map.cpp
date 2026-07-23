@@ -3,7 +3,6 @@
 # include <iostream>
 # include <map>
 # include <string>
-# include <vector>
 
 # include <pugixml.hpp>
 
@@ -12,7 +11,7 @@ void Map::loadFile (const std::string & path) {
 	pugi::xml_parse_result parseResult = mapXml.load_file (path.c_str ());
 
 	if (pugi::xml_parse_status::status_ok != parseResult.status) {
-		std::cout << "Map failed to parse " << path << ". " << parseResult.description () << ".\n";
+		std::cerr << "Map failed to parse " << path << ". " << parseResult.description () << ".\n";
 		return;
 	}
 
@@ -41,15 +40,6 @@ void Map::parse (pugi::xml_node map) {
 	}
 }
 
-const std::map <
-		std::string,
-		std::map <
-			std::string,
-			std::map <
-				std::string,
-				std::vector <Map::MapObject>
-			>
-		>
-> & Map::mapObjects () const {
+const Map::MapObjectCollection & Map::mapObjects () const {
 	return m_mapObjects;
 }

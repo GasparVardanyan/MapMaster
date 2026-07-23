@@ -2,7 +2,6 @@
 
 # include <map>
 # include <memory>
-# include <set>
 # include <string>
 # include <type_traits>
 # include <utility>
@@ -42,10 +41,20 @@ public:
 	void addPropLibrary (const PropLibrary & propLibrary);
 	void addPropLibrary (PropLibrary && propLibrary);
 
-	// void loadResources (const std::string & libraryName, const std::string & groupName, const std::string & propName);
 	void loadMapResources (const Map & map);
-	// void loadResources (const std::map <std::string, std::map <std::string, std::vector <std::string>>> & propHierarchy);
+
+	/**
+	 * @brief load and parse mesh files
+	 *
+	 * @param meshDescriptors {{libraryName, meshFileName}, ...}
+	 */
 	void loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors);
+
+	/**
+	 * @brief load and parse texture files
+	 *
+	 * @param textureDescriptors {{libraryName, {diffuseFileName, opacityFileName}}}
+	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors);
 
 	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
