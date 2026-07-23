@@ -230,9 +230,13 @@ void PropResourceManager::loadMapResources (const Map & map) {
 	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
 
 	loadTextureResources (textureDescriptors);
+
+	if (nullptr != m_mapResourceLoadCallback) {
+		m_mapResourceLoadCallback ();
+	}
 }
 
-PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile) {
+PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & /*opacityFile*/) {
 	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
 
 	int width = 0;
@@ -316,6 +320,9 @@ void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::
 
 	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
 		m_propMeshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
+		if (nullptr != m_meshResourceLoadCallback) {
+			m_meshResourceLoadCallback (descriptor.first, descriptor.second);
+		}
 		mI++;
 	}
 }
@@ -337,6 +344,9 @@ void PropResourceManager::loadTextureResources (const std::vector <std::pair <st
 	std::size_t tI = 0;
 	for (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor : textureDescriptors) {
 		m_propTextureResources [descriptor.first] [descriptor.second.first] = std::move (resources [tI]);
+		if (nullptr != m_textureResourceLoadCallback) {
+			m_textureResourceLoadCallback (descriptor.first, descriptor.second.first);
+		}
 		tI++;
 	}
 }

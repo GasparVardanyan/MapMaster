@@ -54,9 +54,6 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 
 					meshDescriptors.emplace_back (libraryName, meshFile);
 
-					// if (false == m_meshResources.contains (libraryName) || false == m_meshResources.at (libraryName).contains (meshFile)) {
-					// 	m_meshResources [libraryName] [meshFile] = loadMeshResources (meshResource);
-					// }
 					for (const auto & prop : propInfo) {
 						std::string textureName = prop.textureName;
 						std::string textureFile;
@@ -70,22 +67,29 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 						textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
 
 						textureDescriptors.emplace_back (libraryName, textureFile);
-
-						// if (false == m_textureResources.contains (libraryName) || false == m_textureResources.at (libraryName).contains (textureFile)) {
-						// 	const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
-						// 	m_textureResources [libraryName] [textureFile] = loadTextureResources (textureResource);
-						// }
 					}
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
 					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
 					textureDescriptors.emplace_back (libraryName, textureFile);
+					spriteDescriptors.emplace_back (libraryName, textureFile);
 
-					// if (false == m_textureResources.contains (libraryName) || false == m_textureResources.at (libraryName).contains (textureFile)) {
-					// 	const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
-					// 	m_textureResources [libraryName] [textureFile] = loadTextureResources (textureResource);
-					// }
+					const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
+					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
+						const Vector2 size = {
+							.x = static_cast <float> (textureResource.width * sprite.scale * scale),
+							.y = static_cast <float> (textureResource.height * sprite.scale * scale),
+						};
+
+						m_spriteInfos [libraryName] [textureFile] = {
+							.origin = {
+								.x = static_cast <float> (sprite.originX * size.x),
+								.y = static_cast <float> ((1 - sprite.originY) * size.y),
+							},
+							.size = size,
+						};
+					}
 				}
 			}
 		}
@@ -99,7 +103,6 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 	loadMeshResources (meshDescriptors);
 	loadTextureResources (textureDescriptors);
 
-
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const auto & library = libraries.at (libraryName);
 		for (const auto & [groupName, props] : groups) {
@@ -108,24 +111,6 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 				if (true == group.meshes.contains (propName)) {
 				}
 				else if (true == group.sprites.contains (propName)) {
-					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
-
-					const RaylibTextureResource & textureResource = m_textureResources [libraryName] [textureFile];
-					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
-						const Vector2 size = {
-							.x = static_cast <float> (textureResource.texture.width * sprite.scale * scale),
-							.y = static_cast <float> (textureResource.texture.height * sprite.scale * scale),
-						};
-
-						m_spriteInfos [libraryName] [textureFile] = {
-							.origin = {
-								.x = static_cast <float> (sprite.originX * size.x),
-								.y = static_cast <float> ((1 - sprite.originY) * size.y),
-							},
-							.size = size,
-						};
-					}
 				}
 			}
 		}

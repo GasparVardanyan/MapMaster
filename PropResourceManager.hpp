@@ -1,5 +1,6 @@
 # pragma once
 
+# include <functional>
 # include <map>
 # include <memory>
 # include <string>
@@ -13,6 +14,9 @@
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManager {
 public:
+	using ResourceLoadCallback = std::function <void (std::string, std::string)>;
+	using MapResourcesLoadCallback = std::function <void ()>;
+
 	struct PropMeshResource {
 		using VertexType = float;
 		static_assert (std::is_floating_point_v <VertexType>);
@@ -72,5 +76,9 @@ private:
 	std::map <std::string, PropLibrary> m_propLibraries;
 	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, PropTextureResource>> m_propTextureResources;
+
+	ResourceLoadCallback m_meshResourceLoadCallback = nullptr;
+	ResourceLoadCallback m_textureResourceLoadCallback = nullptr;
+	MapResourcesLoadCallback m_mapResourceLoadCallback = nullptr;
 };
 // cppcheck-suppress-end unusedStructMember

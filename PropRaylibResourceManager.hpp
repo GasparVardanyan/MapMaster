@@ -10,6 +10,7 @@
 # include "Map.hpp"
 # include "PropResourceManager.hpp"
 
+// cppcheck-suppress-begin unusedStructMember
 class PropRaylibResourceManager {
 public:
 	struct RaylibMeshResource {
@@ -43,7 +44,7 @@ public:
 	/**
 	 * @brief load and parse texture files
 	 *
-	 * @param textureDescriptors {{libraryName, {diffuseFileName, opacityFileName}}}
+	 * @param textureDescriptors {{libraryName, textureFile}, ...}
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors);
 
@@ -64,3 +65,4 @@ private:
 	std::map <std::string, std::map <std::string, RaylibSpriteInfo>> m_spriteInfos;
 
 };
+// cppcheck-suppress-end unusedStructMember
