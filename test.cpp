@@ -33,6 +33,7 @@ int main(void)
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
+	SetTraceLogLevel(LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
 	InitWindow (screenWidth, screenHeight, "raylib [models] example - loading");
 	auto start = std::chrono::steady_clock::now ();

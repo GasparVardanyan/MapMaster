@@ -10,7 +10,6 @@
 # include <queue>
 # include <stack>
 # include <string>
-# include <syncstream>
 # include <thread>
 # include <utility>
 # include <vector>
@@ -39,6 +38,93 @@ void PropRaylibResourceManager::loadMapLibraries (const Map & map, const std::st
 	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
 		loadLibrary (libraryRootDir + "/" + libraryName);
 	}
+}
+
+void PropRaylibResourceManager::loadMapResources_OLD (const Map & map) {
+	m_resourceManager.loadMapResources (map);
+
+	const auto & libraries = m_resourceManager.propLibraries ();
+
+	std::vector <std::pair <std::string, std::string>> meshDescriptors;
+	std::vector <std::pair <std::string, std::string>> textureDescriptors;
+	std::vector <std::pair <std::string, std::string>> spriteDescriptors;
+
+	for (const auto & [libraryName, groups] : map.mapObjects ()) {
+		const auto & library = libraries.at (libraryName);
+		for (const auto & [groupName, props] : groups) {
+			const auto & group = library.groups ().at (groupName);
+			for (const auto & [propName, propInfo] : props) {
+				if (true == group.meshes.contains (propName)) {
+					std::string meshFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
+					PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
+
+					meshDescriptors.emplace_back (libraryName, meshFile);
+
+					for (const auto & prop : propInfo) {
+						std::string textureName = prop.textureName;
+						std::string textureFile;
+						if (true == textureName.empty ()) {
+							textureFile = meshResource.textureFile;
+						}
+						else {
+							textureFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
+						}
+
+						textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
+
+						textureDescriptors.emplace_back (libraryName, textureFile);
+					}
+				}
+				else if (true == group.sprites.contains (propName)) {
+					const auto & sprite = group.sprites.at (propName);
+					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
+					textureDescriptors.emplace_back (libraryName, textureFile);
+					spriteDescriptors.emplace_back (libraryName, textureFile);
+
+					const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
+					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
+						const Vector2 size = {
+							.x = static_cast <float> (textureResource.width * sprite.scale * scale),
+							.y = static_cast <float> (textureResource.height * sprite.scale * scale),
+						};
+
+						m_spriteInfos [libraryName] [textureFile] = {
+							.origin = {
+								.x = static_cast <float> (sprite.originX * size.x),
+								.y = static_cast <float> ((1 - sprite.originY) * size.y),
+							},
+							.size = size,
+						};
+					}
+				}
+			}
+		}
+	}
+
+	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
+	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
+	std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
+	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
+
+	loadMeshResources (meshDescriptors);
+	loadTextureResources (textureDescriptors);
+
+	for (auto & [libraryName, textureFiles] : m_textureResources) {
+		for (auto & [textureFile, textureResource] : textureFiles) {
+			textureResource.texture = LoadTextureFromImage (textureResource.image);
+			GenTextureMipmaps (&textureResource.texture);
+			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
+		}
+	}
+
+	for (auto & [libraryName, meshFiles] : m_meshResources) {
+		for (auto & [meshFile, meshResource] : meshFiles) {
+			UploadMesh (& meshResource.mesh, false);
+			meshResource.model = LoadModelFromMesh (meshResource.mesh);
+		}
+	}
+
+	// m_resourceManager.dropResources ();
 }
 
 void PropRaylibResourceManager::loadMapResources (const Map & map) {
@@ -244,6 +330,7 @@ PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::load
 
 	return {
 		.image = image,
+		.texture = {}
 	};
 }
 
