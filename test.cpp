@@ -38,8 +38,8 @@ int main(void)
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;
-	map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	// map.loadFile(DATA_DIR "finalboss.xml");
+	// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	map.loadFile(DATA_DIR "finalboss.xml");
 	// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// map.loadFile(DATA_DIR "map.xml");
 
@@ -47,7 +47,7 @@ int main(void)
 	PropResourceManager & m_resourceManager = raylibResManager.resourceManager ();
 
 	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
-		raylibResManager.loadLibrary (DATA_DIR "propslibs/" + libraryName);
+		raylibResManager.loadLibrary (DATA_DIR "PLVK/" + libraryName);
 	}
 
 	raylibResManager.loadMapResources (map);

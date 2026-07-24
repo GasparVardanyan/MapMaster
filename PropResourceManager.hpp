@@ -46,6 +46,7 @@ public:
 	void addPropLibrary (PropLibrary && propLibrary);
 
 	void loadMapResources (const Map & map);
+	void dropResources ();
 
 	/**
 	 * @brief load and parse mesh files
@@ -72,6 +73,7 @@ public:
 	void setTextureResourceLoadCallback (const ResourceLoadCallback & callback);
 	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 	void setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback);
+	void cleanCallbacks ();
 
 private:
 	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & meshFile);
@@ -82,9 +84,11 @@ private:
 	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, PropTextureResource>> m_propTextureResources;
 
-	ResourceLoadCallback m_meshResourceLoadCallback = nullptr;
-	ResourceLoadCallback m_textureResourceLoadCallback = nullptr;
-	MapResourcesLoadCallback m_mapMeshResourcesLoadCallback = nullptr;
-	MapResourcesLoadCallback m_mapTextureResourcesLoadCallback = nullptr;
+	struct {
+		ResourceLoadCallback meshResourceLoad = nullptr;
+		ResourceLoadCallback textureResourceLoad = nullptr;
+		MapResourcesLoadCallback mapMeshResourcesLoad = nullptr;
+		MapResourcesLoadCallback mapTextureResourcesLoad = nullptr;
+	} m_callbacks;
 };
 // cppcheck-suppress-end unusedStructMember

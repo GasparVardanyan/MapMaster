@@ -198,8 +198,8 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 	loadMeshResources (meshDescriptors);
 
-	if (nullptr != m_mapMeshResourcesLoadCallback) {
-		m_mapMeshResourcesLoadCallback ();
+	if (nullptr != m_callbacks.mapMeshResourcesLoad) {
+		m_callbacks.mapMeshResourcesLoad ();
 	}
 
 	for (const auto & [libraryName, groupData] : defaultTextures) {
@@ -235,8 +235,8 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 	loadTextureResources (textureDescriptors);
 
-	if (nullptr != m_mapTextureResourcesLoadCallback) {
-		m_mapTextureResourcesLoadCallback ();
+	if (nullptr != m_callbacks.mapTextureResourcesLoad) {
+		m_callbacks.mapTextureResourcesLoad ();
 	}
 }
 
@@ -326,8 +326,8 @@ void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::
 
 	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
 		m_propMeshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
-		if (nullptr != m_meshResourceLoadCallback) {
-			m_meshResourceLoadCallback (descriptor.first, descriptor.second);
+		if (nullptr != m_callbacks.meshResourceLoad) {
+			m_callbacks.meshResourceLoad (descriptor.first, descriptor.second);
 		}
 		mI++;
 	}
@@ -350,8 +350,8 @@ void PropResourceManager::loadTextureResources (const std::vector <std::pair <st
 	std::size_t tI = 0;
 	for (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor : textureDescriptors) {
 		m_propTextureResources [descriptor.first] [descriptor.second.first] = std::move (resources [tI]);
-		if (nullptr != m_textureResourceLoadCallback) {
-			m_textureResourceLoadCallback (descriptor.first, descriptor.second.first);
+		if (nullptr != m_callbacks.textureResourceLoad) {
+			m_callbacks.textureResourceLoad (descriptor.first, descriptor.second.first);
 		}
 		tI++;
 	}
@@ -394,16 +394,25 @@ const std::map <std::string, std::map <std::string, PropResourceManager::PropTex
 }
 
 void PropResourceManager::setMeshResourceLoadCallback (const ResourceLoadCallback & callback) {
-	m_meshResourceLoadCallback = callback;
+	m_callbacks.meshResourceLoad = callback;
 }
 void PropResourceManager::setTextureResourceLoadCallback (const ResourceLoadCallback & callback) {
-	m_textureResourceLoadCallback = callback;
+	m_callbacks.textureResourceLoad = callback;
 }
 
 void PropResourceManager::setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
-	m_mapMeshResourcesLoadCallback = callback;
+	m_callbacks.mapMeshResourcesLoad = callback;
 }
 
 void PropResourceManager::setMapTextureResourcesLoadCallback(const MapResourcesLoadCallback & callback) {
-	m_mapTextureResourcesLoadCallback = callback;
+	m_callbacks.mapTextureResourcesLoad = callback;
+}
+
+void PropResourceManager::dropResources () {
+	m_propMeshResources.clear ();
+	m_propTextureResources.clear ();
+}
+
+void PropResourceManager::cleanCallbacks () {
+	m_callbacks = {};
 }

@@ -1,12 +1,14 @@
 # include "PropRaylibResourceManager.hpp"
 
 # include <algorithm>
+# include <condition_variable>
 # include <cstddef>
 # include <execution>
 # include <iostream>
 # include <map>
 # include <mutex>
 # include <queue>
+# include <stack>
 # include <string>
 # include <syncstream>
 # include <thread>
@@ -43,30 +45,130 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 	std::queue <std::pair <std::string, std::string>> meshQueue;
 	std::queue <std::pair <std::string, std::string>> textureQueue;
 
-	m_resourceManager.setMeshResourceLoadCallback ([this] (const std::string & libraryName, const std::string & meshFile) -> void {
-		// std::osyncstream (std::cout) << "MESH LOADED: " << libraryName << " : " << meshFile << '\n';
+	bool meshesFinished = false;
+	bool texturesFinished = false;
 
+	std::mutex meshResourceMutex;
+	std::condition_variable meshResourceNotifier;
+	std::mutex textureResourceMutex;
+	std::condition_variable textureResourceNotifier;
+
+	m_resourceManager.setMeshResourceLoadCallback ([this, & meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile) -> void {
 		PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
 		m_meshResources [libraryName] [meshFile] = loadMeshResources (res);
+
+		{
+			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);;
+			meshQueue.emplace (libraryName, meshFile);
+		}
+
+		meshResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setTextureResourceLoadCallback ([this] (const std::string & libraryName, const std::string & textureFile) -> void {
-		// std::osyncstream (std::cout) << "TEXTURE LOADED: " << libraryName << " : " << textureFile << '\n';
-
+	m_resourceManager.setTextureResourceLoadCallback ([this, & textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile) -> void {
 		const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
 		m_textureResources [libraryName] [textureFile] = loadTextureResources (res);
+
+		{
+			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
+			textureQueue.emplace (libraryName, textureFile);
+		}
+
+		textureResourceNotifier.notify_one ();
+	});
+
+	m_resourceManager.setMapMeshResourcesLoadCallback([& meshesFinished, & meshResourceMutex, & meshResourceNotifier] () -> void {
+		{
+			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);
+			meshesFinished = true;
+		}
+
+		meshResourceNotifier.notify_one ();
+	});
+
+	m_resourceManager.setMapTextureResourcesLoadCallback([&texturesFinished, &textureResourceMutex, & textureResourceNotifier] () -> void {
+		{
+			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
+			texturesFinished = true;
+		}
+
+		textureResourceNotifier.notify_one ();
 	});
 
 	std::thread resLoaderThread ([this, & map] () -> void {
 		m_resourceManager.loadMapResources (map);
 	});
 
+	while (true) {
+		std::stack <std::pair <std::string, std::string>> meshesToProcess;
+		bool finished = false;
+
+		{
+			std::unique_lock <std::mutex> meshResourceLock (meshResourceMutex);
+			meshResourceNotifier.wait (meshResourceLock, [& meshQueue, & meshesFinished] () -> bool {
+				return false == meshQueue.empty () || true == meshesFinished;
+			});
+
+			while (false == meshQueue.empty ()) {
+				meshesToProcess.push (meshQueue.front ());
+				meshQueue.pop ();
+			}
+
+			finished = meshesFinished;
+		}
+
+		while (false == meshesToProcess.empty ()) {
+			std::pair <std::string, std::string> meshDescriptor = meshesToProcess.top ();
+			meshesToProcess.pop ();
+
+			RaylibMeshResource & meshResource = m_meshResources.at (meshDescriptor.first).at (meshDescriptor.second);
+			UploadMesh (& meshResource.mesh, false);
+			meshResource.model = LoadModelFromMesh (meshResource.mesh);
+		}
+
+		if (true == finished) {
+			break;
+		}
+	}
+
+	while (true) {
+		std::stack <std::pair <std::string, std::string>> texturesToProcess;
+		bool finished = false;
+
+		{
+			std::unique_lock <std::mutex> textureResourceLock (textureResourceMutex);
+			textureResourceNotifier.wait (textureResourceLock, [& textureQueue, & texturesFinished] () -> bool {
+				return false == textureQueue.empty () || true == texturesFinished;
+			});
+
+			while (false == textureQueue.empty ()) {
+				texturesToProcess.push (textureQueue.front ());
+				textureQueue.pop ();
+			}
+
+			finished = texturesFinished;
+		}
+
+		while (false == texturesToProcess.empty ()) {
+			std::pair <std::string, std::string> textureDescriptor = texturesToProcess.top ();
+			texturesToProcess.pop ();
+
+			RaylibTextureResource & textureResource = m_textureResources.at (textureDescriptor.first).at (textureDescriptor.second);
+			textureResource.texture = LoadTextureFromImage (textureResource.image);
+			GenTextureMipmaps (&textureResource.texture);
+			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
+		}
+
+		if (true == finished) {
+			break;
+		}
+	}
+
 	resLoaderThread.join ();
+	m_resourceManager.cleanCallbacks ();
 
 	const auto & libraries = m_resourceManager.propLibraries ();
 
-	std::vector <std::pair <std::string, std::string>> meshDescriptors;
-	std::vector <std::pair <std::string, std::string>> textureDescriptors;
 	std::vector <std::pair <std::string, std::string>> spriteDescriptors;
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
@@ -74,31 +176,9 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		for (const auto & [groupName, props] : groups) {
 			const auto & group = library.groups ().at (groupName);
 			for (const auto & [propName, propInfo] : props) {
-				if (true == group.meshes.contains (propName)) {
-					std::string meshFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
-					PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
-
-					meshDescriptors.emplace_back (libraryName, meshFile);
-
-					for (const auto & prop : propInfo) {
-						std::string textureName = prop.textureName;
-						std::string textureFile;
-						if (true == textureName.empty ()) {
-							textureFile = meshResource.textureFile;
-						}
-						else {
-							textureFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
-						}
-
-						textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
-
-						textureDescriptors.emplace_back (libraryName, textureFile);
-					}
-				}
-				else if (true == group.sprites.contains (propName)) {
+				if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
 					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
-					textureDescriptors.emplace_back (libraryName, textureFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
 					const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
@@ -118,42 +198,6 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 					}
 				}
 			}
-		}
-	}
-
-	// std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
-	// meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
-	// std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
-	// textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
-	//
-	// loadMeshResources (meshDescriptors);
-	// loadTextureResources (textureDescriptors);
-
-	// for (const auto & [libraryName, groups] : map.mapObjects ()) {
-	// 	const auto & library = libraries.at (libraryName);
-	// 	for (const auto & [groupName, props] : groups) {
-	// 		const auto & group = library.groups ().at (groupName);
-	// 		for (const auto & [propName, propInfo] : props) {
-	// 			if (true == group.meshes.contains (propName)) {
-	// 			}
-	// 			else if (true == group.sprites.contains (propName)) {
-	// 			}
-	// 		}
-	// 	}
-	// }
-
-	for (auto & [libraryName, textureFiles] : m_textureResources) {
-		for (auto & [textureFile, textureResource] : textureFiles) {
-			textureResource.texture = LoadTextureFromImage (textureResource.image);
-			GenTextureMipmaps (&textureResource.texture);
-			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
-		}
-	}
-
-	for (auto & [libraryName, meshFiles] : m_meshResources) {
-		for (auto & [meshFile, meshResource] : meshFiles) {
-			UploadMesh (& meshResource.mesh, false);
-			meshResource.model = LoadModelFromMesh (meshResource.mesh);
 		}
 	}
 }
