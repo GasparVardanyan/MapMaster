@@ -1,18 +1,16 @@
-# include <algorithm>
-# include <iostream>
-# include <memory>
-# include <numbers>
-
 # define SUPPORT_FILEFORMAT_JPG 1
 
+# include <algorithm>
 # include <chrono>
-# include <cmath>
+# include <iostream>
 # include <map>
+# include <numbers>
 # include <string>
 # include <utility>
 # include <vector>
 
 # include <raylib.h>
+# include <rlgl.h>
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
@@ -48,11 +46,11 @@ int main (void)
 	raylibResManager.loadMapLibraries (map, DATA_DIR "propslibs");
 	raylibResManager.loadMapResources (map);
 
-	const auto & meshResources = raylibResManager.meshResources ();
-	const auto & textureResources = raylibResManager.textureResources ();
-	const auto & spriteInfos = raylibResManager.spriteInfos ();
+	const auto & raylibMeshResources = raylibResManager.meshResources ();
+	const auto & raylibTextureResources = raylibResManager.textureResources ();
+	const auto & raylibSpriteInfos = raylibResManager.spriteInfos ();
 
-	const auto & libraries = resourceManager.propLibraries ();
+	const auto & propLibraries = resourceManager.propLibraries ();
 
 	struct SceneMesh {
 		Vector3 position = {};
@@ -73,7 +71,7 @@ int main (void)
 	std::vector <SceneSprite> sceneSprites;
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
-		const auto & library = libraries.at (libraryName);
+		const auto & library = propLibraries.at (libraryName);
 		for (const auto & [groupName, props] : groups) {
 			const auto & group = library.groups ().at (groupName);
 			for (const auto & [propName, propInfo] : props) {
@@ -152,8 +150,8 @@ int main (void)
 		BeginMode3D (camera);
 
 		for (const auto & mesh : sceneMeshes) {
-			auto & model = meshResources.at (mesh.library).at (mesh.meshFile).model;
-			auto & texture = textureResources.at (mesh.library).at (mesh.textureFile).texture;
+			auto & model = raylibMeshResources.at (mesh.library).at (mesh.meshFile).model;
+			auto & texture = raylibTextureResources.at (mesh.library).at (mesh.textureFile).texture;
 			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
 			Color tint = WHITE;
 			if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
@@ -163,12 +161,12 @@ int main (void)
 		}
 
 		for (const auto & sprite : sceneSprites) {
-			auto & texture = textureResources.at (sprite.library).at (sprite.textureFile).texture;
-			auto & spdata = spriteInfos.at (sprite.library).at (sprite.textureFile);
+			auto & texture = raylibTextureResources.at (sprite.library).at (sprite.textureFile).texture;
+			auto & spdata = raylibSpriteInfos.at (sprite.library).at (sprite.textureFile);
 
 			DrawBillboardPro (
 				camera,
-				textureResources.at (sprite.library).at (sprite.textureFile).texture,
+				raylibTextureResources.at (sprite.library).at (sprite.textureFile).texture,
 				{0, 0, static_cast <float> (texture.width), static_cast <float> (texture.height)},
 				sprite.position,
 				{0, 0, 1},
@@ -179,7 +177,11 @@ int main (void)
 			);
 		}
 
-		// DrawGrid (20, 10.0f);
+
+		rlPushMatrix ();
+		rlRotatef (90.0f, 1.0f, 0.0f, 0.0f);
+		DrawGrid (50, 5.0f);
+		rlPopMatrix ();
 
 		EndMode3D ();
 

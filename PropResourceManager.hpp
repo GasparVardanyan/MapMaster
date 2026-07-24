@@ -11,6 +11,11 @@
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 
+// FIXME: CRITICAL!
+// free gpu and ram resources in dtor
+// implement interfaces to free up ram and vram resources
+// TODO: implement an interface to load/unload from/to ram/vram
+
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManager {
 public:
@@ -41,7 +46,12 @@ public:
 		int height = -1;
 		int channels = -1;
 
+		// TODO: replace with big five
 		PropTextureResource clone ();
+	};
+
+	enum class OverlapBehaviour : unsigned char {
+		Ignore, Override
 	};
 
 public:
@@ -50,6 +60,7 @@ public:
 	void dropResources ();
 	void removePropLibrary (const std::string & name);
 	void clearPropLibraries ();
+	void setOverlapBehaviour (OverlapBehaviour overlapBehaviour);
 
 	/**
 	 * @brief load and parse mesh files
@@ -96,5 +107,7 @@ private:
 		MapResourcesLoadCallback mapMeshResourcesLoad = nullptr;
 		MapResourcesLoadCallback mapTextureResourcesLoad = nullptr;
 	} m_callbacks;
+
+	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
 };
 // cppcheck-suppress-end unusedStructMember

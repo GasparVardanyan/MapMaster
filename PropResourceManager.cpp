@@ -11,6 +11,7 @@
 # include <map>
 # include <memory>
 # include <set>
+# include <stdexcept>
 # include <string>
 # include <utility>
 # include <vector>
@@ -56,6 +57,11 @@ void PropResourceManager::removePropLibrary (const std::string & name) {
 
 void PropResourceManager::clearPropLibraries () {
 	m_propLibraries = {};
+}
+
+void PropResourceManager::setOverlapBehaviour (OverlapBehaviour overlapBehaviour) {
+	throw std::runtime_error ("PropResourceManager::OverlapBehaviour is not in effect");
+	m_overlapBehaviour = overlapBehaviour;
 }
 
 PropResourceManager::PropTextureResource PropResourceManager::PropTextureResource::clone () {
