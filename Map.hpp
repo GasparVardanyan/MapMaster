@@ -42,6 +42,7 @@ public:
 public:
 	void loadFile (const std::string & path);
 	void parse (pugi::xml_node mapXml);
+	void clear ();
 
 	[[nodiscard]] const MapObjectCollection & mapObjects () const;
 

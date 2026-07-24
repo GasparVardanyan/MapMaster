@@ -36,19 +36,20 @@ public:
 	};
 
 	struct PropTextureResource {
-		// TODO: add big five or clone method
 		std::shared_ptr <unsigned char> pixBuffer;
 		int width = -1;
 		int height = -1;
 		int channels = -1;
+
+		PropTextureResource clone ();
 	};
 
 public:
 	void addPropLibrary (const PropLibrary & propLibrary);
 	void addPropLibrary (PropLibrary && propLibrary);
-
-	void loadMapResources (const Map & map);
 	void dropResources ();
+	void removePropLibrary (const std::string & name);
+	void clearPropLibraries ();
 
 	/**
 	 * @brief load and parse mesh files
@@ -64,22 +65,25 @@ public:
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors);
 
-	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
-	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
-	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
+	void loadMapResources (const Map & map);
+
 	[[nodiscard]] const std::map <std::string, PropLibrary> & propLibraries () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
+
+	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
+	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
+	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
 
 	void setMeshResourceLoadCallback (const ResourceLoadCallback & callback);
 	void setTextureResourceLoadCallback (const ResourceLoadCallback & callback);
 	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 	void setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback);
-	void cleanCallbacks ();
+	void clearCallbacks ();
 
 private:
-	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & meshFile);
-	PropTextureResource loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
+	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile);
+	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
 
 private:
 	std::map <std::string, PropLibrary> m_propLibraries;

@@ -21,8 +21,6 @@
 
 
 
-static constexpr float scale = 0.01F;
-
 void PropRaylibResourceManager::loadLibrary (const std::string & path) {
 	PropLibrary library;
 	library.loadDirectory (path);
@@ -83,8 +81,8 @@ void PropRaylibResourceManager::loadMapResources_OLD (const Map & map) {
 					const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 						const Vector2 size = {
-							.x = static_cast <float> (textureResource.width * sprite.scale * scale),
-							.y = static_cast <float> (textureResource.height * sprite.scale * scale),
+							.x = static_cast <float> (textureResource.width * sprite.scale),
+							.y = static_cast <float> (textureResource.height * sprite.scale),
 						};
 
 						m_spriteInfos [libraryName] [textureFile] = {
@@ -252,7 +250,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 	}
 
 	resLoaderThread.join ();
-	m_resourceManager.cleanCallbacks ();
+	m_resourceManager.clearCallbacks ();
 
 	const auto & libraries = m_resourceManager.propLibraries ();
 
@@ -271,8 +269,8 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 					const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 						const Vector2 size = {
-							.x = static_cast <float> (textureResource.width * sprite.scale * scale),
-							.y = static_cast <float> (textureResource.height * sprite.scale * scale),
+							.x = static_cast <float> (textureResource.width * sprite.scale),
+							.y = static_cast <float> (textureResource.height * sprite.scale),
 						};
 
 						m_spriteInfos [libraryName] [textureFile] = {

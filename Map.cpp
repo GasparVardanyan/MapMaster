@@ -43,3 +43,7 @@ void Map::parse (pugi::xml_node map) {
 const Map::MapObjectCollection & Map::mapObjects () const {
 	return m_mapObjects;
 }
+
+void Map::clear () {
+	m_mapObjects = {};
+}

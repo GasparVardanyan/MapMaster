@@ -1,6 +1,7 @@
 # include <algorithm>
 # include <iostream>
 # include <memory>
+# include <numbers>
 
 # define SUPPORT_FILEFORMAT_JPG 1
 
@@ -113,7 +114,7 @@ int main(void)
 							.meshFile = meshFile,
 							.textureFile = textureFile,
 							.position = {scale * static_cast<float>(prop.positionX), scale * static_cast<float>(prop.positionY), scale * static_cast<float>(prop.positionZ)},
-							.rotation = {0, 0, static_cast<float>(prop.rotationZ * 180 / M_PI)}
+							.rotation = {0, 0, static_cast<float>(prop.rotationZ * 180 / std::numbers::pi)}
 						});
 					}
 				}
@@ -187,8 +188,8 @@ int main(void)
 				{0, 0, static_cast <float> (texture.width), static_cast <float> (texture.height)},
 				sprite.position,
 				{0, 0, 1},
-				spdata.size,
-				spdata.origin,
+				{ spdata.size.x * scale, spdata.size.y * scale },
+				{ spdata.origin.x * scale, spdata.origin.y * scale },
 				0,
 				WHITE
 			);

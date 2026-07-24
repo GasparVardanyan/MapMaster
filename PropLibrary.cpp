@@ -11,6 +11,7 @@
 
 # include <pugixml.hpp>
 
+// cppcheck-suppress shadowFunction
 void PropLibrary::loadDirectory (const std::string & path) {
 	m_path = path;
 
@@ -30,6 +31,62 @@ void PropLibrary::loadDirectory (const std::string & path) {
 
 	parse (libXml.child ("library"), imgXml);
 }
+
+void PropLibrary::clear () {
+	m_path.clear ();
+	m_xmlData = {};
+}
+
+
+
+
+//   _____ ______ _______ _______ ______ _____   _____
+//  / ____|  ____|__   __|__   __|  ____|  __ \ / ____|
+// | |  __| |__     | |     | |  | |__  | |__) | (___
+// | | |_ |  __|    | |     | |  |  __| |  _  / \___ \
+// | |__| | |____   | |     | |  | |____| | \ \ ____) |
+//  \_____|______|  |_|     |_|  |______|_|  \_\_____/
+//
+
+std::string PropLibrary::actualTextureFile (const std::string & oldFile) const {
+	if (true == m_xmlData.diffuseMap.contains (oldFile)) {
+		return m_xmlData.diffuseMap.at (oldFile);
+	}
+	else {
+		return oldFile;
+	}
+}
+
+const std::string & PropLibrary::name () const {
+	return m_xmlData.libraryName;
+}
+
+const std::map <std::string, std::string> & PropLibrary::diffuseMap () const {
+	return m_xmlData.diffuseMap;
+}
+
+const std::map <std::string, std::string> & PropLibrary::alphaMap () const {
+	return m_xmlData.alphaMap;
+}
+
+const std::map <std::string, PropLibrary::Group> & PropLibrary::groups () const {
+	return m_xmlData.groups;
+}
+
+const std::string & PropLibrary::path () const {
+	return m_path;
+}
+
+
+
+
+//  _____        _____   _____ ______ _____   _____
+// |  __ \ /\   |  __ \ / ____|  ____|  __ \ / ____|
+// | |__) /  \  | |__) | (___ | |__  | |__) | (___
+// |  ___/ /\ \ |  _  / \___ \|  __| |  _  / \___ \
+// | |  / ____ \| | \ \ ____) | |____| | \ \ ____) |
+// |_| /_/    \_\_|  \_\_____/|______|_|  \_\_____/
+//
 
 void PropLibrary::parse (pugi::xml_node libXml, const pugi::xml_document & imgXml) {
 	if (false == imgXml.children ().empty ()) {
@@ -115,6 +172,7 @@ void PropLibrary::parsePropMesh (pugi::xml_node meshXml, PropMesh & mesh) {
 	}
 }
 
+// cppcheck-suppress functionStatic
 void PropLibrary::parsePropSprite (pugi::xml_node spriteXml, PropSprite & sprite) {
 	sprite.diffuseFile = spriteXml.attribute ("file").value ();
 
@@ -137,38 +195,4 @@ void PropLibrary::parsePropSprite (pugi::xml_node spriteXml, PropSprite & sprite
 	else {
 		sprite.scale = spriteXml.attribute ("scale").as_double (PropSprite::ScaleDefault <PropSprite::ScaleType>::value);
 	}
-}
-
-const std::string & PropLibrary::name () const {
-	return m_xmlData.libraryName;
-}
-
-const std::map <std::string, std::string> & PropLibrary::diffuseMap () const {
-	return m_xmlData.diffuseMap;
-}
-
-const std::map <std::string, std::string> & PropLibrary::alphaMap () const {
-	return m_xmlData.alphaMap;
-}
-
-const std::map <std::string, PropLibrary::Group> & PropLibrary::groups () const {
-	return m_xmlData.groups;
-}
-
-const std::string & PropLibrary::path () const {
-	return m_path;
-}
-
-std::string PropLibrary::actualTextureFile (const std::string & oldFile) const {
-	if (true == m_xmlData.diffuseMap.contains (oldFile)) {
-		return m_xmlData.diffuseMap.at (oldFile);
-	}
-	else {
-		return oldFile;
-	}
-}
-
-void PropLibrary::clear () {
-	m_path.clear ();
-	m_xmlData = {};
 }
