@@ -11,7 +11,7 @@
 # include "PropResourceManager.hpp"
 
 // cppcheck-suppress-begin unusedStructMember
-class PropRaylibResourceManager {
+class RaylibPropResourceManager {
 public:
 	struct RaylibMeshResource {
 		Mesh mesh;

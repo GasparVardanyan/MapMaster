@@ -1,4 +1,4 @@
-# include "PropRaylibResourceManager.hpp"
+# include "RaylibPropResourceManager.hpp"
 
 # include <algorithm>
 # include <condition_variable>
@@ -21,13 +21,13 @@
 
 
 
-void PropRaylibResourceManager::loadLibrary (const std::string & path) {
+void RaylibPropResourceManager::loadLibrary (const std::string & path) {
 	PropLibrary library;
 	library.loadDirectory (path);
 	m_resourceManager.addPropLibrary (std::move (library));
 }
 
-void PropRaylibResourceManager::loadMapLibraries (const Map & map, const std::string & libraryRootDir) {
+void RaylibPropResourceManager::loadMapLibraries (const Map & map, const std::string & libraryRootDir) {
 	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
 		loadLibrary (libraryRootDir + "/" + libraryName);
 	}
@@ -44,7 +44,7 @@ void PropRaylibResourceManager::loadMapLibraries (const Map & map, const std::st
 // |______\____/_/    \_\_____/|______|_|  \_\_____/
 //
 
-void PropRaylibResourceManager::loadMapResources (const Map & map) {
+void RaylibPropResourceManager::loadMapResources (const Map & map) {
 	std::queue <std::pair <std::string, std::string>> meshQueue;
 	std::queue <std::pair <std::string, std::string>> textureQueue;
 
@@ -210,7 +210,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 	}
 }
 
-void PropRaylibResourceManager::loadMapResources_OLD (const Map & map) {
+void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 	m_resourceManager.loadMapResources (map);
 
 	const auto & libraries = m_resourceManager.propLibraries ();
@@ -297,7 +297,7 @@ void PropRaylibResourceManager::loadMapResources_OLD (const Map & map) {
 	// m_resourceManager.dropResources ();
 }
 
-void PropRaylibResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
+void RaylibPropResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
 	std::vector <RaylibMeshResource> resources;
 	resources.resize (meshDescriptors.size ());
 
@@ -321,7 +321,7 @@ void PropRaylibResourceManager::loadMeshResources (const std::vector <std::pair 
 	}
 }
 
-void PropRaylibResourceManager::loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors) {
+void RaylibPropResourceManager::loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors) {
 	std::vector <RaylibTextureResource> resources;
 	resources.resize (textureDescriptors.size ());
 
@@ -355,7 +355,7 @@ void PropRaylibResourceManager::loadTextureResources (const std::vector <std::pa
 //
 
 // cppcheck-suppress functionStatic
-PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
+RaylibPropResourceManager::RaylibMeshResource RaylibPropResourceManager::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
 	RaylibMeshResource m = {};
 
 	m.mesh.vertices = meshResource.vertexBuffer.data ();
@@ -375,7 +375,7 @@ PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMes
 }
 
 // cppcheck-suppress functionStatic
-PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::loadTextureResource (const PropResourceManager::PropTextureResource & textureResource) {
+RaylibPropResourceManager::RaylibTextureResource RaylibPropResourceManager::loadTextureResource (const PropResourceManager::PropTextureResource & textureResource) {
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
 
 	if (4 == textureResource.channels) {
@@ -406,18 +406,18 @@ PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::load
 //  \_____|______|  |_|     |_|  |______|_|  \_\_____/
 //
 
-const PropResourceManager & PropRaylibResourceManager::resourceManager () {
+const PropResourceManager & RaylibPropResourceManager::resourceManager () {
 	return m_resourceManager;
 }
 
-const std::map <std::string, std::map <std::string, PropRaylibResourceManager::RaylibMeshResource>> & PropRaylibResourceManager::meshResources () const {
+const std::map <std::string, std::map <std::string, RaylibPropResourceManager::RaylibMeshResource>> & RaylibPropResourceManager::meshResources () const {
 	return m_meshResources;
 
 }
-const std::map <std::string, std::map <std::string, PropRaylibResourceManager::RaylibTextureResource>> & PropRaylibResourceManager::textureResources () const {
+const std::map <std::string, std::map <std::string, RaylibPropResourceManager::RaylibTextureResource>> & RaylibPropResourceManager::textureResources () const {
 	return m_textureResources;
 }
 
-const std::map <std::string, std::map <std::string, PropRaylibResourceManager::RaylibSpriteInfo>> & PropRaylibResourceManager::spriteInfos () const {
+const std::map <std::string, std::map <std::string, RaylibPropResourceManager::RaylibSpriteInfo>> & RaylibPropResourceManager::spriteInfos () const {
 	return m_spriteInfos;
 }

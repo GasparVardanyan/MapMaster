@@ -14,7 +14,7 @@
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
-# include "PropRaylibResourceManager.hpp"
+# include "RaylibPropResourceManager.hpp"
 # include "PropResourceManager.hpp"
 
 
@@ -40,7 +40,7 @@ int main (void)
 	// map.loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
 	// map.loadFile (DATA_DIR "map.xml");
 
-	PropRaylibResourceManager raylibResManager;
+	RaylibPropResourceManager raylibResManager;
 	const PropResourceManager & resourceManager = raylibResManager.resourceManager ();
 
 	raylibResManager.loadMapLibraries (map, DATA_DIR "propslibs");

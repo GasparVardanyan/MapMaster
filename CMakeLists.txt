@@ -29,8 +29,10 @@ add_executable (${PROJECT_NAME}
 	PropLibrary.cpp
 	PropResourceManager.hpp
 	PropResourceManager.cpp
-	PropRaylibResourceManager.hpp
-	PropRaylibResourceManager.cpp
+	RaylibPropResourceManager.hpp
+	RaylibPropResourceManager.cpp
+	RaylibMap.hpp
+	RaylibMap.cpp
 	Map.hpp
 	Map.cpp
 )
