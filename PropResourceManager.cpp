@@ -172,11 +172,6 @@ void PropResourceManager::loadMapResources (const Map & map) {
 					std::string diffuseFile = sIt->second.diffuseFile;
 					std::string opacityFile;
 
-					if (library.opacityMap ().contains (diffuseFile)) {
-						std::cerr << "Found opacity map! Unhandled!!" << '\n';
-						std::terminate ();
-					}
-
 					if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
 						opacityFile = it->second;
 					}
@@ -246,65 +241,46 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 	int width = 0;
 	int height = 0;
 	int channels = 0;
+	int desiredChannels = 3;
+
+	if (false == opacityFile.empty ()) {
+		desiredChannels = 4;
+	}
 
 	unsigned char * pixels = stbi_load (
 		diffusePath.c_str (),
 		&width,
 		&height,
 		&channels,
-		STBI_rgb_alpha
+		desiredChannels
 	);
 
 	if (false == opacityFile.empty ()) {
-		std::cout << "OPMAPFOUND!!\n";
-		std::terminate ();
-		// const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
-		// int alphaWidth = 0;
-		// int alphaHeight = 0;
-		// int alphaChannels = 0;
-		// std::cout << "ALPHA: " << opacityPath << '\n';
-		//
-		// unsigned char *alphaPixels = stbi_load(
-		// 		opacityPath.c_str (),
-		// 		&alphaWidth,
-		// 		&alphaHeight,
-		// 		&alphaChannels,
-		// 		STBI_grey
-		// 		);
-		//
-		// if (alphaPixels == nullptr)
-		// {
-		// 	TraceLog(LOG_WARNING,
-		// 			"STB: failed to load alpha image %s: %s",
-		// 			opacityPath.c_str (),
-		// 			stbi_failure_reason());
-		// }
-		// else
-		// {
-		// 	if (alphaWidth != width || alphaHeight != height)
-		// 	{
-		// 		TraceLog(LOG_WARNING,
-		// 				"STB: alpha image size mismatch (%dx%d vs %dx%d)",
-		// 				alphaWidth, alphaHeight,
-		// 				width, height);
-		// 	}
-		// 	else
-		// 	{
-		// 		for (int i = 0; i < width * height; i++)
-		// 		{
-		// 			pixels[i * 4 + 3] = alphaPixels[i];
-		// 		}
-		// 	}
-		//
-		// 	stbi_image_free(alphaPixels);
-		// }
+		const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
+		int alphaWidth = 0;
+		int alphaHeight = 0;
+		int alphaChannels = 0;
+
+		unsigned char *alphaPixels = stbi_load (
+			opacityPath.c_str (),
+			&alphaWidth,
+			&alphaHeight,
+			&alphaChannels,
+			STBI_grey
+		);
+
+		for (int i = 0; i < width * height; i++) {
+			pixels [i * 4 + 3] = alphaPixels [i];
+		}
+
+		stbi_image_free (alphaPixels);
 	}
 
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
 		.width = width,
 		.height = height,
-		.channels = channels
+		.channels = desiredChannels
 	};
 }
 

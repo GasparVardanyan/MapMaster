@@ -66,6 +66,7 @@ public:
 
 public:
 	void loadDirectory (const std::string & path);
+	void clear ();
 
 	[[nodiscard]] std::string actualTextureFile (const std::string & oldFile) const;
 	[[nodiscard]] const std::string & name () const;

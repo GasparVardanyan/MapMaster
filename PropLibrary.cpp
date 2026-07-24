@@ -43,7 +43,7 @@ void PropLibrary::parseImageMap (const pugi::xml_document & imgXml) {
 	for (const pugi::xml_node image : imgXml.child ("images").children ()) {
 		const std::string originalName = image.attribute ("name").value ();
 		std::string diffuseName = image.attribute ("new-name").value ();
-		std::string opacityName = image.attribute ("opacity").value ();
+		std::string opacityName = image.attribute ("alpha").value ();
 
 		std::ranges::transform (diffuseName, diffuseName.begin (), [] (char c) -> char {
 			return static_cast <char> (std::tolower (c));
@@ -89,9 +89,10 @@ void PropLibrary::parseGroup (pugi::xml_node groupXml) {
 		}
 		else {
 			std::cerr << "Unknown prop type " << propData.name () << '\n';
-			std::cerr << "group: " << groupXml.attribute ("name").value () << '\n';
-			std::cerr << "prop: " << prop.attribute ("name").value () << '\n';
-			std::cerr << path () << '\n';
+			std::cout << "\tlibrary: " << m_xmlData.libraryName << '\n';
+			std::cerr << "\tgroup: " << groupXml.attribute ("name").value () << '\n';
+			std::cerr << "\tprop: " << prop.attribute ("name").value () << '\n';
+			std::cerr << "\tpath: " << path () << '\n';
 			std::terminate ();
 		}
 	}
@@ -165,4 +166,9 @@ std::string PropLibrary::actualTextureFile (const std::string & oldFile) const {
 	else {
 		return oldFile;
 	}
+}
+
+void PropLibrary::clear () {
+	m_path.clear ();
+	m_xmlData = {};
 }

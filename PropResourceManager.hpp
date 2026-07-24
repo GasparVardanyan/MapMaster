@@ -19,12 +19,13 @@ public:
 
 	struct PropMeshResource {
 		using VertexType = float;
-		static_assert (std::is_floating_point_v <VertexType>);
 		using NormalType = float;
-		static_assert (std::is_floating_point_v <NormalType>);
 		using TexCoordType = float;
-		static_assert (std::is_floating_point_v <TexCoordType>);
 		using IndexType = unsigned short; // NOLINT(google-runtime-int)
+
+		static_assert (std::is_floating_point_v <VertexType>);
+		static_assert (std::is_floating_point_v <NormalType>);
+		static_assert (std::is_floating_point_v <TexCoordType>);
 		static_assert (std::is_integral_v <IndexType>);
 
 		std::string textureFile;
@@ -35,6 +36,7 @@ public:
 	};
 
 	struct PropTextureResource {
+		// TODO: add big five or clone method
 		std::shared_ptr <unsigned char> pixBuffer;
 		int width = -1;
 		int height = -1;

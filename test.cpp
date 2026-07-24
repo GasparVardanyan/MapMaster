@@ -1,3 +1,4 @@
+# include <algorithm>
 # include <iostream>
 # include <memory>
 
@@ -30,38 +31,40 @@ int main(void)
 	// 	}
 	// }
 
+
+	// PropLibrary lib;
+	// lib.loadDirectory (DATA_DIR "propslibs/Bush");
+	// std::cout << lib.name () << '\n';
+	// return 0;
+
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
-	SetTraceLogLevel(LOG_NONE);
+	// SetTraceLogLevel(LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
 	InitWindow (screenWidth, screenHeight, "raylib [models] example - loading");
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;
 	// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	map.loadFile(DATA_DIR "finalboss.xml");
-	// map.loadFile(DATA_DIR "maps/Summer/Sandbox_MM.xml");
+	// map.loadFile(DATA_DIR "finalboss.xml");
+	// map.loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
+	map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
 	// map.loadFile(DATA_DIR "map.xml");
 
 	PropRaylibResourceManager raylibResManager;
 	PropResourceManager & m_resourceManager = raylibResManager.resourceManager ();
 
 	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
-		raylibResManager.loadLibrary (DATA_DIR "PLVK/" + libraryName);
+		raylibResManager.loadLibrary (DATA_DIR "propslibs/" + libraryName);
 	}
 
 	raylibResManager.loadMapResources (map);
 	// return 0;
 
-	using RaylibMeshResource = PropRaylibResourceManager::RaylibMeshResource;
-	using RaylibTextureResource = PropRaylibResourceManager::RaylibTextureResource;
-	using RaylibSpriteInfo = PropRaylibResourceManager::RaylibSpriteInfo;
-
-	const std::map <std::string, std::map <std::string, RaylibMeshResource>> & m_meshResources = raylibResManager.meshResources();
-	const std::map <std::string, std::map <std::string, RaylibTextureResource>> & m_textureResources = raylibResManager.textureResources();
-	const std::map <std::string, std::map <std::string, RaylibSpriteInfo>> & m_spriteInfos = raylibResManager.spriteInfos();
-
+	const auto & m_meshResources = raylibResManager.meshResources();
+	const auto & m_textureResources = raylibResManager.textureResources();
+	const auto & m_spriteInfos = raylibResManager.spriteInfos();
 
 	const auto & libraries = m_resourceManager.propLibraries ();
 
@@ -77,6 +80,7 @@ int main(void)
 
 	struct SceneSprite {
 		Vector3 position = {};
+		Vector2 origin;
 		std::string library;
 		std::string textureFile; // FIXME: use propName
 	};
@@ -129,6 +133,7 @@ int main(void)
 		}
 	}
 
+
 	auto end = std::chrono::steady_clock::now();
 
 	// raylibResManager = {};
@@ -148,6 +153,9 @@ int main(void)
 
 	SetTargetFPS(60);
 
+	std::vector <std::pair <std::string, std::string>> selectedMeshes;
+	std::vector <std::pair <std::string, std::string>> selectedSprites;
+
 	while (!WindowShouldClose())
 	{
 		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
@@ -158,22 +166,20 @@ int main(void)
 
 		BeginMode3D(camera);
 
-		// NOTE: remember this for prop selection with mouse:
-		// prop can be selected with raycast, then in the next rendering
-		// step of this loop we can identify that props's proplib parameters
-		// checking all props against the raycast
-
 		for (const auto & mesh : sceneMeshes) {
 			auto & model = m_meshResources.at (mesh.library).at (mesh.meshFile).model;
 			auto & texture = m_textureResources.at (mesh.library).at (mesh.textureFile).texture;
 			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
-			DrawModelEx(model, mesh.position, {0, 0, 1}, mesh.rotation.z, {scale, scale, scale}, WHITE);
+			Color tint = WHITE;
+			if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
+				tint = RED;
+			}
+			DrawModelEx(model, mesh.position, {0, 0, 1}, mesh.rotation.z, {scale, scale, scale}, tint);
 		}
 
 		for (const auto & sprite : sceneSprites) {
 			auto & texture = m_textureResources.at (sprite.library).at (sprite.textureFile).texture;
 			auto & spdata = m_spriteInfos.at (sprite.library).at (sprite.textureFile);
-			// DrawTexturePro(Texture2D texture, Rectangle srcrec, Rectangle dstrec, Vector2 origin, float rotation, Color tint) -> void
 
 			DrawBillboardPro (
 				camera,
@@ -186,8 +192,6 @@ int main(void)
 				0,
 				WHITE
 			);
-			// model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
-			// DrawModelEx(model, sprite.position, {0, 0, 1}, sprite.rotation.z * 180 / M_PI, {scale, scale, scale}, WHITE);
 		}
 
 		// DrawGrid(20, 10.0f);

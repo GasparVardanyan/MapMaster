@@ -4,7 +4,6 @@
 # include <condition_variable>
 # include <cstddef>
 # include <execution>
-# include <iostream>
 # include <map>
 # include <mutex>
 # include <queue>
@@ -320,12 +319,18 @@ PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMes
 }
 
 PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::loadTextureResources (const PropResourceManager::PropTextureResource & textureResource) {
+	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
+
+	if (4 == textureResource.channels) {
+		pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
+	}
+
 	Image image = {
 		.data = static_cast <void *> (textureResource.pixBuffer.get ()),
 		.width = textureResource.width,
 		.height = textureResource.height,
 		.mipmaps = 1,
-		.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+		.format = pixelFormat
 	};
 
 	return {

@@ -64,6 +64,5 @@ private:
 	std::map <std::string, std::map <std::string, RaylibMeshResource>> m_meshResources;
 	std::map <std::string, std::map <std::string, RaylibTextureResource>> m_textureResources;
 	std::map <std::string, std::map <std::string, RaylibSpriteInfo>> m_spriteInfos;
-
 };
 // cppcheck-suppress-end unusedStructMember
