@@ -68,12 +68,13 @@ public:
 	void loadDirectory (const std::string & path);
 	void clear ();
 
-	[[nodiscard]] std::string actualTextureFile (const std::string & oldFile) const;
 	[[nodiscard]] const std::string & name () const;
 	[[nodiscard]] const std::map <std::string, std::string> & diffuseMap () const;
 	[[nodiscard]] const std::map <std::string, std::string> & alphaMap () const;
 	[[nodiscard]] const std::map <std::string, Group> & groups () const;
 	[[nodiscard]] const std::string & path () const;
+
+	[[nodiscard]] std::string getActualTextureFileName (const std::string & oldFileName) const;
 
 private:
 	void parse (pugi::xml_node libXml, const pugi::xml_document & imgXml);

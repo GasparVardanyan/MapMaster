@@ -16,11 +16,15 @@ public:
 	struct RaylibMeshResource {
 		Mesh mesh;
 		Model model;
+
+		// TODO: clone()
 	};
 
 	struct RaylibTextureResource {
 		Image image;
 		Texture2D texture;
+
+		// TODO: clone()
 	};
 
 	struct RaylibSpriteInfo {
@@ -54,8 +58,8 @@ public:
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibSpriteInfo>> & spriteInfos () const;
 
 private:
-	RaylibMeshResource loadMeshResources (PropResourceManager::PropMeshResource & meshResource);
-	RaylibTextureResource loadTextureResources (const PropResourceManager::PropTextureResource & textureResource);
+	RaylibMeshResource loadMeshResource (PropResourceManager::PropMeshResource & meshResource);
+	RaylibTextureResource loadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
 
 private:
 	PropResourceManager m_resourceManager;

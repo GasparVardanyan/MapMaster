@@ -326,7 +326,7 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResource (con
 			resources.uvBuffer [2 * i + 1] = mesh->mTextureCoords[0][i].y;
 		}
 	}
-	if (mesh->HasNormals()) {
+	if (true == mesh->HasNormals ()) {
 		resources.normalBuffer.resize (mesh->mNumVertices * 3UL);
 		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
 			resources.normalBuffer [3 * i + 0] = mesh->mNormals [i].x;
@@ -354,9 +354,9 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 
 	unsigned char * pixels = stbi_load (
 		diffusePath.c_str (),
-		&width,
-		&height,
-		&channels,
+		& width,
+		& height,
+		& channels,
 		desiredChannels
 	);
 
@@ -368,9 +368,9 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 
 		unsigned char *alphaPixels = stbi_load (
 			alphaPath.c_str (),
-			&alphaWidth,
-			&alphaHeight,
-			&alphaChannels,
+			& alphaWidth,
+			& alphaHeight,
+			& alphaChannels,
 			STBI_grey
 		);
 
@@ -421,18 +421,18 @@ const PropResourceManager::PropTextureResource & PropResourceManager::getTexture
 
 	if (false == textureName.empty ()) {
 		const std::string & textureFile = library.groups ().at (groupName).meshes.at (propMeshName).textures.at (textureName);
-		return m_propTextureResources.at (libraryName).at (library.actualTextureFile (textureFile));
+		return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (textureFile));
 	}
 	else {
 		const std::string & meshFile = m_propLibraries.at (libraryName).groups ().at (groupName).meshes.at (propMeshName).file;
-		return m_propTextureResources.at (libraryName).at (library.actualTextureFile (m_propMeshResources.at (libraryName).at (meshFile).textureFile));
+		return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile).textureFile));
 	}
 }
 
 const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const {
 	const PropLibrary & library = m_propLibraries.at (libraryName);
 
-	return m_propTextureResources.at (libraryName).at (library.actualTextureFile(library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
+	return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
 }
 
 
@@ -457,7 +457,7 @@ void PropResourceManager::setMapMeshResourcesLoadCallback (const MapResourcesLoa
 	m_callbacks.mapMeshResourcesLoad = callback;
 }
 
-void PropResourceManager::setMapTextureResourcesLoadCallback(const MapResourcesLoadCallback & callback) {
+void PropResourceManager::setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
 	m_callbacks.mapTextureResourcesLoad = callback;
 }
 

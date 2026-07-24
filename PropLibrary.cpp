@@ -48,15 +48,6 @@ void PropLibrary::clear () {
 //  \_____|______|  |_|     |_|  |______|_|  \_\_____/
 //
 
-std::string PropLibrary::actualTextureFile (const std::string & oldFile) const {
-	if (true == m_xmlData.diffuseMap.contains (oldFile)) {
-		return m_xmlData.diffuseMap.at (oldFile);
-	}
-	else {
-		return oldFile;
-	}
-}
-
 const std::string & PropLibrary::name () const {
 	return m_xmlData.libraryName;
 }
@@ -75,6 +66,15 @@ const std::map <std::string, PropLibrary::Group> & PropLibrary::groups () const 
 
 const std::string & PropLibrary::path () const {
 	return m_path;
+}
+
+std::string PropLibrary::getActualTextureFileName (const std::string & oldFileName) const {
+	if (true == m_xmlData.diffuseMap.contains (oldFileName)) {
+		return m_xmlData.diffuseMap.at (oldFileName);
+	}
+	else {
+		return oldFileName;
+	}
 }
 
 

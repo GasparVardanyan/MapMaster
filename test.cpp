@@ -24,11 +24,11 @@
 static constexpr float scale = 0.01F;
 
 // NOLINTBEGIN(*)
-int main(void)
+int main (void)
 {
 	// for (const auto & [groupName, group] : lib.groups ()) {
 	// 	for (const auto & [propName, _] : group.meshes) {
-	// 		resManager.loadResources(lib.name (), groupName, propName);
+	// 		resManager.loadResources (lib.name (), groupName, propName);
 	// 	}
 	// }
 
@@ -41,17 +41,17 @@ int main(void)
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
-	// SetTraceLogLevel(LOG_NONE);
+	// SetTraceLogLevel (LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
 	InitWindow (screenWidth, screenHeight, "raylib [models] example - loading");
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;
-	// map.loadFile(DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	// map.loadFile(DATA_DIR "finalboss.xml");
+	// map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	// map.loadFile (DATA_DIR "finalboss.xml");
 	// map.loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
-	// map.loadFile(DATA_DIR "map.xml");
+	// map.loadFile (DATA_DIR "map.xml");
 
 	PropRaylibResourceManager raylibResManager;
 	PropResourceManager & m_resourceManager = raylibResManager.resourceManager ();
@@ -63,9 +63,9 @@ int main(void)
 	raylibResManager.loadMapResources (map);
 	// return 0;
 
-	const auto & m_meshResources = raylibResManager.meshResources();
-	const auto & m_textureResources = raylibResManager.textureResources();
-	const auto & m_spriteInfos = raylibResManager.spriteInfos();
+	const auto & m_meshResources = raylibResManager.meshResources ();
+	const auto & m_textureResources = raylibResManager.textureResources ();
+	const auto & m_spriteInfos = raylibResManager.spriteInfos ();
 
 	const auto & libraries = m_resourceManager.propLibraries ();
 
@@ -107,7 +107,7 @@ int main(void)
 							textureFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 						}
 
-						textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
+						textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (textureFile);
 
 						sceneMeshes.push_back ({
 							.library = libraryName,
@@ -120,7 +120,7 @@ int main(void)
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
+					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (sprite.diffuseFile);
 
 					for (const auto & prop : propInfo) {
 						sceneSprites.push_back ({
@@ -135,13 +135,13 @@ int main(void)
 	}
 
 
-	auto end = std::chrono::steady_clock::now();
+	auto end = std::chrono::steady_clock::now ();
 
 	// raylibResManager = {};
 	// resManager = {};
 
 	std::cout << "Elapsed: "
-		<< std::chrono::duration<double>(end - start).count()
+		<< std::chrono::duration<double>(end - start).count ()
 		<< " s\n";
 
 
@@ -152,20 +152,20 @@ int main(void)
 	camera.fovy = 45.0f;
 	camera.projection = CAMERA_PERSPECTIVE;
 
-	SetTargetFPS(60);
+	SetTargetFPS (60);
 
 	std::vector <std::pair <std::string, std::string>> selectedMeshes;
 	std::vector <std::pair <std::string, std::string>> selectedSprites;
 
-	while (!WindowShouldClose())
+	while (!WindowShouldClose ())
 	{
-		UpdateCamera(&camera, CAMERA_THIRD_PERSON);
+		UpdateCamera (& camera, CAMERA_THIRD_PERSON);
 
-		BeginDrawing();
+		BeginDrawing ();
 
-		ClearBackground(RAYWHITE);
+		ClearBackground (RAYWHITE);
 
-		BeginMode3D(camera);
+		BeginMode3D (camera);
 
 		for (const auto & mesh : sceneMeshes) {
 			auto & model = m_meshResources.at (mesh.library).at (mesh.meshFile).model;
@@ -175,7 +175,7 @@ int main(void)
 			if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
 				tint = RED;
 			}
-			DrawModelEx(model, mesh.position, {0, 0, 1}, mesh.rotation.z, {scale, scale, scale}, tint);
+			DrawModelEx (model, mesh.position, {0, 0, 1}, mesh.rotation.z, {scale, scale, scale}, tint);
 		}
 
 		for (const auto & sprite : sceneSprites) {
@@ -195,18 +195,18 @@ int main(void)
 			);
 		}
 
-		// DrawGrid(20, 10.0f);
+		// DrawGrid (20, 10.0f);
 
-		EndMode3D();
+		EndMode3D ();
 
-		DrawFPS(10, 10);
+		DrawFPS (10, 10);
 
-		EndDrawing();
+		EndDrawing ();
 	}
 
-	// UnloadTexture(texture);
+	// UnloadTexture (texture);
 
-	CloseWindow();
+	CloseWindow ();
 
 	return 0;
 }

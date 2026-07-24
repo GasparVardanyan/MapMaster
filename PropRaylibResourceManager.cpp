@@ -67,14 +67,14 @@ void PropRaylibResourceManager::loadMapResources_OLD (const Map & map) {
 							textureFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 						}
 
-						textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (textureFile);
+						textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (textureFile);
 
 						textureDescriptors.emplace_back (libraryName, textureFile);
 					}
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
+					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (sprite.diffuseFile);
 					textureDescriptors.emplace_back (libraryName, textureFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
@@ -109,7 +109,7 @@ void PropRaylibResourceManager::loadMapResources_OLD (const Map & map) {
 	for (auto & [libraryName, textureFiles] : m_textureResources) {
 		for (auto & [textureFile, textureResource] : textureFiles) {
 			textureResource.texture = LoadTextureFromImage (textureResource.image);
-			GenTextureMipmaps (&textureResource.texture);
+			GenTextureMipmaps (& textureResource.texture);
 			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
 		}
 	}
@@ -163,7 +163,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		meshResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setMapTextureResourcesLoadCallback ([&texturesFinished, &textureResourceMutex, & textureResourceNotifier] () -> void {
+	m_resourceManager.setMapTextureResourcesLoadCallback ([& texturesFinished, &textureResourceMutex, & textureResourceNotifier] () -> void {
 		{
 			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
 			texturesFinished = true;
@@ -201,7 +201,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (
 				m_resourceManager.propMeshResources ().at (meshDescriptor.first).at (meshDescriptor.second)
 			);
-			m_meshResources [meshDescriptor.first] [meshDescriptor.second] = loadMeshResources (res);
+			m_meshResources [meshDescriptor.first] [meshDescriptor.second] = loadMeshResource (res);
 
 			RaylibMeshResource & meshResource = m_meshResources.at (meshDescriptor.first).at (meshDescriptor.second);
 			UploadMesh (& meshResource.mesh, false);
@@ -236,11 +236,11 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 			texturesToProcess.pop ();
 
 			const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (textureDescriptor.first).at (textureDescriptor.second);
-			m_textureResources [textureDescriptor.first] [textureDescriptor.second] = loadTextureResources (res);
+			m_textureResources [textureDescriptor.first] [textureDescriptor.second] = loadTextureResource (res);
 
 			RaylibTextureResource & textureResource = m_textureResources.at (textureDescriptor.first).at (textureDescriptor.second);
 			textureResource.texture = LoadTextureFromImage (textureResource.image);
-			GenTextureMipmaps (&textureResource.texture);
+			GenTextureMipmaps (& textureResource.texture);
 			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
 		}
 
@@ -263,7 +263,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).actualTextureFile (sprite.diffuseFile);
+					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (sprite.diffuseFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
 					const PropResourceManager::PropTextureResource & textureResource = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
@@ -300,7 +300,7 @@ const std::map <std::string, std::map <std::string, PropRaylibResourceManager::R
 }
 
 // cppcheck-suppress functionStatic
-PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMeshResources (PropResourceManager::PropMeshResource & meshResource) {
+PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
 	RaylibMeshResource m = {};
 
 	m.mesh.vertices = meshResource.vertexBuffer.data ();
@@ -320,7 +320,7 @@ PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMes
 }
 
 // cppcheck-suppress functionStatic
-PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::loadTextureResources (const PropResourceManager::PropTextureResource & textureResource) {
+PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::loadTextureResource (const PropResourceManager::PropTextureResource & textureResource) {
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
 
 	if (4 == textureResource.channels) {
@@ -352,7 +352,7 @@ void PropRaylibResourceManager::loadMeshResources (const std::vector <std::pair 
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
 			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second));
-			return loadMeshResources (res);
+			return loadMeshResource (res);
 		}
 	);
 
@@ -376,7 +376,7 @@ void PropRaylibResourceManager::loadTextureResources (const std::vector <std::pa
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
 			const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second);
-			return loadTextureResources (res);
+			return loadTextureResource (res);
 		}
 	);
 
