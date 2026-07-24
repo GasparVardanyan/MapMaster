@@ -55,8 +55,7 @@ public:
 	};
 
 public:
-	void addPropLibrary (const PropLibrary & propLibrary);
-	void addPropLibrary (PropLibrary && propLibrary);
+	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();
 	void removePropLibrary (const std::string & name);
 	void clearPropLibraries ();
@@ -78,7 +77,7 @@ public:
 
 	void loadMapResources (const Map & map);
 
-	[[nodiscard]] const std::map <std::string, PropLibrary> & propLibraries () const;
+	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
 
@@ -97,7 +96,7 @@ private:
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
 
 private:
-	std::map <std::string, PropLibrary> m_propLibraries;
+	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, PropTextureResource>> m_propTextureResources;
 

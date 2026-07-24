@@ -17,6 +17,19 @@ include (/desktop/nvim/cmake/config.cmake OPTRIONAL)
 
 add_subdirectory (external_libraries/stb)
 
+function (enableReleaseBuildOptimizations target)
+	target_compile_options (${target} PRIVATE
+		$<$<CONFIG:Release>:-O3>
+		$<$<CONFIG:Release>:-march=native>
+		$<$<CONFIG:Release>:-mtune=native>
+		$<$<CONFIG:Release>:-flto>
+	)
+
+	target_link_options (${target} PRIVATE
+		$<$<CONFIG:Release>:-flto>
+	)
+endfunction ()
+
 find_package (raylib REQUIRED)
 find_package (assimp REQUIRED)
 find_package (TBB REQUIRED)
@@ -37,23 +50,14 @@ add_executable (${PROJECT_NAME}
 	Map.cpp
 )
 
-target_link_libraries (${PROJECT_NAME} raylib)
-target_link_libraries (${PROJECT_NAME} assimp)
 target_link_libraries (${PROJECT_NAME} TBB::tbb)
+target_link_libraries (${PROJECT_NAME} assimp)
 target_link_libraries (${PROJECT_NAME} stb)
+target_link_libraries (${PROJECT_NAME} raylib)
+
+enableReleaseBuildOptimizations (${PROJECT_NAME})
 
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
-
-target_compile_options (${PROJECT_NAME} PRIVATE
-	$<$<CONFIG:Release>:-O3>
-	$<$<CONFIG:Release>:-march=native>
-	$<$<CONFIG:Release>:-mtune=native>
-	$<$<CONFIG:Release>:-flto>
-)
-
-target_link_options (${PROJECT_NAME} PRIVATE
-	$<$<CONFIG:Release>:-flto>
-)
 
 set (CPACK_PROJECT_NAME ${PROJECT_NAME})
 set (CPACK_PROJECT_VERSION ${PROJECT_VERSION})

@@ -31,17 +31,11 @@
 
 
 
-void PropResourceManager::addPropLibrary (const PropLibrary & propLibrary) {
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
+void PropResourceManager::addPropLibrary (std::shared_ptr <PropLibrary> propLibrary) {
+	const std::string & libraryName = propLibrary->name ();
 	m_propLibraries.try_emplace (
-		propLibrary.name (),
-		propLibrary
-	);
-}
-
-void PropResourceManager::addPropLibrary (PropLibrary && propLibrary) {
-	std::string name = propLibrary.name ();
-	m_propLibraries.try_emplace (
-		std::move (name),
+		libraryName,
 		std::move (propLibrary)
 	);
 }
@@ -61,7 +55,7 @@ void PropResourceManager::clearPropLibraries () {
 
 void PropResourceManager::setOverlapBehaviour (OverlapBehaviour overlapBehaviour) {
 	throw std::runtime_error ("PropResourceManager::OverlapBehaviour is not in effect");
-	m_overlapBehaviour = overlapBehaviour;
+	m_overlapBehaviour = overlapBehaviour; // cppcheck-suppress unreachableCode
 }
 
 PropResourceManager::PropTextureResource PropResourceManager::PropTextureResource::clone () {
@@ -69,7 +63,7 @@ PropResourceManager::PropTextureResource PropResourceManager::PropTextureResourc
 		return {};
 	}
 	else {
-		std::size_t bufSize = static_cast<long>(width) * height * channels;
+		std::size_t bufSize = static_cast <std::size_t>(width) * height * channels;
 		unsigned char * newPixBuf = static_cast <unsigned char *> (std::malloc (bufSize));
 		std::memcpy (newPixBuf, pixBuffer.get (), bufSize);
 
@@ -148,7 +142,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
 
 	for (const auto & [libraryName, groupNames] : map.mapObjects ()) {
-		const PropLibrary & library = m_propLibraries.at (libraryName);
+		const PropLibrary & library = * m_propLibraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
 
 		for (const auto & [groupName, propNames] : groupNames) {
@@ -212,7 +206,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 	}
 
 	for (const auto & [libraryName, groupData] : defaultTextures) {
-		const PropLibrary & library = m_propLibraries.at (libraryName);
+		const PropLibrary & library = * m_propLibraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
 		const std::map <std::string, PropMeshResource> & libraryMeshResources = m_propMeshResources.at (libraryName);
 
@@ -260,7 +254,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 //
 
 PropResourceManager::PropMeshResource PropResourceManager::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
-	const std::string meshPath = m_propLibraries.at (libraryName).path () + "/" + meshFile;
+	const std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
 	std::map <std::string, PropMeshResource> & libraryResources = m_propMeshResources [libraryName];
 
 	Assimp::Importer importer;
@@ -346,7 +340,7 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResource (con
 }
 
 PropResourceManager::PropTextureResource PropResourceManager::loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) {
-	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
+	const std::string diffusePath = m_propLibraries.at (libraryName)->path () + "/" + diffuseFile;
 
 	int width = 0;
 	int height = 0;
@@ -366,7 +360,7 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 	);
 
 	if (false == alphaFile.empty ()) {
-		const std::string alphaPath = m_propLibraries.at (libraryName).path () + "/" + alphaFile;
+		const std::string alphaPath = m_propLibraries.at (libraryName)->path () + "/" + alphaFile;
 		int alphaWidth = 0;
 		int alphaHeight = 0;
 		int alphaChannels = 0;
@@ -404,7 +398,7 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 //  \_____|______|  |_|     |_|  |______|_|  \_\_____/
 //
 
-const std::map <std::string, PropLibrary> & PropResourceManager::propLibraries () const {
+const std::map <std::string, std::shared_ptr <PropLibrary>> & PropResourceManager::propLibraries () const {
 	return m_propLibraries;
 }
 
@@ -417,25 +411,25 @@ const std::map <std::string, std::map <std::string, PropResourceManager::PropTex
 }
 
 const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
-	const std::string & meshFile = m_propLibraries.at (libraryName).groups ().at (groupName).meshes.at (propName).file;
+	const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propName).file;
 	return m_propMeshResources.at (libraryName).at (meshFile);
 }
 
 const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const {
-	const PropLibrary & library = m_propLibraries.at (libraryName);
+	const PropLibrary & library = * m_propLibraries.at (libraryName);
 
 	if (false == textureName.empty ()) {
 		const std::string & textureFile = library.groups ().at (groupName).meshes.at (propMeshName).textures.at (textureName);
 		return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (textureFile));
 	}
 	else {
-		const std::string & meshFile = m_propLibraries.at (libraryName).groups ().at (groupName).meshes.at (propMeshName).file;
+		const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propMeshName).file;
 		return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile).textureFile));
 	}
 }
 
 const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const {
-	const PropLibrary & library = m_propLibraries.at (libraryName);
+	const PropLibrary & library = * m_propLibraries.at (libraryName);
 
 	return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
 }

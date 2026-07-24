@@ -14,8 +14,8 @@
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
-# include "RaylibPropResourceManager.hpp"
 # include "PropResourceManager.hpp"
+# include "RaylibPropResourceManager.hpp"
 
 
 
@@ -70,14 +70,15 @@ int main (void)
 
 	std::vector <SceneSprite> sceneSprites;
 
+	// NOTE: this is a garbage code
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
-		const auto & library = propLibraries.at (libraryName);
+		const auto & library = * propLibraries.at (libraryName);
 		for (const auto & [groupName, props] : groups) {
 			const auto & group = library.groups ().at (groupName);
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resourceManager.getMeshResource (libraryName, groupName, propName));
-					const std::string meshFile = resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
+					const std::string meshFile = resourceManager.propLibraries ().at (libraryName)->groups ().at (groupName).meshes.at (propName).file;
 
 					for (const auto & prop : propInfo) {
 						std::string textureName = prop.textureName;
@@ -86,10 +87,10 @@ int main (void)
 							textureFile = meshResource.textureFile;
 						}
 						else {
-							textureFile = resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
+							textureFile = resourceManager.propLibraries ().at (libraryName)->groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 						}
 
-						textureFile = resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (textureFile);
+						textureFile = resourceManager.propLibraries ().at (libraryName)->getActualTextureFileName (textureFile);
 
 						sceneMeshes.push_back ({
 							.library = libraryName,
@@ -102,7 +103,7 @@ int main (void)
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (sprite.diffuseFile);
+					std::string textureFile = resourceManager.propLibraries ().at (libraryName)->getActualTextureFileName (sprite.diffuseFile);
 
 					for (const auto & prop : propInfo) {
 						sceneSprites.push_back ({
