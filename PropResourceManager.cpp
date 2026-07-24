@@ -78,7 +78,6 @@ PropResourceManager::PropTextureResource PropResourceManager::PropTextureResourc
 
 
 
-
 //  _      ____          _____  ______ _____   _____
 // | |    / __ \   /\   |  __ \|  ____|  __ \ / ____|
 // | |   | |  | | /  \  | |  | | |__  | |__) | (___

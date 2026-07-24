@@ -26,18 +26,6 @@ static constexpr float scale = 0.01F;
 // NOLINTBEGIN(*)
 int main (void)
 {
-	// for (const auto & [groupName, group] : lib.groups ()) {
-	// 	for (const auto & [propName, _] : group.meshes) {
-	// 		resManager.loadResources (lib.name (), groupName, propName);
-	// 	}
-	// }
-
-
-	// PropLibrary lib;
-	// lib.loadDirectory (DATA_DIR "propslibs/Bush");
-	// std::cout << lib.name () << '\n';
-	// return 0;
-
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
@@ -47,27 +35,24 @@ int main (void)
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;
-	// map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
 	// map.loadFile (DATA_DIR "finalboss.xml");
 	// map.loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
-	map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
+	// map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
+	// map.loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
 	// map.loadFile (DATA_DIR "map.xml");
 
 	PropRaylibResourceManager raylibResManager;
-	PropResourceManager & m_resourceManager = raylibResManager.resourceManager ();
+	const PropResourceManager & resourceManager = raylibResManager.resourceManager ();
 
-	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
-		raylibResManager.loadLibrary (DATA_DIR "propslibs/" + libraryName);
-	}
-
+	raylibResManager.loadMapLibraries (map, DATA_DIR "propslibs");
 	raylibResManager.loadMapResources (map);
-	// return 0;
 
-	const auto & m_meshResources = raylibResManager.meshResources ();
-	const auto & m_textureResources = raylibResManager.textureResources ();
-	const auto & m_spriteInfos = raylibResManager.spriteInfos ();
+	const auto & meshResources = raylibResManager.meshResources ();
+	const auto & textureResources = raylibResManager.textureResources ();
+	const auto & spriteInfos = raylibResManager.spriteInfos ();
 
-	const auto & libraries = m_resourceManager.propLibraries ();
+	const auto & libraries = resourceManager.propLibraries ();
 
 	struct SceneMesh {
 		Vector3 position = {};
@@ -81,7 +66,6 @@ int main (void)
 
 	struct SceneSprite {
 		Vector3 position = {};
-		Vector2 origin;
 		std::string library;
 		std::string textureFile; // FIXME: use propName
 	};
@@ -94,8 +78,8 @@ int main (void)
 			const auto & group = library.groups ().at (groupName);
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.getMeshResource (libraryName, groupName, propName));
-					const std::string meshFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
+					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resourceManager.getMeshResource (libraryName, groupName, propName));
+					const std::string meshFile = resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).file;
 
 					for (const auto & prop : propInfo) {
 						std::string textureName = prop.textureName;
@@ -104,10 +88,10 @@ int main (void)
 							textureFile = meshResource.textureFile;
 						}
 						else {
-							textureFile = m_resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
+							textureFile = resourceManager.propLibraries ().at (libraryName).groups ().at (groupName).meshes.at (propName).textures.at (textureName);
 						}
 
-						textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (textureFile);
+						textureFile = resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (textureFile);
 
 						sceneMeshes.push_back ({
 							.library = libraryName,
@@ -120,7 +104,7 @@ int main (void)
 				}
 				else if (true == group.sprites.contains (propName)) {
 					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = m_resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (sprite.diffuseFile);
+					std::string textureFile = resourceManager.propLibraries ().at (libraryName).getActualTextureFileName (sprite.diffuseFile);
 
 					for (const auto & prop : propInfo) {
 						sceneSprites.push_back ({
@@ -168,8 +152,8 @@ int main (void)
 		BeginMode3D (camera);
 
 		for (const auto & mesh : sceneMeshes) {
-			auto & model = m_meshResources.at (mesh.library).at (mesh.meshFile).model;
-			auto & texture = m_textureResources.at (mesh.library).at (mesh.textureFile).texture;
+			auto & model = meshResources.at (mesh.library).at (mesh.meshFile).model;
+			auto & texture = textureResources.at (mesh.library).at (mesh.textureFile).texture;
 			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
 			Color tint = WHITE;
 			if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
@@ -179,12 +163,12 @@ int main (void)
 		}
 
 		for (const auto & sprite : sceneSprites) {
-			auto & texture = m_textureResources.at (sprite.library).at (sprite.textureFile).texture;
-			auto & spdata = m_spriteInfos.at (sprite.library).at (sprite.textureFile);
+			auto & texture = textureResources.at (sprite.library).at (sprite.textureFile).texture;
+			auto & spdata = spriteInfos.at (sprite.library).at (sprite.textureFile);
 
 			DrawBillboardPro (
 				camera,
-				m_textureResources.at (sprite.library).at (sprite.textureFile).texture,
+				textureResources.at (sprite.library).at (sprite.textureFile).texture,
 				{0, 0, static_cast <float> (texture.width), static_cast <float> (texture.height)},
 				sprite.position,
 				{0, 0, 1},

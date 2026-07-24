@@ -33,7 +33,6 @@ public:
 	};
 
 public:
-	PropResourceManager & resourceManager ();
 	void loadLibrary (const std::string & path);
 	void loadMapLibraries (const Map & map, const std::string & libraryRootDir);
 	void loadMapResources (const Map & map);
@@ -53,6 +52,7 @@ public:
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors);
 
+	[[nodiscard]] const PropResourceManager & resourceManager ();
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibMeshResource>> & meshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibTextureResource>> & textureResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibSpriteInfo>> & spriteInfos () const;
