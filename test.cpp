@@ -43,7 +43,7 @@ int main (void)
 
 	// SetTraceLogLevel (LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
-	InitWindow (screenWidth, screenHeight, "raylib [models] example - loading");
+	InitWindow (screenWidth, screenHeight, "MapMaster");
 	auto start = std::chrono::steady_clock::now ();
 
 	Map map;

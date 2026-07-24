@@ -201,9 +201,10 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (
 				m_resourceManager.propMeshResources ().at (meshDescriptor.first).at (meshDescriptor.second)
 			);
-			m_meshResources [meshDescriptor.first] [meshDescriptor.second] = loadMeshResource (res);
 
-			RaylibMeshResource & meshResource = m_meshResources.at (meshDescriptor.first).at (meshDescriptor.second);
+			RaylibMeshResource & meshResource = m_meshResources [meshDescriptor.first] [meshDescriptor.second];
+			meshResource = loadMeshResource (res);
+
 			UploadMesh (& meshResource.mesh, false);
 			meshResource.model = LoadModelFromMesh (meshResource.mesh);
 		}
@@ -236,10 +237,12 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 			texturesToProcess.pop ();
 
 			const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (textureDescriptor.first).at (textureDescriptor.second);
-			m_textureResources [textureDescriptor.first] [textureDescriptor.second] = loadTextureResource (res);
 
-			RaylibTextureResource & textureResource = m_textureResources.at (textureDescriptor.first).at (textureDescriptor.second);
+			RaylibTextureResource & textureResource = m_textureResources [textureDescriptor.first] [textureDescriptor.second];
+			textureResource = loadTextureResource (res);
+
 			textureResource.texture = LoadTextureFromImage (textureResource.image);
+
 			GenTextureMipmaps (& textureResource.texture);
 			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
 		}

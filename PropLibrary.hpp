@@ -19,9 +19,9 @@ public:
 
 	struct PropSprite {
 		using OriginType = double;
-		static_assert (std::is_floating_point_v <OriginType>);
-
 		using ScaleType = double;
+
+		static_assert (std::is_floating_point_v <OriginType>);
 		static_assert (std::is_floating_point_v <ScaleType>);
 
 		template <std::floating_point> struct OriginXDefault;
@@ -42,7 +42,7 @@ public:
 		struct OriginYDefault <double> { static constexpr double value = 0.5; };
 		template <>
 		// NOLINTNEXTLINE(google-runtime-float)
-		struct OriginYDefault <long double> { static constexpr double value = 0.5L; };
+		struct OriginYDefault <long double> { static constexpr long double value = 0.5L; };
 
 		template <>
 		struct ScaleDefault <float> { static constexpr float value = 1.0F; };
@@ -50,7 +50,7 @@ public:
 		struct ScaleDefault <double> { static constexpr double value = 1.0; };
 		template <>
 		// NOLINTNEXTLINE(google-runtime-float)
-		struct ScaleDefault <long double> { static constexpr double value = 1.0L; };
+		struct ScaleDefault <long double> { static constexpr long double value = 1.0L; };
 
 		OriginType originX = OriginXDefault <OriginType>::value;
 		OriginType originY = OriginYDefault <OriginType>::value;

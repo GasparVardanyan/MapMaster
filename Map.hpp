@@ -12,9 +12,9 @@ class Map {
 public:
 	struct MapObject {
 		using RotationType = double;
-		static_assert (std::is_floating_point_v <RotationType>);
-
 		using PositionType = double;
+
+		static_assert (std::is_floating_point_v <RotationType>);
 		static_assert (std::is_floating_point_v <PositionType>);
 
 		RotationType rotationZ = 0;
