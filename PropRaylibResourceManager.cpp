@@ -138,10 +138,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 	std::mutex textureResourceMutex;
 	std::condition_variable textureResourceNotifier;
 
-	m_resourceManager.setMeshResourceLoadCallback ([this, & meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile) -> void {
-		PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
-		m_meshResources [libraryName] [meshFile] = loadMeshResources (res);
-
+	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile) -> void {
 		{
 			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);;
 			meshQueue.emplace (libraryName, meshFile);
@@ -150,10 +147,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		meshResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setTextureResourceLoadCallback ([this, & textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile) -> void {
-		const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (libraryName).at (textureFile);
-		m_textureResources [libraryName] [textureFile] = loadTextureResources (res);
-
+	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile) -> void {
 		{
 			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
 			textureQueue.emplace (libraryName, textureFile);
@@ -162,7 +156,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		textureResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setMapMeshResourcesLoadCallback([& meshesFinished, & meshResourceMutex, & meshResourceNotifier] () -> void {
+	m_resourceManager.setMapMeshResourcesLoadCallback ([& meshesFinished, & meshResourceMutex, & meshResourceNotifier] () -> void {
 		{
 			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);
 			meshesFinished = true;
@@ -171,7 +165,7 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		meshResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setMapTextureResourcesLoadCallback([&texturesFinished, &textureResourceMutex, & textureResourceNotifier] () -> void {
+	m_resourceManager.setMapTextureResourcesLoadCallback ([&texturesFinished, &textureResourceMutex, & textureResourceNotifier] () -> void {
 		{
 			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
 			texturesFinished = true;
@@ -206,6 +200,11 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 			std::pair <std::string, std::string> meshDescriptor = meshesToProcess.top ();
 			meshesToProcess.pop ();
 
+			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (
+				m_resourceManager.propMeshResources ().at (meshDescriptor.first).at (meshDescriptor.second)
+			);
+			m_meshResources [meshDescriptor.first] [meshDescriptor.second] = loadMeshResources (res);
+
 			RaylibMeshResource & meshResource = m_meshResources.at (meshDescriptor.first).at (meshDescriptor.second);
 			UploadMesh (& meshResource.mesh, false);
 			meshResource.model = LoadModelFromMesh (meshResource.mesh);
@@ -237,6 +236,9 @@ void PropRaylibResourceManager::loadMapResources (const Map & map) {
 		while (false == texturesToProcess.empty ()) {
 			std::pair <std::string, std::string> textureDescriptor = texturesToProcess.top ();
 			texturesToProcess.pop ();
+
+			const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (textureDescriptor.first).at (textureDescriptor.second);
+			m_textureResources [textureDescriptor.first] [textureDescriptor.second] = loadTextureResources (res);
 
 			RaylibTextureResource & textureResource = m_textureResources.at (textureDescriptor.first).at (textureDescriptor.second);
 			textureResource.texture = LoadTextureFromImage (textureResource.image);
@@ -299,6 +301,7 @@ const std::map <std::string, std::map <std::string, PropRaylibResourceManager::R
 	return m_spriteInfos;
 }
 
+// cppcheck-suppress functionStatic
 PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMeshResources (PropResourceManager::PropMeshResource & meshResource) {
 	RaylibMeshResource m = {};
 
@@ -313,11 +316,12 @@ PropRaylibResourceManager::RaylibMeshResource PropRaylibResourceManager::loadMes
 
 	m.mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
 
-	m.mesh.indices = meshResource.indexBuffer.data();
+	m.mesh.indices = meshResource.indexBuffer.data ();
 
 	return m;
 }
 
+// cppcheck-suppress functionStatic
 PropRaylibResourceManager::RaylibTextureResource PropRaylibResourceManager::loadTextureResources (const PropResourceManager::PropTextureResource & textureResource) {
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
 
@@ -357,6 +361,7 @@ void PropRaylibResourceManager::loadMeshResources (const std::vector <std::pair 
 	std::size_t mI = 0;
 
 	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
+		// NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
 		m_meshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
 		mI++;
 	}
@@ -379,6 +384,7 @@ void PropRaylibResourceManager::loadTextureResources (const std::vector <std::pa
 
 	std::size_t tI = 0;
 	for (const std::pair <std::string, std::string> & descriptor : textureDescriptors) {
+		// NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
 		m_textureResources [descriptor.first] [descriptor.second] = std::move (resources [tI]);
 		tI++;
 	}
