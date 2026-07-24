@@ -150,17 +150,17 @@ void PropResourceManager::loadMapResources (const Map & map) {
 					for (const Map::MapObject & propObject : propList) {
 						if (false == propObject.textureName.empty ()) {
 							std::string diffuseFile = mIt->second.textures.at (propObject.textureName);
-							std::string opacityFile;
+							std::string alphaFile;
 
-							if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
-								opacityFile = it->second;
+							if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+								alphaFile = it->second;
 							}
 							if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 								diffuseFile = it->second;
 							}
 							textureDescriptors.emplace_back (
 								libraryName,
-								std::pair <std::string, std::string> {diffuseFile, opacityFile}
+								std::pair <std::string, std::string> {diffuseFile, alphaFile}
 							);
 						}
 						else {
@@ -170,10 +170,10 @@ void PropResourceManager::loadMapResources (const Map & map) {
 				}
 				else if (auto sIt = group.sprites.find (propName); group.sprites.end () != sIt) {
 					std::string diffuseFile = sIt->second.diffuseFile;
-					std::string opacityFile;
+					std::string alphaFile;
 
-					if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
-						opacityFile = it->second;
+					if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+						alphaFile = it->second;
 					}
 					if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 						diffuseFile = it->second;
@@ -181,7 +181,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 					textureDescriptors.emplace_back (
 						libraryName,
-						std::pair <std::string, std::string> {diffuseFile, opacityFile}
+						std::pair <std::string, std::string> {diffuseFile, alphaFile}
 					);
 				}
 			}
@@ -209,17 +209,17 @@ void PropResourceManager::loadMapResources (const Map & map) {
 				const PropLibrary::PropMesh & prop = group.meshes.at (propName);
 
 				std::string diffuseFile = libraryMeshResources.at (prop.file).textureFile;
-				std::string opacityFile;
+				std::string alphaFile;
 
-				if (auto it = library.opacityMap ().find (diffuseFile); it != library.opacityMap ().end ()) {
-					opacityFile = it->second;
+				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+					alphaFile = it->second;
 				}
 				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 					diffuseFile = it->second;
 				}
 				textureDescriptors.emplace_back (
 					libraryName,
-					std::pair <std::string, std::string> {diffuseFile, opacityFile}
+					std::pair <std::string, std::string> {diffuseFile, alphaFile}
 				);
 			}
 		}
@@ -235,7 +235,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 	}
 }
 
-PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile) {
+PropResourceManager::PropTextureResource PropResourceManager::loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) {
 	const std::string diffusePath = m_propLibraries.at (libraryName).path () + "/" + diffuseFile;
 
 	int width = 0;
@@ -243,7 +243,7 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 	int channels = 0;
 	int desiredChannels = 3;
 
-	if (false == opacityFile.empty ()) {
+	if (false == alphaFile.empty ()) {
 		desiredChannels = 4;
 	}
 
@@ -255,14 +255,14 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 		desiredChannels
 	);
 
-	if (false == opacityFile.empty ()) {
-		const std::string opacityPath = m_propLibraries.at (libraryName).path () + "/" + opacityFile;
+	if (false == alphaFile.empty ()) {
+		const std::string alphaPath = m_propLibraries.at (libraryName).path () + "/" + alphaFile;
 		int alphaWidth = 0;
 		int alphaHeight = 0;
 		int alphaChannels = 0;
 
 		unsigned char *alphaPixels = stbi_load (
-			opacityPath.c_str (),
+			alphaPath.c_str (),
 			&alphaWidth,
 			&alphaHeight,
 			&alphaChannels,

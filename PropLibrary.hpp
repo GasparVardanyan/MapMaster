@@ -71,7 +71,7 @@ public:
 	[[nodiscard]] std::string actualTextureFile (const std::string & oldFile) const;
 	[[nodiscard]] const std::string & name () const;
 	[[nodiscard]] const std::map <std::string, std::string> & diffuseMap () const;
-	[[nodiscard]] const std::map <std::string, std::string> & opacityMap () const;
+	[[nodiscard]] const std::map <std::string, std::string> & alphaMap () const;
 	[[nodiscard]] const std::map <std::string, Group> & groups () const;
 	[[nodiscard]] const std::string & path () const;
 
@@ -87,7 +87,7 @@ private:
 	struct {
 		std::string libraryName;
 		std::map <std::string, std::string> diffuseMap;
-		std::map <std::string, std::string> opacityMap;
+		std::map <std::string, std::string> alphaMap;
 		std::map <std::string, Group> groups;
 	} m_xmlData;
 	std::string m_path;

@@ -43,7 +43,7 @@ void PropLibrary::parseImageMap (const pugi::xml_document & imgXml) {
 	for (const pugi::xml_node image : imgXml.child ("images").children ()) {
 		const std::string originalName = image.attribute ("name").value ();
 		std::string diffuseName = image.attribute ("new-name").value ();
-		std::string opacityName = image.attribute ("alpha").value ();
+		std::string alphaName = image.attribute ("alpha").value ();
 
 		std::ranges::transform (diffuseName, diffuseName.begin (), [] (char c) -> char {
 			return static_cast <char> (std::tolower (c));
@@ -51,12 +51,12 @@ void PropLibrary::parseImageMap (const pugi::xml_document & imgXml) {
 
 		m_xmlData.diffuseMap.insert ({originalName, diffuseName});
 
-		if (false == opacityName.empty ()) {
-			std::ranges::transform (opacityName, opacityName.begin (), [] (char c) -> char {
+		if (false == alphaName.empty ()) {
+			std::ranges::transform (alphaName, alphaName.begin (), [] (char c) -> char {
 				return static_cast <char> (std::tolower (c));
 			});
 
-			m_xmlData.opacityMap.insert ({originalName, opacityName});
+			m_xmlData.alphaMap.insert ({originalName, alphaName});
 		}
 	}
 }
@@ -147,8 +147,8 @@ const std::map <std::string, std::string> & PropLibrary::diffuseMap () const {
 	return m_xmlData.diffuseMap;
 }
 
-const std::map <std::string, std::string> & PropLibrary::opacityMap () const {
-	return m_xmlData.opacityMap;
+const std::map <std::string, std::string> & PropLibrary::alphaMap () const {
+	return m_xmlData.alphaMap;
 }
 
 const std::map <std::string, PropLibrary::Group> & PropLibrary::groups () const {

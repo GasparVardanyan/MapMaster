@@ -60,7 +60,7 @@ public:
 	/**
 	 * @brief load and parse texture files
 	 *
-	 * @param textureDescriptors {{libraryName, {diffuseFileName, opacityFileName}}}
+	 * @param textureDescriptors {{libraryName, {diffuseFileName, alphaFileName}}}
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors);
 
@@ -79,7 +79,7 @@ public:
 
 private:
 	PropMeshResource loadMeshResources (const std::string & libraryName, const std::string & meshFile);
-	PropTextureResource loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & opacityFile);
+	PropTextureResource loadTextureResources (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
 
 private:
 	std::map <std::string, PropLibrary> m_propLibraries;
