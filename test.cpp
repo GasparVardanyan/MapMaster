@@ -32,26 +32,6 @@ int main (void)
 	InitWindow (screenWidth, screenHeight, "MapMaster");
 	auto start = std::chrono::steady_clock::now ();
 
-	Map map;
-	map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	// map.loadFile (DATA_DIR "finalboss.xml");
-	// map.loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
-	// map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
-	// map.loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
-	// map.loadFile (DATA_DIR "map.xml");
-
-	RaylibPropResourceManager raylibResManager;
-	const PropResourceManager & resourceManager = raylibResManager.resourceManager ();
-
-	raylibResManager.loadMapLibraries (map, DATA_DIR "propslibs");
-	raylibResManager.loadMapResources (map);
-
-	const auto & raylibMeshResources = raylibResManager.meshResources ();
-	const auto & raylibTextureResources = raylibResManager.textureResources ();
-	const auto & raylibSpriteInfos = raylibResManager.spriteInfos ();
-
-	const auto & propLibraries = resourceManager.propLibraries ();
-
 	struct SceneMesh {
 		Vector3 position = {};
 		Vector3 rotation = {};
@@ -70,45 +50,93 @@ int main (void)
 
 	std::vector <SceneSprite> sceneSprites;
 
-	// NOTE: this is a garbage code
+
+
+
+	Map map;
+	// map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	// map.loadFile (DATA_DIR "finalboss.xml");
+	// map.loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
+	map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
+	// map.loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
+	// map.loadFile (DATA_DIR "map.xml");
+
+	RaylibPropResourceManager raylibResManager;
+
+	raylibResManager.loadMapLibraries (map, DATA_DIR "propslibs");
+	raylibResManager.loadMapResources_OLD (map);
+
+	const auto & raylibMeshResources = raylibResManager.meshResources ();
+	const auto & raylibTextureResources = raylibResManager.textureResources ();
+	const auto & raylibSpriteInfos = raylibResManager.spriteInfos ();
+
+	const PropResourceManager & resourceManager = raylibResManager.resourceManager ();
+	const auto & propLibraries = resourceManager.propLibraries ();
+	const auto & meshResources = resourceManager.propMeshResources ();
+
+
+
+
+
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
-		const auto & library = * propLibraries.at (libraryName);
+		const PropLibrary & library = * propLibraries.at (libraryName);
+		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
+
+
+
 		for (const auto & [groupName, props] : groups) {
-			const auto & group = library.groups ().at (groupName);
+			const PropLibrary::Group & group = libraryGroups.at (groupName);
+
+
+
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resourceManager.getMeshResource (libraryName, groupName, propName));
-					const std::string meshFile = resourceManager.propLibraries ().at (libraryName)->groups ().at (groupName).meshes.at (propName).file;
 
-					for (const auto & prop : propInfo) {
-						std::string textureName = prop.textureName;
+					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resourceManager.getMeshResource (libraryName, groupName, propName));
+					const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
+					const std::string meshFile = propMesh.file;
+
+					for (const Map::MapObject & mapObject : propInfo) {
+						std::string textureName = mapObject.textureName;
 						std::string textureFile;
 						if (true == textureName.empty ()) {
 							textureFile = meshResource.textureFile;
 						}
 						else {
-							textureFile = resourceManager.propLibraries ().at (libraryName)->groups ().at (groupName).meshes.at (propName).textures.at (textureName);
+							textureFile = propMesh.textures.at (textureName);
 						}
 
-						textureFile = resourceManager.propLibraries ().at (libraryName)->getActualTextureFileName (textureFile);
+						textureFile = library.getActualTextureFileName (textureFile);
 
 						sceneMeshes.push_back ({
 							.library = libraryName,
 							.meshFile = meshFile,
 							.textureFile = textureFile,
-							.position = {scale * static_cast<float>(prop.positionX), scale * static_cast<float>(prop.positionY), scale * static_cast<float>(prop.positionZ)},
-							.rotation = {0, 0, static_cast<float>(prop.rotationZ * 180 / std::numbers::pi)}
+							.position = {
+								scale * static_cast <float> (mapObject.positionX),
+								scale * static_cast <float> (mapObject.positionY),
+								scale * static_cast <float> (mapObject.positionZ),
+							},
+							.rotation = {
+								0,
+								0,
+								static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
+							}
 						});
 					}
 				}
 				else if (true == group.sprites.contains (propName)) {
-					const auto & sprite = group.sprites.at (propName);
-					std::string textureFile = resourceManager.propLibraries ().at (libraryName)->getActualTextureFileName (sprite.diffuseFile);
+					const PropLibrary::PropSprite & sprite = group.sprites.at (propName);
+					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
 
-					for (const auto & prop : propInfo) {
+					for (const Map::MapObject & prop : propInfo) {
 						sceneSprites.push_back ({
 							.library = libraryName,
-							.position = {scale * static_cast<float>(prop.positionX), scale * static_cast<float>(prop.positionY), scale * static_cast<float>(prop.positionZ)},
+							.position = {
+								scale * static_cast <float> (prop.positionX),
+								scale * static_cast <float> (prop.positionY),
+								scale * static_cast <float> (prop.positionZ),
+							},
 							.textureFile = textureFile
 						});
 					}
@@ -124,7 +152,7 @@ int main (void)
 	// resManager = {};
 
 	std::cout << "Elapsed: "
-		<< std::chrono::duration<double>(end - start).count ()
+		<< std::chrono::duration <double> (end - start).count ()
 		<< " s\n";
 
 
@@ -150,20 +178,33 @@ int main (void)
 
 		BeginMode3D (camera);
 
-		for (const auto & mesh : sceneMeshes) {
-			auto & model = raylibMeshResources.at (mesh.library).at (mesh.meshFile).model;
-			auto & texture = raylibTextureResources.at (mesh.library).at (mesh.textureFile).texture;
+		for (const SceneMesh & mesh : sceneMeshes) {
+			const Model & model = raylibMeshResources.at (mesh.library).at (mesh.meshFile).model;
+			const Texture2D & texture = raylibTextureResources.at (mesh.library).at (mesh.textureFile).texture;
 			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
+
 			Color tint = WHITE;
-			if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
-				tint = RED;
-			}
-			DrawModelEx (model, mesh.position, {0, 0, 1}, mesh.rotation.z, {scale, scale, scale}, tint);
+			// if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
+			// 	tint = RED;
+			// }
+
+			DrawModelEx (
+				model,
+				mesh.position,
+				{
+					0,
+					0,
+					1,
+				},
+				mesh.rotation.z,
+				{scale, scale, scale},
+				tint
+			);
 		}
 
-		for (const auto & sprite : sceneSprites) {
-			auto & texture = raylibTextureResources.at (sprite.library).at (sprite.textureFile).texture;
-			auto & spdata = raylibSpriteInfos.at (sprite.library).at (sprite.textureFile);
+		for (const SceneSprite & sprite : sceneSprites) {
+			const Texture2D & texture = raylibTextureResources.at (sprite.library).at (sprite.textureFile).texture;
+			const RaylibPropResourceManager::RaylibSpriteInfo & spriteInfo = raylibSpriteInfos.at (sprite.library).at (sprite.textureFile);
 
 			DrawBillboardPro (
 				camera,
@@ -171,13 +212,12 @@ int main (void)
 				{0, 0, static_cast <float> (texture.width), static_cast <float> (texture.height)},
 				sprite.position,
 				{0, 0, 1},
-				{ spdata.size.x * scale, spdata.size.y * scale },
-				{ spdata.origin.x * scale, spdata.origin.y * scale },
+				{ spriteInfo.size.x * scale, spriteInfo.size.y * scale },
+				{ spriteInfo.origin.x * scale, spriteInfo.origin.y * scale },
 				0,
 				WHITE
 			);
 		}
-
 
 		rlPushMatrix ();
 		rlRotatef (90.0f, 1.0f, 0.0f, 0.0f);

@@ -183,7 +183,6 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * libraries.at (libraryName);
-		const std::map <std::string, PropResourceManager::PropTextureResource> & libraryTextureResources = textureResources.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
 		for (const auto & [groupName, props] : groups) {
 			const PropLibrary::Group & group = libraryGroups.at (groupName);
@@ -193,7 +192,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
-					const PropResourceManager::PropTextureResource & textureResource = libraryTextureResources.at (textureFile);
+					const PropResourceManager::PropTextureResource & textureResource = textureResources.at (libraryName).at (textureFile);
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 						const Vector2 size = {
 							.x = static_cast <float> (textureResource.width * sprite.scale),
@@ -219,6 +218,7 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & textureResources = m_resourceManager.propTextureResources ();
+	const std::map <std::string, std::map <std::string, PropResourceManager::PropMeshResource>> & meshResources = m_resourceManager.propMeshResources ();
 
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
 	std::vector <std::pair <std::string, std::string>> textureDescriptors;
