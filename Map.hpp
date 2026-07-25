@@ -34,7 +34,7 @@ public:
 			std::string,
 			std::map <
 				std::string,
-				std::vector<MapObject>
+				std::vector <MapObject>
 			>
 		>
 	>;

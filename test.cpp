@@ -32,22 +32,41 @@ int main (void)
 	InitWindow (screenWidth, screenHeight, "MapMaster");
 	auto start = std::chrono::steady_clock::now ();
 
+	struct SceneMeshDescriptor {
+		std::string libraryName;
+		std::string groupName;
+		std::string propName;
+		std::string textureName;
+	};
+
+	struct SceneSpriteDescriptor {
+		std::string libraryName;
+		std::string groupName;
+		std::string propName;
+		std::string textureName;
+	};
+
 	struct SceneMesh {
+		SceneMeshDescriptor descriptor;
 		Vector3 position = {};
 		Vector3 rotation = {};
-		std::string library;
-		std::string meshFile;
-		std::string textureFile;
+		Vector3 scale = {};
+		const Model & model;
+		const Texture2D & texture;
+		Color tint = WHITE;
+	};
+
+	struct SceneSprite {
+		SceneSpriteDescriptor descriptor;
+		Vector3 position = {};
+		Rectangle rect = {};
+		Vector2 size = {};
+		Vector2 origin = {};
+		const Texture2D & texture;
+		Color tint = WHITE;
 	};
 
 	std::vector <SceneMesh> sceneMeshes;
-
-	struct SceneSprite {
-		Vector3 position = {};
-		std::string library;
-		std::string textureFile; // FIXME: use propName
-	};
-
 	std::vector <SceneSprite> sceneSprites;
 
 
@@ -108,10 +127,16 @@ int main (void)
 
 						textureFile = library.getActualTextureFileName (textureFile);
 
+						const RaylibPropResourceManager::RaylibMeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
+						const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+
 						sceneMeshes.push_back ({
-							.library = libraryName,
-							.meshFile = meshFile,
-							.textureFile = textureFile,
+							.descriptor = {
+								.libraryName = libraryName,
+								.groupName = groupName,
+								.propName = propName,
+								.textureName = textureName,
+							},
 							.position = {
 								scale * static_cast <float> (mapObject.positionX),
 								scale * static_cast <float> (mapObject.positionY),
@@ -121,23 +146,47 @@ int main (void)
 								0,
 								0,
 								static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
-							}
+							},
+							.scale = {
+								scale, scale, scale
+							},
+							.model = raylibMeshResource.model,
+							.texture = raylibTextureResource.texture
 						});
 					}
 				}
 				else if (true == group.sprites.contains (propName)) {
-					const PropLibrary::PropSprite & sprite = group.sprites.at (propName);
-					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
+					std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
+					const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+					const RaylibPropResourceManager::RaylibSpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
 
 					for (const Map::MapObject & prop : propInfo) {
 						sceneSprites.push_back ({
-							.library = libraryName,
+							.descriptor = {
+								.libraryName = libraryName,
+								.groupName = groupName,
+								.propName = propName,
+							},
+							.rect = Rectangle (
+								0,
+								0,
+								raylibTextureResource.texture.width,
+								raylibTextureResource.texture.height
+							),
 							.position = {
 								scale * static_cast <float> (prop.positionX),
 								scale * static_cast <float> (prop.positionY),
 								scale * static_cast <float> (prop.positionZ),
 							},
-							.textureFile = textureFile
+							.size = {
+								spriteInfo.size.x * scale,
+								spriteInfo.size.y * scale,
+							},
+							.origin = {
+								spriteInfo.origin.x * scale,
+								spriteInfo.origin.y * scale,
+							},
+							.texture = raylibTextureResource.texture,
 						});
 					}
 				}
@@ -179,14 +228,8 @@ int main (void)
 		BeginMode3D (camera);
 
 		for (const SceneMesh & mesh : sceneMeshes) {
-			const Model & model = raylibMeshResources.at (mesh.library).at (mesh.meshFile).model;
-			const Texture2D & texture = raylibTextureResources.at (mesh.library).at (mesh.textureFile).texture;
-			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = texture;
-
-			Color tint = WHITE;
-			// if (selectedMeshes.cend () != std::find (selectedMeshes.cbegin (), selectedMeshes.cend (), std::pair <std::string, std::string> (mesh.library, mesh.meshFile))) {
-			// 	tint = RED;
-			// }
+			const Model & model = mesh.model;
+			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = mesh.texture;
 
 			DrawModelEx (
 				model,
@@ -197,25 +240,26 @@ int main (void)
 					1,
 				},
 				mesh.rotation.z,
-				{scale, scale, scale},
-				tint
+				mesh.scale,
+				mesh.tint
 			);
 		}
 
 		for (const SceneSprite & sprite : sceneSprites) {
-			const Texture2D & texture = raylibTextureResources.at (sprite.library).at (sprite.textureFile).texture;
-			const RaylibPropResourceManager::RaylibSpriteInfo & spriteInfo = raylibSpriteInfos.at (sprite.library).at (sprite.textureFile);
-
 			DrawBillboardPro (
 				camera,
-				raylibTextureResources.at (sprite.library).at (sprite.textureFile).texture,
-				{0, 0, static_cast <float> (texture.width), static_cast <float> (texture.height)},
+				sprite.texture,
+				sprite.rect,
 				sprite.position,
-				{0, 0, 1},
-				{ spriteInfo.size.x * scale, spriteInfo.size.y * scale },
-				{ spriteInfo.origin.x * scale, spriteInfo.origin.y * scale },
+				{
+					0,
+					0,
+					1,
+				},
+				sprite.size,
+				sprite.origin,
 				0,
-				WHITE
+				sprite.tint
 			);
 		}
 
