@@ -127,7 +127,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 			meshResource = loadMeshResource (res);
 
 			UploadMesh (& meshResource.mesh, false);
-			meshResource.model = LoadModelFromMesh (meshResource.mesh);
+			meshResource.model = std::shared_ptr <Model> (new Model (LoadModelFromMesh (meshResource.mesh)), unloadMeshResource);
 		}
 
 		if (true == finished) {
@@ -162,10 +162,10 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 			RaylibTextureResource & textureResource = m_textureResources [textureDescriptor.first] [textureDescriptor.second];
 			textureResource = loadTextureResource (res);
 
-			textureResource.texture = LoadTextureFromImage (textureResource.image);
+			textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (textureResource.image)), unloadTextureResource);
 
-			GenTextureMipmaps (& textureResource.texture);
-			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
+			GenTextureMipmaps (textureResource.texture.get ());
+			SetTextureFilter (* textureResource.texture, TEXTURE_FILTER_TRILINEAR);
 		}
 
 		if (true == finished) {
@@ -288,16 +288,16 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 
 	for (auto & [libraryName, textureFiles] : m_textureResources) {
 		for (auto & [textureFile, textureResource] : textureFiles) {
-			textureResource.texture = LoadTextureFromImage (textureResource.image);
-			GenTextureMipmaps (& textureResource.texture);
-			SetTextureFilter (textureResource.texture, TEXTURE_FILTER_TRILINEAR);
+			textureResource.texture = std::make_shared <Texture2D> (LoadTextureFromImage (textureResource.image));
+			GenTextureMipmaps (textureResource.texture.get ());
+			SetTextureFilter (* textureResource.texture, TEXTURE_FILTER_TRILINEAR);
 		}
 	}
 
 	for (auto & [libraryName, meshFiles] : m_meshResources) {
 		for (auto & [meshFile, meshResource] : meshFiles) {
 			UploadMesh (& meshResource.mesh, false);
-			meshResource.model = LoadModelFromMesh (meshResource.mesh);
+			meshResource.model = std::make_shared <Model> (LoadModelFromMesh (meshResource.mesh));
 		}
 	}
 
@@ -401,6 +401,27 @@ RaylibPropResourceManager::RaylibTextureResource RaylibPropResourceManager::load
 		.image = image,
 		.texture = {}
 	};
+}
+
+void RaylibPropResourceManager::unloadMeshResource (Model * model) {
+	for (int i = 0; i < model->meshCount; i++) {
+		Mesh & m = model->meshes [i];
+		m.vertices = nullptr;
+		m.vertexCount = 0;
+		m.texcoords = nullptr;
+		m.normals = nullptr;
+
+		m.triangleCount = 0;
+
+		m.indices = nullptr;
+	}
+	UnloadModel (* model);
+	delete model;
+}
+
+void RaylibPropResourceManager::unloadTextureResource (Texture2D * texture) {
+	UnloadTexture (* texture);
+	delete texture;
 }
 
 

@@ -1,6 +1,7 @@
 # pragma once
 
 # include <map>
+# include <memory>
 # include <string>
 
 # include <raylib.h>
@@ -15,14 +16,14 @@ class RaylibPropResourceManager {
 public:
 	struct RaylibMeshResource {
 		Mesh mesh;
-		Model model;
+		std::shared_ptr <Model> model;
 
 		// TODO: clone()
 	};
 
 	struct RaylibTextureResource {
 		Image image;
-		Texture2D texture;
+		std::shared_ptr <Texture2D> texture;
 
 		// TODO: clone()
 	};
@@ -60,6 +61,8 @@ public:
 private:
 	RaylibMeshResource loadMeshResource (PropResourceManager::PropMeshResource & meshResource);
 	RaylibTextureResource loadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
+	static void unloadMeshResource (Model * model);
+	static void unloadTextureResource (Texture2D * texture);
 
 private:
 	PropResourceManager m_resourceManager;

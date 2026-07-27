@@ -124,8 +124,8 @@ int main (void)
 							.rect = Rectangle (
 								0,
 								0,
-								raylibTextureResource.texture.width,
-								raylibTextureResource.texture.height
+								raylibTextureResource.texture->width,
+								raylibTextureResource.texture->height
 							),
 							.position = {
 								scale * static_cast <float> (prop.positionX),
@@ -182,8 +182,8 @@ int main (void)
 		BeginMode3D (camera);
 
 		for (const SceneMesh & mesh : m_sceneObjects.meshes) {
-			const Model & model = mesh.model;
-			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = mesh.texture;
+			const Model & model = * mesh.model;
+			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = * mesh.texture;
 
 			DrawModelEx (
 				model,
@@ -202,7 +202,7 @@ int main (void)
 		for (const SceneSprite & sprite : m_sceneObjects.sprites) {
 			DrawBillboardPro (
 				camera,
-				sprite.texture,
+				* sprite.texture,
 				sprite.rect,
 				sprite.position,
 				{

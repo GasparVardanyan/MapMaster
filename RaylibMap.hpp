@@ -13,10 +13,10 @@ public:
 		Vector3 scale = {};
 		// cppcheck-suppress uninitMemberVarNoCtor
 		// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-		const Model & model;
+		std::shared_ptr <Model> model;
 		// cppcheck-suppress uninitMemberVarNoCtor
 		// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-		const Texture2D & texture;
+		std::shared_ptr <Texture2D> texture;
 		Color tint = WHITE;
 	};
 
@@ -27,7 +27,7 @@ public:
 		Vector2 origin = {};
 		// cppcheck-suppress uninitMemberVarNoCtor
 		// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-		const Texture2D & texture;
+		std::shared_ptr <Texture2D> texture;
 		Color tint = WHITE;
 	};
 
