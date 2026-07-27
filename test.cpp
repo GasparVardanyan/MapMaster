@@ -1,3 +1,4 @@
+# include <memory>
 # define SUPPORT_FILEFORMAT_JPG 1
 
 # include <algorithm>
@@ -15,6 +16,7 @@
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 # include "PropResourceManager.hpp"
+# include "RaylibMap.hpp"
 # include "RaylibPropResourceManager.hpp"
 
 
@@ -32,81 +34,44 @@ int main (void)
 	InitWindow (screenWidth, screenHeight, "MapMaster");
 	auto start = std::chrono::steady_clock::now ();
 
-	struct SceneMeshDescriptor {
-		std::string libraryName;
-		std::string groupName;
-		std::string propName;
-		std::string textureName;
-	};
+	using SceneMesh = RaylibMap::SceneMesh;
+	using SceneSprite = RaylibMap::SceneSprite;
 
-	struct SceneSpriteDescriptor {
-		std::string libraryName;
-		std::string groupName;
-		std::string propName;
-		std::string textureName;
-	};
-
-	struct SceneMesh {
-		SceneMeshDescriptor descriptor;
-		Vector3 position = {};
-		Vector3 rotation = {};
-		Vector3 scale = {};
-		const Model & model;
-		const Texture2D & texture;
-		Color tint = WHITE;
-	};
-
-	struct SceneSprite {
-		SceneSpriteDescriptor descriptor;
-		Vector3 position = {};
-		Rectangle rect = {};
-		Vector2 size = {};
-		Vector2 origin = {};
-		const Texture2D & texture;
-		Color tint = WHITE;
-	};
-
-	std::vector <SceneMesh> sceneMeshes;
-	std::vector <SceneSprite> sceneSprites;
+	struct {
+		std::vector <SceneMesh> meshes;
+		std::vector <SceneSprite> sprites;
+	} m_sceneObjects;
 
 
 
 
 	Map map;
-	// map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	map.loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
 	// map.loadFile (DATA_DIR "finalboss.xml");
 	// map.loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
-	map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
+	// map.loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
 	// map.loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
 	// map.loadFile (DATA_DIR "map.xml");
 
-	RaylibPropResourceManager raylibResManager;
+	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager = std::make_shared <RaylibPropResourceManager> ();
 
-	raylibResManager.loadMapLibraries (map, DATA_DIR "propslibs");
-	raylibResManager.loadMapResources_OLD (map);
+	m_raylibResourceManager->loadMapLibraries (map, DATA_DIR "propslibs");
+	m_raylibResourceManager->loadMapResources (map);
 
-	const auto & raylibMeshResources = raylibResManager.meshResources ();
-	const auto & raylibTextureResources = raylibResManager.textureResources ();
-	const auto & raylibSpriteInfos = raylibResManager.spriteInfos ();
+	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
+	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
+	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
 
-	const PropResourceManager & resourceManager = raylibResManager.resourceManager ();
+	const PropResourceManager & resourceManager = m_raylibResourceManager->resourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
 	const auto & meshResources = resourceManager.propMeshResources ();
-
-
-
-
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * propLibraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
 
-
-
 		for (const auto & [groupName, props] : groups) {
 			const PropLibrary::Group & group = libraryGroups.at (groupName);
-
-
 
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
@@ -130,13 +95,7 @@ int main (void)
 						const RaylibPropResourceManager::RaylibMeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
 						const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
 
-						sceneMeshes.push_back ({
-							.descriptor = {
-								.libraryName = libraryName,
-								.groupName = groupName,
-								.propName = propName,
-								.textureName = textureName,
-							},
+						m_sceneObjects.meshes.push_back ({
 							.position = {
 								scale * static_cast <float> (mapObject.positionX),
 								scale * static_cast <float> (mapObject.positionY),
@@ -161,12 +120,7 @@ int main (void)
 					const RaylibPropResourceManager::RaylibSpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
 
 					for (const Map::MapObject & prop : propInfo) {
-						sceneSprites.push_back ({
-							.descriptor = {
-								.libraryName = libraryName,
-								.groupName = groupName,
-								.propName = propName,
-							},
+						m_sceneObjects.sprites.push_back ({
 							.rect = Rectangle (
 								0,
 								0,
@@ -227,7 +181,7 @@ int main (void)
 
 		BeginMode3D (camera);
 
-		for (const SceneMesh & mesh : sceneMeshes) {
+		for (const SceneMesh & mesh : m_sceneObjects.meshes) {
 			const Model & model = mesh.model;
 			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = mesh.texture;
 
@@ -245,7 +199,7 @@ int main (void)
 			);
 		}
 
-		for (const SceneSprite & sprite : sceneSprites) {
+		for (const SceneSprite & sprite : m_sceneObjects.sprites) {
 			DrawBillboardPro (
 				camera,
 				sprite.texture,
