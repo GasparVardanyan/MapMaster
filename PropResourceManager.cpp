@@ -64,6 +64,7 @@ PropResourceManager::PropTextureResource PropResourceManager::PropTextureResourc
 	}
 	else {
 		std::size_t bufSize = static_cast <std::size_t>(width) * height * channels;
+		// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto,cppcoreguidelines-owning-memory,hicpp-no-malloc,cppcoreguidelines-no-malloc)
 		unsigned char * newPixBuf = static_cast <unsigned char *> (std::malloc (bufSize));
 		std::memcpy (newPixBuf, pixBuffer.get (), bufSize);
 
@@ -374,6 +375,7 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 		);
 
 		for (int i = 0; i < width * height; i++) {
+			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 			pixels [i * 4 + 3] = alphaPixels [i];
 		}
 

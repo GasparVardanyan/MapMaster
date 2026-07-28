@@ -1,23 +1,11 @@
-# include <memory>
-# define SUPPORT_FILEFORMAT_JPG 1
-
-# include <algorithm>
 # include <chrono>
 # include <iostream>
-# include <map>
-# include <numbers>
-# include <string>
-# include <utility>
-# include <vector>
+# include <memory>
 
 # include <raylib.h>
 # include <rlgl.h>
 
-# include "Map.hpp"
-# include "PropLibrary.hpp"
-# include "PropResourceManager.hpp"
 # include "RaylibMap.hpp"
-# include "RaylibPropResourceManager.hpp"
 
 
 
@@ -35,22 +23,12 @@ int main (void)
 	auto start = std::chrono::steady_clock::now ();
 
 	std::shared_ptr <RaylibMap> rmap = std::make_shared <RaylibMap> ();
-	rmap->load (
-		// DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml",
-		// DATA_DIR "finalboss.xml",
-		// DATA_DIR "maps/Summer/Sandbox_MM.xml",
-		DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml",
-		// DATA_DIR "maps/M/map_tutorial_summer/map.xml",
-		// DATA_DIR "map.xml",
-
-		DATA_DIR "propslibs",
-		scale
-	);
+	rmap->map ()->loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	rmap->resourceManager ()->loadMapLibraries (* rmap->map (), DATA_DIR "propslibs");
+	rmap->resourceManager ()->loadMapResources (* rmap->map ());
+	rmap->loadScene (scale);
 
 	auto end = std::chrono::steady_clock::now ();
-
-	// raylibResManager = {};
-	// resManager = {};
 
 	std::cout << "Elapsed: "
 		<< std::chrono::duration <double> (end - start).count ()

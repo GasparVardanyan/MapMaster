@@ -177,6 +177,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 	m_resourceManager.clearCallbacks ();
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
+	// cppcheck-suppress shadowFunction
 	const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & textureResources = m_resourceManager.propTextureResources ();
 
 	std::vector <std::pair <std::string, std::string>> spriteDescriptors;
@@ -217,8 +218,8 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 	m_resourceManager.loadMapResources (map);
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
+	// cppcheck-suppress shadowFunction
 	const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & textureResources = m_resourceManager.propTextureResources ();
-	const std::map <std::string, std::map <std::string, PropResourceManager::PropMeshResource>> & meshResources = m_resourceManager.propMeshResources ();
 
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
 	std::vector <std::pair <std::string, std::string>> textureDescriptors;
@@ -233,7 +234,7 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 					std::string meshFile = group.meshes.at (propName).file;
-					PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
+					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
 
 					meshDescriptors.emplace_back (libraryName, meshFile);
 
@@ -314,6 +315,7 @@ void RaylibPropResourceManager::loadMeshResources (const std::vector <std::pair 
 		meshDescriptors.cend (),
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
+			// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto)
 			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second));
 			return loadMeshResource (res);
 		}
@@ -405,6 +407,7 @@ RaylibPropResourceManager::RaylibTextureResource RaylibPropResourceManager::load
 
 void RaylibPropResourceManager::unloadMeshResource (Model * model) {
 	for (int i = 0; i < model->meshCount; i++) {
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		Mesh & m = model->meshes [i];
 		m.vertices = nullptr;
 		m.vertexCount = 0;
@@ -416,11 +419,13 @@ void RaylibPropResourceManager::unloadMeshResource (Model * model) {
 		m.indices = nullptr;
 	}
 	UnloadModel (* model);
+	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete model;
 }
 
 void RaylibPropResourceManager::unloadTextureResource (Texture2D * texture) {
 	UnloadTexture (* texture);
+	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
 }
 

@@ -1,48 +1,49 @@
 # pragma once
 
-# include "Map.hpp"
-# include "RaylibPropResourceManager.hpp"
 # include <memory>
 # include <raylib.h>
-# include <string>
 # include <vector>
 
+# include "Map.hpp"
+# include "RaylibPropResourceManager.hpp"
+
+// cppcheck-suppress-begin unusedStructMember
 class RaylibMap {
 public:
 	struct SceneMesh {
 		Vector3 position = {};
 		Vector3 rotation = {};
 		Vector3 scale = {};
-		// cppcheck-suppress uninitMemberVarNoCtor
-		// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-		std::shared_ptr <Model> model;
-		// cppcheck-suppress uninitMemberVarNoCtor
-		// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-		std::shared_ptr <Texture2D> texture;
+		std::shared_ptr <Model> model = nullptr;
+		std::shared_ptr <Texture2D> texture = nullptr;
 		Color tint = WHITE;
 	};
 
 	struct SceneSprite {
 		Vector3 position = {};
-		Rectangle rect = {};
 		Vector2 size = {};
+		Rectangle rect = {};
 		Vector2 origin = {};
-		// cppcheck-suppress uninitMemberVarNoCtor
-		// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-		std::shared_ptr <Texture2D> texture;
+		std::shared_ptr <Texture2D> texture = nullptr;
 		Color tint = WHITE;
 	};
 
-	std::shared_ptr <const RaylibPropResourceManager> resourceManager ();
+	[[nodiscard]] std::shared_ptr <RaylibPropResourceManager> resourceManager () const;
+	void setResourceManager (std::shared_ptr <RaylibPropResourceManager> resourceManager);
 
-	void load (const std::string & mapFile, const std::string & propLibraryDirectory, const float scale = 1.0F);
+	[[nodiscard]] std::shared_ptr <Map> map () const;
+	void setMap (std::shared_ptr <Map> map);
+
+	void loadScene (float scale);
+
 	void render (Camera & camera);
 
 private:
-	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager;
-	Map map;
+	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager = std::make_shared <RaylibPropResourceManager> ();
+	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
 	struct {
 		std::vector <SceneMesh> meshes;
 		std::vector <SceneSprite> sprites;
 	} m_sceneObjects;
 };
+// cppcheck-suppress-end unusedStructMember

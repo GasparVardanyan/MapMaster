@@ -1,35 +1,30 @@
 # include "RaylibMap.hpp"
+
+# include <map>
+# include <memory>
+# include <numbers>
+# include <string>
+# include <utility>
+
+# include <raylib.h>
+
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 # include "PropResourceManager.hpp"
 # include "RaylibPropResourceManager.hpp"
-# include <map>
-# include <memory>
-# include <raylib.h>
-# include <string>
 
-std::shared_ptr <const RaylibPropResourceManager> RaylibMap::resourceManager () {
-	return std::shared_ptr <const RaylibPropResourceManager> (m_raylibResourceManager);
-}
-
-void RaylibMap::load (const std::string & mapFile, const std::string & propLibraryDirectory, const float scale) {
+void RaylibMap::loadScene (float scale) {
 	m_sceneObjects = {};
-	Map map;
-	map.loadFile (mapFile);
-
-	m_raylibResourceManager = std::make_shared <RaylibPropResourceManager> ();
-
-	m_raylibResourceManager->loadMapLibraries (map, propLibraryDirectory);
-	m_raylibResourceManager->loadMapResources (map);
 
 	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
 	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
 	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
 
+	// cppcheck-suppress shadowFunction
 	const PropResourceManager & resourceManager = m_raylibResourceManager->resourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
 
-	for (const auto & [libraryName, groups] : map.mapObjects ()) {
+	for (const auto & [libraryName, groups] : m_map->mapObjects ()) {
 		const PropLibrary & library = * propLibraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
 
@@ -67,6 +62,7 @@ void RaylibMap::load (const std::string & mapFile, const std::string & propLibra
 							.rotation = {
 								.x = 0,
 								.y = 0,
+								// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 								.z = static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
 							},
 							.scale = {
@@ -84,12 +80,6 @@ void RaylibMap::load (const std::string & mapFile, const std::string & propLibra
 
 					for (const Map::MapObject & prop : propInfo) {
 						m_sceneObjects.sprites.push_back ({
-							.rect = {
-								.x = 0,
-								.y = 0,
-								.width = static_cast <float> (raylibTextureResource.texture->width),
-								.height = static_cast <float> (raylibTextureResource.texture->height),
-							},
 							.position = {
 								.x = scale * static_cast <float> (prop.positionX),
 								.y = scale * static_cast <float> (prop.positionY),
@@ -98,6 +88,12 @@ void RaylibMap::load (const std::string & mapFile, const std::string & propLibra
 							.size = {
 								.x = spriteInfo.size.x * scale,
 								.y = spriteInfo.size.y * scale,
+							},
+							.rect = {
+								.x = 0,
+								.y = 0,
+								.width = static_cast <float> (raylibTextureResource.texture->width),
+								.height = static_cast <float> (raylibTextureResource.texture->height),
 							},
 							.origin = {
 								.x = spriteInfo.origin.x * scale,
@@ -141,4 +137,22 @@ void RaylibMap::render (Camera & camera) {
 			sprite.tint
 		);
 	}
+}
+
+// cppcheck-suppress shadowFunction
+void RaylibMap::setResourceManager (std::shared_ptr <RaylibPropResourceManager> resourceManager) {
+	m_raylibResourceManager = std::move (resourceManager);
+}
+
+std::shared_ptr <RaylibPropResourceManager> RaylibMap::resourceManager () const {
+	return m_raylibResourceManager;
+}
+
+// cppcheck-suppress shadowFunction
+void RaylibMap::setMap (std::shared_ptr <Map> map) {
+	m_map = std::move (map);
+}
+
+std::shared_ptr <Map> RaylibMap::map () const {
+	return m_map;
 }

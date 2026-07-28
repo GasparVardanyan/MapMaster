@@ -11,11 +11,6 @@
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 
-// FIXME: CRITICAL!
-// free gpu and ram resources in dtor
-// implement interfaces to free up ram and vram resources
-// TODO: implement an interface to load/unload from/to ram/vram
-
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManager {
 public:
