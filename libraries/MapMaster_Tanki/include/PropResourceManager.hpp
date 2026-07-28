@@ -8,8 +8,8 @@
 # include <utility>
 # include <vector>
 
-# include "Map.hpp"
-# include "PropLibrary.hpp"
+class Map;
+class PropLibrary;
 
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManager {

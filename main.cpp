@@ -1,11 +1,14 @@
 # include <chrono>
 # include <iostream>
 # include <memory>
+# include <string>
 
 # include <raylib.h>
 # include <rlgl.h>
 
 # include "RaylibMap.hpp"
+# include "Map.hpp"
+# include "RaylibPropResourceManager.hpp"
 
 
 

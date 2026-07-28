@@ -1,15 +1,15 @@
 # pragma once
 
+# include <raylib.h>
 # include <map>
 # include <memory>
 # include <string>
-
-# include <raylib.h>
 # include <utility>
 # include <vector>
 
-# include "Map.hpp"
 # include "PropResourceManager.hpp"
+
+class Map;
 
 // cppcheck-suppress-begin unusedStructMember
 class RaylibPropResourceManager {

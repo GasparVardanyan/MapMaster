@@ -3,6 +3,7 @@
 # include <iostream>
 # include <map>
 # include <string>
+# include <initializer_list>
 
 # include <pugixml.hpp>
 
