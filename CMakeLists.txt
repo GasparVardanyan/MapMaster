@@ -11,11 +11,21 @@ set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
+add_compile_options (-pedantic-errors -Werror=pedantic)
+
 project (${PROJECT_NAME} VERSION ${VERSION} LANGUAGES CXX)
 
-include (/desktop/nvim/cmake/config.cmake OPTRIONAL)
+get_filename_component (PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 
-add_subdirectory (external_libraries/stb)
+if (PROJECT_PATH MATCHES "^/src/.*")
+	# add_definitions (-DDATA_DIR=/src/data/${PROJECT_NAME}/)
+	set (DATA_DIR "/src/data/${PROJECT_NAME}/")
+else ()
+	# add_definitions (-DDATA_DIR=${CMAKE_CURRENT_BINARY_DIR}/)
+	set (DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/")
+endif ()
+
+add_definitions (-DDATA_DIR="${DATA_DIR}")
 
 function (enableReleaseBuildOptimizations target)
 	target_compile_options (${target} PRIVATE
@@ -30,38 +40,19 @@ function (enableReleaseBuildOptimizations target)
 	)
 endfunction ()
 
-find_package (raylib REQUIRED)
-find_package (assimp REQUIRED)
-find_package (TBB REQUIRED)
-
-add_compile_options (-pedantic-errors -Werror=pedantic)
+add_subdirectory (external_libraries/stb)
+add_subdirectory (libraries/MapMaster_Tanki)
 
 add_executable (${PROJECT_NAME}
-	test.cpp
-	PropLibrary.hpp
-	PropLibrary.cpp
-	PropResourceManager.hpp
-	PropResourceManager.cpp
-	RaylibPropResourceManager.hpp
-	RaylibPropResourceManager.cpp
-	RaylibMap.hpp
-	RaylibMap.cpp
-	Map.hpp
-	Map.cpp
+	main.cpp
 )
 
-target_link_libraries (${PROJECT_NAME} TBB::tbb)
-target_link_libraries (${PROJECT_NAME} assimp)
-target_link_libraries (${PROJECT_NAME} stb)
-target_link_libraries (${PROJECT_NAME} raylib)
-
+target_link_libraries (${PROJECT_NAME} MapMaster_Tanki)
 enableReleaseBuildOptimizations (${PROJECT_NAME})
 
-target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
-
-set (CPACK_PROJECT_NAME ${PROJECT_NAME})
-set (CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include (CPack)
-
-include (CTest)
-enable_testing ()
+# set (CPACK_PROJECT_NAME ${PROJECT_NAME})
+# set (CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+# include (CPack)
+#
+# include (CTest)
+# enable_testing ()

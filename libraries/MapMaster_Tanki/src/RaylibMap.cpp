@@ -34,7 +34,9 @@ void RaylibMap::loadScene (float scale) {
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (resourceManager.getMeshResource (libraryName, groupName, propName));
+					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (
+						resourceManager.getMeshResource (libraryName, groupName, propName)
+					);
 					const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
 					const std::string meshFile = propMesh.file;
 

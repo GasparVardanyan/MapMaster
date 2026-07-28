@@ -1,4 +1,4 @@
-add_library (stb STATIC
+add_library (stb SHARED
 	stb_image.cpp
 )
 

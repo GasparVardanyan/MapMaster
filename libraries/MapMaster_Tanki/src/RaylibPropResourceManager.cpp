@@ -301,8 +301,6 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 			meshResource.model = std::make_shared <Model> (LoadModelFromMesh (meshResource.mesh));
 		}
 	}
-
-	// m_resourceManager.dropResources ();
 }
 
 void RaylibPropResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {

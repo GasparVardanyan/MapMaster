@@ -9,6 +9,38 @@ namespace pugi {
 class xml_document; class xml_node;
 }  // namespace pugi
 
+namespace PropLibrary_detail {
+struct PropSprite {
+	template <std::floating_point> struct OriginXDefault;
+	template <std::floating_point> struct OriginYDefault;
+	template <std::floating_point> struct ScaleDefault;
+};
+
+template <>
+struct PropSprite::OriginXDefault <float> { static constexpr float value = 0.5F; };
+template <>
+struct PropSprite::OriginXDefault <double> { static constexpr double value = 0.5; };
+template <>
+// NOLINTNEXTLINE(google-runtime-float)
+struct PropSprite::OriginXDefault <long double> { static constexpr double value = 0.5L; };
+
+template <>
+struct PropSprite::OriginYDefault <float> { static constexpr float value = 0.5F; };
+template <>
+struct PropSprite::OriginYDefault <double> { static constexpr double value = 0.5; };
+template <>
+// NOLINTNEXTLINE(google-runtime-float)
+struct PropSprite::OriginYDefault <long double> { static constexpr long double value = 0.5L; };
+
+template <>
+struct PropSprite::ScaleDefault <float> { static constexpr float value = 1.0F; };
+template <>
+struct PropSprite::ScaleDefault <double> { static constexpr double value = 1.0; };
+template <>
+// NOLINTNEXTLINE(google-runtime-float)
+struct PropSprite::ScaleDefault <long double> { static constexpr long double value = 1.0L; };
+}  // namespace PropLibrary_detail
+
 // cppcheck-suppress-begin unusedStructMember
 class PropLibrary {
 public:
@@ -24,33 +56,12 @@ public:
 		static_assert (std::is_floating_point_v <OriginType>);
 		static_assert (std::is_floating_point_v <ScaleType>);
 
-		template <std::floating_point> struct OriginXDefault;
-		template <std::floating_point> struct OriginYDefault;
-		template <std::floating_point> struct ScaleDefault;
-
-		template <>
-		struct OriginXDefault <float> { static constexpr float value = 0.5F; };
-		template <>
-		struct OriginXDefault <double> { static constexpr double value = 0.5; };
-		template <>
-		// NOLINTNEXTLINE(google-runtime-float)
-		struct OriginXDefault <long double> { static constexpr double value = 0.5L; };
-
-		template <>
-		struct OriginYDefault <float> { static constexpr float value = 0.5F; };
-		template <>
-		struct OriginYDefault <double> { static constexpr double value = 0.5; };
-		template <>
-		// NOLINTNEXTLINE(google-runtime-float)
-		struct OriginYDefault <long double> { static constexpr long double value = 0.5L; };
-
-		template <>
-		struct ScaleDefault <float> { static constexpr float value = 1.0F; };
-		template <>
-		struct ScaleDefault <double> { static constexpr double value = 1.0; };
-		template <>
-		// NOLINTNEXTLINE(google-runtime-float)
-		struct ScaleDefault <long double> { static constexpr long double value = 1.0L; };
+		template <std::floating_point T>
+		using OriginXDefault = PropLibrary_detail::PropSprite::OriginXDefault <T>;
+		template <std::floating_point T>
+		using OriginYDefault = PropLibrary_detail::PropSprite::OriginYDefault <T>;
+		template <std::floating_point T>
+		using ScaleDefault = PropLibrary_detail::PropSprite::ScaleDefault <T>;
 
 		OriginType originX = OriginXDefault <OriginType>::value;
 		OriginType originY = OriginYDefault <OriginType>::value;
