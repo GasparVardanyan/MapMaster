@@ -1,8 +1,10 @@
 # pragma once
 
+# include "Map.hpp"
 # include "RaylibPropResourceManager.hpp"
 # include <memory>
 # include <raylib.h>
+# include <string>
 # include <vector>
 
 class RaylibMap {
@@ -33,8 +35,12 @@ public:
 
 	std::shared_ptr <const RaylibPropResourceManager> resourceManager ();
 
+	void load (const std::string & mapFile, const std::string & propLibraryDirectory, const float scale = 1.0F);
+	void render (Camera & camera);
+
 private:
 	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager;
+	Map map;
 	struct {
 		std::vector <SceneMesh> meshes;
 		std::vector <SceneSprite> sprites;
