@@ -40,46 +40,6 @@ void PropLibrary::clear () {
 
 
 
-//   _____ ______ _______ _______ ______ _____   _____
-//  / ____|  ____|__   __|__   __|  ____|  __ \ / ____|
-// | |  __| |__     | |     | |  | |__  | |__) | (___
-// | | |_ |  __|    | |     | |  |  __| |  _  / \___ \
-// | |__| | |____   | |     | |  | |____| | \ \ ____) |
-//  \_____|______|  |_|     |_|  |______|_|  \_\_____/
-//
-
-const std::string & PropLibrary::name () const {
-	return m_xmlData.libraryName;
-}
-
-const std::map <std::string, std::string> & PropLibrary::diffuseMap () const {
-	return m_xmlData.diffuseMap;
-}
-
-const std::map <std::string, std::string> & PropLibrary::alphaMap () const {
-	return m_xmlData.alphaMap;
-}
-
-const std::map <std::string, PropLibrary::Group> & PropLibrary::groups () const {
-	return m_xmlData.groups;
-}
-
-const std::string & PropLibrary::path () const {
-	return m_path;
-}
-
-std::string PropLibrary::getActualTextureFileName (const std::string & oldFileName) const {
-	if (true == m_xmlData.diffuseMap.contains (oldFileName)) {
-		return m_xmlData.diffuseMap.at (oldFileName);
-	}
-	else {
-		return oldFileName;
-	}
-}
-
-
-
-
 //  _____        _____   _____ ______ _____   _____
 // |  __ \ /\   |  __ \ / ____|  ____|  __ \ / ____|
 // | |__) /  \  | |__) | (___ | |__  | |__) | (___
@@ -194,5 +154,45 @@ void PropLibrary::parsePropSprite (pugi::xml_node spriteXml, PropSprite & sprite
 	}
 	else {
 		sprite.scale = spriteXml.attribute ("scale").as_double (PropSprite::ScaleDefault <PropSprite::ScaleType>::value);
+	}
+}
+
+
+
+
+//   _____ ______ _______ _______ ______ _____   _____
+//  / ____|  ____|__   __|__   __|  ____|  __ \ / ____|
+// | |  __| |__     | |     | |  | |__  | |__) | (___
+// | | |_ |  __|    | |     | |  |  __| |  _  / \___ \
+// | |__| | |____   | |     | |  | |____| | \ \ ____) |
+//  \_____|______|  |_|     |_|  |______|_|  \_\_____/
+//
+
+const std::string & PropLibrary::name () const {
+	return m_xmlData.libraryName;
+}
+
+const std::map <std::string, std::string> & PropLibrary::diffuseMap () const {
+	return m_xmlData.diffuseMap;
+}
+
+const std::map <std::string, std::string> & PropLibrary::alphaMap () const {
+	return m_xmlData.alphaMap;
+}
+
+const std::map <std::string, PropLibrary::Group> & PropLibrary::groups () const {
+	return m_xmlData.groups;
+}
+
+const std::string & PropLibrary::path () const {
+	return m_path;
+}
+
+std::string PropLibrary::getActualTextureFileName (const std::string & oldFileName) const {
+	if (true == m_xmlData.diffuseMap.contains (oldFileName)) {
+		return m_xmlData.diffuseMap.at (oldFileName);
+	}
+	else {
+		return oldFileName;
 	}
 }

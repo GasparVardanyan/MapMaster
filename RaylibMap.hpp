@@ -31,7 +31,7 @@ public:
 		Color tint = WHITE;
 	};
 
-	std::shared_ptr <RaylibPropResourceManager> resourceManager ();
+	std::shared_ptr <const RaylibPropResourceManager> resourceManager ();
 
 private:
 	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager;

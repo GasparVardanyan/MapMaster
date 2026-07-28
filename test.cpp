@@ -229,7 +229,8 @@ int main (void)
 		EndDrawing ();
 	}
 
-	// UnloadTexture (texture);
+	m_sceneObjects = {};
+	m_raylibResourceManager.reset ();
 
 	CloseWindow ();
 
