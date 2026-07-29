@@ -256,7 +256,6 @@ void PropResourceManager::loadMapResources (const Map & map) {
 
 PropResourceManager::PropMeshResource PropResourceManager::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
 	const std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
-	std::map <std::string, PropMeshResource> & libraryResources = m_propMeshResources [libraryName];
 
 	Assimp::Importer importer;
 	importer.SetPropertyInteger (
@@ -291,7 +290,7 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResource (con
 	}
 
 	const aiMesh * mesh = scene->mMeshes [0];
-	PropMeshResource resources = libraryResources [meshFile];
+	PropMeshResource resources = {};
 
 	aiString diffuseMapUrl;
 	scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
@@ -314,16 +313,16 @@ PropResourceManager::PropMeshResource PropResourceManager::loadMeshResource (con
 
 	resources.indexBuffer.resize (mesh->mNumFaces * 3UL);
 	for (unsigned i = 0; i < mesh->mNumFaces; ++i) {
-		resources.indexBuffer [3 * i + 0] = static_cast<PropMeshResource::IndexType>(mesh->mFaces[i].mIndices[0]);
-		resources.indexBuffer [3 * i + 1] = static_cast<PropMeshResource::IndexType>(mesh->mFaces[i].mIndices[1]);
-		resources.indexBuffer [3 * i + 2] = static_cast<PropMeshResource::IndexType>(mesh->mFaces[i].mIndices[2]);
+		resources.indexBuffer [3 * i + 0] = static_cast<PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [0]);
+		resources.indexBuffer [3 * i + 1] = static_cast<PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [1]);
+		resources.indexBuffer [3 * i + 2] = static_cast<PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [2]);
 	}
 
 	if (true == mesh->HasTextureCoords (0)) {
 		resources.uvBuffer.resize (mesh->mNumVertices * 2UL);
 		for (unsigned i = 0; i < mesh->mNumVertices; ++i) {
-			resources.uvBuffer [2 * i + 0] = mesh->mTextureCoords[0][i].x;
-			resources.uvBuffer [2 * i + 1] = mesh->mTextureCoords[0][i].y;
+			resources.uvBuffer [2 * i + 0] = mesh->mTextureCoords [0] [i].x;
+			resources.uvBuffer [2 * i + 1] = mesh->mTextureCoords [0] [i].y;
 		}
 	}
 	if (true == mesh->HasNormals ()) {
