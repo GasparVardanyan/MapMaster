@@ -21,6 +21,11 @@ public:
 		// TODO: clone()
 	};
 
+	struct RaylibMultiMeshResource {
+		std::vector <Mesh> meshes;
+		std::shared_ptr <Model> model;
+	};
+
 	struct RaylibTextureResource {
 		Image image;
 		std::shared_ptr <Texture2D> texture;
@@ -47,6 +52,13 @@ public:
 	void loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors);
 
 	/**
+	 * @brief load and parse mesh files
+	 *
+	 * @param meshDescriptors {{libraryName, meshFileName}, ...}
+	 */
+	void loadMultiMeshResources (const std::vector <std::pair <std::string, std::string>> & multiMeshDescriptors);
+
+	/**
 	 * @brief load and parse texture files
 	 *
 	 * @param textureDescriptors {{libraryName, textureFile}, ...}
@@ -55,11 +67,13 @@ public:
 
 	[[nodiscard]] const PropResourceManager & resourceManager ();
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibMeshResource>> & meshResources () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibMultiMeshResource>> & multiMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibTextureResource>> & textureResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, RaylibSpriteInfo>> & spriteInfos () const;
 
 private:
 	RaylibMeshResource loadMeshResource (PropResourceManager::PropMeshResource & meshResource);
+	RaylibMultiMeshResource loadMultiMeshResource (PropResourceManager::PropMultiMeshResource & meshMultiResource);
 	RaylibTextureResource loadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
 	static void unloadMeshResource (Model * model);
 	static void unloadTextureResource (Texture2D * texture);
@@ -69,6 +83,7 @@ private:
 	std::string m_libraryRootDir;
 
 	std::map <std::string, std::map <std::string, RaylibMeshResource>> m_meshResources;
+	std::map <std::string, std::map <std::string, RaylibMultiMeshResource>> m_multiMeshResources;
 	std::map <std::string, std::map <std::string, RaylibTextureResource>> m_textureResources;
 	std::map <std::string, std::map <std::string, RaylibSpriteInfo>> m_spriteInfos;
 };

@@ -20,7 +20,7 @@ int main (void)
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
-	// SetTraceLogLevel (LOG_NONE);
+	SetTraceLogLevel (LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
 	InitWindow (screenWidth, screenHeight, "MapMaster");
 
@@ -30,6 +30,7 @@ int main (void)
 
 	// this loads the map xml data
 	rmap->map ()->loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Iran_MM.xml");
 	// rmap->map ()->loadFile (DATA_DIR "finalboss.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
@@ -89,10 +90,10 @@ int main (void)
 
 		rmap->render (camera);
 
-		rlPushMatrix ();
-		rlRotatef (90.0f, 1.0f, 0.0f, 0.0f);
-		DrawGrid (50, 500.0f * scale);
-		rlPopMatrix ();
+		// rlPushMatrix ();
+		// rlRotatef (90.0f, 1.0f, 0.0f, 0.0f);
+		// DrawGrid (50, 500.0f * scale);
+		// rlPopMatrix ();
 
 		EndMode3D ();
 

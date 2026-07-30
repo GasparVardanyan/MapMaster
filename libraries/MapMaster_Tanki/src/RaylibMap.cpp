@@ -1,5 +1,6 @@
 # include "RaylibMap.hpp"
 
+# include <functional>
 # include <map>
 # include <memory>
 # include <numbers>
@@ -7,6 +8,7 @@
 # include <utility>
 
 # include <raylib.h>
+# include <variant>
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
@@ -17,6 +19,7 @@ void RaylibMap::loadScene (float scale) {
 	m_sceneObjects = {};
 
 	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
+	const auto & raylibMultiMeshResources = m_raylibResourceManager->multiMeshResources ();
 	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
 	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
 
@@ -34,45 +37,76 @@ void RaylibMap::loadScene (float scale) {
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (
-						resourceManager.getMeshResource (libraryName, groupName, propName)
-					);
-					const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
-					const std::string meshFile = propMesh.file;
+					auto meshVariant = resourceManager.getMeshOrMultiMeshResource (libraryName, groupName, propName);
 
-					for (const Map::MapObject & mapObject : propInfo) {
-						std::string textureName = mapObject.textureName;
-						std::string textureFile;
-						if (true == textureName.empty ()) {
-							textureFile = meshResource.textureFile;
+					if (true == std::holds_alternative <std::reference_wrapper <const PropResourceManager::PropMeshResource>> (meshVariant)) {
+						const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (
+							std::get <std::reference_wrapper <const PropResourceManager::PropMeshResource>> (meshVariant).get ()
+						);
+						const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
+						const std::string meshFile = propMesh.file;
+
+						for (const Map::MapObject & mapObject : propInfo) {
+							std::string textureName = mapObject.textureName;
+							std::string textureFile;
+							if (true == textureName.empty ()) {
+								textureFile = meshResource.textureFile;
+							}
+							else {
+								textureFile = propMesh.textures.at (textureName);
+							}
+
+							textureFile = library.getActualTextureFileName (textureFile);
+
+							const RaylibPropResourceManager::RaylibMeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
+							const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+
+							m_sceneObjects.meshes.push_back ({
+								.position = {
+									.x = scale * static_cast <float> (mapObject.positionX),
+									.y = scale * static_cast <float> (mapObject.positionY),
+									.z = scale * static_cast <float> (mapObject.positionZ),
+								},
+								.rotation = {
+									.x = 0,
+									.y = 0,
+									// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+									.z = static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
+								},
+								.scale = {
+									.x = scale, .y = scale, .z = scale
+								},
+								.model = raylibMeshResource.model,
+								.texture = raylibTextureResource.texture
+							});
 						}
-						else {
-							textureFile = propMesh.textures.at (textureName);
+					}
+					else {
+						const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
+						const std::string meshFile = propMesh.file;
+
+						for (const Map::MapObject & mapObject : propInfo) {
+							const RaylibPropResourceManager::RaylibMultiMeshResource & raylibMeshResource = raylibMultiMeshResources.at (libraryName).at (meshFile);
+
+							m_sceneObjects.meshes.push_back ({
+								.position = {
+									.x = scale * static_cast <float> (mapObject.positionX),
+									.y = scale * static_cast <float> (mapObject.positionY),
+									.z = scale * static_cast <float> (mapObject.positionZ),
+								},
+								.rotation = {
+									.x = 0,
+									.y = 0,
+									// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+									.z = static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
+								},
+								.scale = {
+									.x = scale, .y = scale, .z = scale
+								},
+								.model = raylibMeshResource.model,
+								.texture = nullptr,
+							});
 						}
-
-						textureFile = library.getActualTextureFileName (textureFile);
-
-						const RaylibPropResourceManager::RaylibMeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
-						const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
-
-						m_sceneObjects.meshes.push_back ({
-							.position = {
-								.x = scale * static_cast <float> (mapObject.positionX),
-								.y = scale * static_cast <float> (mapObject.positionY),
-								.z = scale * static_cast <float> (mapObject.positionZ),
-							},
-							.rotation = {
-								.x = 0,
-								.y = 0,
-								// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
-								.z = static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
-							},
-							.scale = {
-								.x = scale, .y = scale, .z = scale
-							},
-							.model = raylibMeshResource.model,
-							.texture = raylibTextureResource.texture
-						});
 					}
 				}
 				else if (true == group.sprites.contains (propName)) {
@@ -114,7 +148,9 @@ void RaylibMap::render (Camera & camera) {
 	for (const SceneMesh & mesh : m_sceneObjects.meshes) {
 		const Model & model = * mesh.model;
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = * mesh.texture;
+		if (nullptr != mesh.texture) {
+			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = * mesh.texture;
+		}
 
 		DrawModelEx (
 			model,

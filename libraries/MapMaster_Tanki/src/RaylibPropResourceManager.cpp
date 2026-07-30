@@ -15,6 +15,7 @@
 # include <vector>
 
 # include <raylib.h>
+# include <raymath.h>
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
@@ -47,6 +48,7 @@ void RaylibPropResourceManager::loadMapLibraries (const Map & map, const std::st
 
 void RaylibPropResourceManager::loadMapResources (const Map & map) {
 	std::queue <std::pair <std::string, std::string>> meshQueue;
+	std::vector <std::pair <std::string, std::string>> multiMeshVector;
 	std::queue <std::pair <std::string, std::string>> textureQueue;
 
 	bool meshesFinished = false;
@@ -64,6 +66,11 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 		}
 
 		meshResourceNotifier.notify_one ();
+	});
+
+	m_resourceManager.setMultiMeshResourceLoadCallback ([& multiMeshVector] (const std::string & libraryName, const std::string & meshFile) -> void {
+		// only 2-4 props are multimesh in proplibs, so the waiting cost is negligible
+		multiMeshVector.emplace_back (libraryName, meshFile);
 	});
 
 	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile) -> void {
@@ -175,6 +182,36 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 
 	resLoaderThread.join ();
 	m_resourceManager.clearCallbacks ();
+
+	std::sort (std::execution::par_unseq, multiMeshVector.begin (), multiMeshVector.end ());
+	multiMeshVector.erase (std::unique (std::execution::par_unseq, multiMeshVector.begin (), multiMeshVector.end ()), multiMeshVector.end ());
+	loadMultiMeshResources (multiMeshVector);
+
+	// NOLINTBEGIN(*)
+	for (const auto & [libraryName, meshFile] : multiMeshVector) {
+		const auto & multiMesh = m_resourceManager.propMultiMeshResources ().at (libraryName).at (meshFile);
+		RaylibMultiMeshResource & multiMeshResource = m_multiMeshResources [libraryName] [meshFile];
+		multiMeshResource.model = std::make_shared <Model> ();
+		Model & model = * multiMeshResource.model;
+
+		model.transform = MatrixIdentity();
+
+		model.meshCount = multiMeshResource.meshes.size ();
+		model.materialCount = model.meshCount;
+
+		model.meshes = (Mesh *)RL_CALLOC(model.meshCount, sizeof(Mesh));
+		model.materials = (Material *)RL_CALLOC(model.materialCount, sizeof(Material));
+		model.meshMaterial = (int *)RL_CALLOC(model.meshCount, sizeof(int));
+
+		for (int i = 0; i < model.meshCount; i++) {
+			model.meshes[i] = multiMeshResource.meshes.at (i);
+			UploadMesh (& model.meshes[i], false);
+			model.meshMaterial[i] = i;
+			model.materials[i] = LoadMaterialDefault();
+			model.materials [i].maps [MATERIAL_MAP_DIFFUSE].texture = * m_textureResources.at (libraryName).at (multiMesh.meshes [i].textureFile).texture;
+		}
+	}
+	// NOLINTEND(*)
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	// cppcheck-suppress shadowFunction
@@ -328,6 +365,31 @@ void RaylibPropResourceManager::loadMeshResources (const std::vector <std::pair 
 	}
 }
 
+void RaylibPropResourceManager::loadMultiMeshResources (const std::vector <std::pair <std::string, std::string>> & multiMeshDescriptors) {
+	std::vector <RaylibMultiMeshResource> resources;
+	resources.resize (multiMeshDescriptors.size ());
+
+	std::transform (
+		std::execution::par_unseq,
+		multiMeshDescriptors.cbegin (),
+		multiMeshDescriptors.cend (),
+		resources.begin (),
+		[this] (const std::pair <std::string, std::string> & descriptor) {
+			// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto)
+			PropResourceManager::PropMultiMeshResource & res = const_cast <PropResourceManager::PropMultiMeshResource &> (m_resourceManager.propMultiMeshResources ().at (descriptor.first).at (descriptor.second));
+			return loadMultiMeshResource (res);
+		}
+	);
+
+	std::size_t mI = 0;
+
+	for (const std::pair <std::string, std::string> & descriptor : multiMeshDescriptors) {
+		// NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
+		m_multiMeshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
+		mI++;
+	}
+}
+
 void RaylibPropResourceManager::loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors) {
 	std::vector <RaylibTextureResource> resources;
 	resources.resize (textureDescriptors.size ());
@@ -379,6 +441,32 @@ RaylibPropResourceManager::RaylibMeshResource RaylibPropResourceManager::loadMes
 	m.mesh.indices = meshResource.indexBuffer.data ();
 
 	return m;
+}
+
+RaylibPropResourceManager::RaylibMultiMeshResource RaylibPropResourceManager::loadMultiMeshResource (PropResourceManager::PropMultiMeshResource & meshMultiResource) {
+	RaylibMultiMeshResource mm = {};
+
+	for (PropResourceManager::PropMeshResource & meshResource : meshMultiResource.meshes) {
+		Mesh mesh {};
+
+		mesh.vertices = meshResource.vertexBuffer.data ();
+		mesh.vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
+		if (false == meshResource.uvBuffer.empty ()) {
+			mesh.texcoords = meshResource.uvBuffer.data ();
+		}
+		if (false == meshResource.normalBuffer.empty ()) {
+			mesh.normals = meshResource.normalBuffer.data ();
+		}
+
+		mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
+
+		mesh.indices = meshResource.indexBuffer.data ();
+
+		// NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
+		mm.meshes.push_back (std::move (mesh));
+	}
+
+	return mm;
 }
 
 // cppcheck-suppress functionStatic
@@ -443,8 +531,12 @@ const PropResourceManager & RaylibPropResourceManager::resourceManager () {
 
 const std::map <std::string, std::map <std::string, RaylibPropResourceManager::RaylibMeshResource>> & RaylibPropResourceManager::meshResources () const {
 	return m_meshResources;
-
 }
+
+const std::map <std::string, std::map <std::string, RaylibPropResourceManager::RaylibMultiMeshResource>> & RaylibPropResourceManager::multiMeshResources () const {
+	return m_multiMeshResources;
+}
+
 const std::map <std::string, std::map <std::string, RaylibPropResourceManager::RaylibTextureResource>> & RaylibPropResourceManager::textureResources () const {
 	return m_textureResources;
 }

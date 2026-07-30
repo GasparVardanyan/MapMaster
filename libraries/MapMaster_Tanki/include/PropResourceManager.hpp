@@ -6,6 +6,7 @@
 # include <string>
 # include <type_traits>
 # include <utility>
+# include <variant>
 # include <vector>
 
 class Map;
@@ -35,6 +36,10 @@ public:
 		std::vector <IndexType> indexBuffer;
 	};
 
+	struct PropMultiMeshResource {
+		std::vector <PropMeshResource> meshes;
+	};
+
 	struct PropTextureResource {
 		std::shared_ptr <unsigned char> pixBuffer;
 		int width = -1;
@@ -47,6 +52,11 @@ public:
 
 	enum class OverlapBehaviour : unsigned char {
 		Ignore, Override
+	};
+
+private:
+	struct ParsedMeshInfo {
+		std::vector <PropMeshResource> meshResources;
 	};
 
 public:
@@ -74,29 +84,41 @@ public:
 
 	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMultiMeshResource>> & propMultiMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
 
 	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
+	[[nodiscard]] std::variant <
+		std::reference_wrapper <const PropMeshResource>,
+		std::reference_wrapper <const PropMultiMeshResource>
+	> getMeshOrMultiMeshResource (
+		const std::string & libraryName,
+		const std::string & groupName,
+		const std::string & propName
+	) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
 
 	void setMeshResourceLoadCallback (const ResourceLoadCallback & callback);
+	void setMultiMeshResourceLoadCallback (const ResourceLoadCallback & callback);
 	void setTextureResourceLoadCallback (const ResourceLoadCallback & callback);
 	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 	void setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 	void clearCallbacks ();
 
 private:
-	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile);
+	ParsedMeshInfo loadMeshResource (const std::string & libraryName, const std::string & meshFile);
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
 
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
+	std::map <std::string, std::map <std::string, PropMultiMeshResource>> m_propMultiMeshResources;
 	std::map <std::string, std::map <std::string, PropTextureResource>> m_propTextureResources;
 
 	struct {
 		ResourceLoadCallback meshResourceLoad = nullptr;
+		ResourceLoadCallback multiMeshResourceLoad = nullptr;
 		ResourceLoadCallback textureResourceLoad = nullptr;
 		MapResourcesLoadCallback mapMeshResourcesLoad = nullptr;
 		MapResourcesLoadCallback mapTextureResourcesLoad = nullptr;
