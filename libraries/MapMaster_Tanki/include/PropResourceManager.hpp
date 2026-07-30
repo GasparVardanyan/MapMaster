@@ -49,6 +49,11 @@ public:
 		Ignore, Override
 	};
 
+private:
+	struct ParsedMeshInfo {
+		std::vector <PropMeshResource> meshResources;
+	};
+
 public:
 	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();
@@ -87,7 +92,7 @@ public:
 	void clearCallbacks ();
 
 private:
-	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile);
+	ParsedMeshInfo loadMeshResource (const std::string & libraryName, const std::string & meshFile);
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
 
 private:
