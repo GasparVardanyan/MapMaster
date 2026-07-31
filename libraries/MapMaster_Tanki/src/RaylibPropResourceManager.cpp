@@ -11,6 +11,7 @@
 # include <stack>
 # include <string>
 # include <thread>
+# include <tuple>
 # include <utility>
 # include <vector>
 
@@ -51,8 +52,9 @@ void RaylibPropResourceManager::loadMapLibraries (const Map & map, const std::st
 //
 
 void RaylibPropResourceManager::loadMapResources (const Map & map) {
-	std::queue <std::pair <std::string, std::string>> meshQueue;
-	std::queue <std::pair <std::string, std::string>> textureQueue;
+	// TODO: use tuple
+	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropMeshResource>>> meshQueue;
+	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> textureQueue;
 
 	bool meshesFinished = false;
 	bool texturesFinished = false;
@@ -62,19 +64,19 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 	std::mutex textureResourceMutex;
 	std::condition_variable textureResourceNotifier;
 
-	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile) -> void {
+	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile, std::shared_ptr <PropResourceManager::PropMeshResource> meshResource, std::shared_ptr <PropResourceManager::Collider>) -> void {
 		{
 			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);;
-			meshQueue.emplace (libraryName, meshFile);
+			meshQueue.emplace (libraryName, meshFile, std::move (meshResource));
 		}
 
 		meshResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile) -> void {
+	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile, std::shared_ptr <PropResourceManager::PropTextureResource> textureResource) -> void {
 		{
 			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
-			textureQueue.emplace (libraryName, textureFile);
+			textureQueue.emplace  (libraryName, textureFile, std::move (textureResource));
 		}
 
 		textureResourceNotifier.notify_one ();
@@ -103,7 +105,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 	});
 
 	while (true) {
-		std::stack <std::pair <std::string, std::string>> meshesToProcess;
+		std::stack <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropMeshResource>>> meshesToProcess;
 		bool finished = false;
 
 		{
@@ -121,18 +123,17 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 		}
 
 		while (false == meshesToProcess.empty ()) {
-			std::pair <std::string, std::string> meshDescriptor = meshesToProcess.top ();
-			meshesToProcess.pop ();
+			const auto & [libraryName, meshFile, meshRes] = meshesToProcess.top ();
 
-			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (
-				m_resourceManager.propMeshResources ().at (meshDescriptor.first).at (meshDescriptor.second)
-			);
-
-			RaylibMeshResource & meshResource = m_meshResources [meshDescriptor.first] [meshDescriptor.second];
-			meshResource = loadMeshResource (res);
+			RaylibMeshResource & meshResource = m_meshResources [libraryName] [meshFile];
+			meshResource = loadMeshResource (const_cast <PropResourceManager::PropMeshResource &> (
+				* meshRes.get ()
+			));
 
 			UploadMesh (& meshResource.mesh, false);
 			meshResource.model = std::shared_ptr <Model> (new Model (LoadModelFromMesh (meshResource.mesh)), unloadMeshResource);
+
+			meshesToProcess.pop ();
 		}
 
 		if (true == finished) {
@@ -141,7 +142,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 	}
 
 	while (true) {
-		std::stack <std::pair <std::string, std::string>> texturesToProcess;
+		std::stack <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> texturesToProcess;
 		bool finished = false;
 
 		{
@@ -159,18 +160,17 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 		}
 
 		while (false == texturesToProcess.empty ()) {
-			std::pair <std::string, std::string> textureDescriptor = texturesToProcess.top ();
-			texturesToProcess.pop ();
+			const auto & [libraryName, textureFile, textureRes] = texturesToProcess.top ();
 
-			const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (textureDescriptor.first).at (textureDescriptor.second);
-
-			RaylibTextureResource & textureResource = m_textureResources [textureDescriptor.first] [textureDescriptor.second];
-			textureResource = loadTextureResource (res);
+			RaylibTextureResource & textureResource = m_textureResources [libraryName] [textureFile];
+			textureResource = loadTextureResource (* textureRes.get ());
 
 			textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (textureResource.image)), unloadTextureResource);
 
 			GenTextureMipmaps (textureResource.texture.get ());
 			SetTextureFilter (* textureResource.texture, TEXTURE_FILTER_TRILINEAR);
+
+			texturesToProcess.pop ();
 		}
 
 		if (true == finished) {
@@ -183,7 +183,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	// cppcheck-suppress shadowFunction
-	const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & textureResources = m_resourceManager.propTextureResources ();
+	const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
 
 	std::vector <std::pair <std::string, std::string>> spriteDescriptors;
 
@@ -198,7 +198,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
-					const PropResourceManager::PropTextureResource & textureResource = textureResources.at (libraryName).at (textureFile);
+					const PropResourceManager::PropTextureResource & textureResource = * textureResources.at (libraryName).at (textureFile);
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 						const Vector2 size = {
 							.x = static_cast <float> (textureResource.width * sprite.scale),
@@ -224,7 +224,7 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	// cppcheck-suppress shadowFunction
-	const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & textureResources = m_resourceManager.propTextureResources ();
+	const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
 
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
 	std::vector <std::pair <std::string, std::string>> textureDescriptors;
@@ -232,14 +232,14 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * libraries.at (libraryName);
-		const std::map <std::string, PropResourceManager::PropTextureResource> & libraryTextureResources = textureResources.at (libraryName);
+		const std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>> & libraryTextureResources = textureResources.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
 		for (const auto & [groupName, props] : groups) {
 			const PropLibrary::Group & group = libraryGroups.at (groupName);
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 					std::string meshFile = group.meshes.at (propName).file;
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
+					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (* m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
 
 					meshDescriptors.emplace_back (libraryName, meshFile);
 
@@ -264,7 +264,7 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 					textureDescriptors.emplace_back (libraryName, textureFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
-					const PropResourceManager::PropTextureResource & textureResource = libraryTextureResources.at (textureFile);
+					const PropResourceManager::PropTextureResource & textureResource = * libraryTextureResources.at (textureFile);
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 						const Vector2 size = {
 							.x = static_cast <float> (textureResource.width * sprite.scale),
@@ -319,16 +319,19 @@ void RaylibPropResourceManager::loadMeshResources (const std::vector <std::pair 
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
 			// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto)
-			PropResourceManager::PropMeshResource & res = const_cast <PropResourceManager::PropMeshResource &> (m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second));
-			return loadMeshResource (res);
+			return loadMeshResource (
+				const_cast <PropResourceManager::PropMeshResource &> (
+					* m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second)
+				)
+			);
 		}
 	);
 
 	std::size_t mI = 0;
 
-	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
+	for (const auto & [libraryName, meshFile] : meshDescriptors) {
 		// NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
-		m_meshResources [descriptor.first] [descriptor.second] = std::move (resources [mI]);
+		m_meshResources [libraryName] [meshFile] = std::move (resources [mI]);
 		mI++;
 	}
 }
@@ -343,15 +346,14 @@ void RaylibPropResourceManager::loadTextureResources (const std::vector <std::pa
 		textureDescriptors.cend (),
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
-			const PropResourceManager::PropTextureResource & res = m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second);
-			return loadTextureResource (res);
+			return loadTextureResource (* m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second));
 		}
 	);
 
 	std::size_t tI = 0;
-	for (const std::pair <std::string, std::string> & descriptor : textureDescriptors) {
+	for (const auto & [libraryName, textureFile] : textureDescriptors) {
 		// NOLINTNEXTLINE(hicpp-move-const-arg,performance-move-const-arg)
-		m_textureResources [descriptor.first] [descriptor.second] = std::move (resources [tI]);
+		m_textureResources [libraryName] [textureFile] = std::move (resources [tI]);
 		tI++;
 	}
 }

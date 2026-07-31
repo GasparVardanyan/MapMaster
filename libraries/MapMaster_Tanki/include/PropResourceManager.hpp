@@ -4,6 +4,7 @@
 # include <map>
 # include <memory>
 # include <string>
+# include <tuple>
 # include <type_traits>
 # include <utility>
 # include <vector>
@@ -14,9 +15,6 @@ class PropLibrary;
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManager {
 public:
-	using ResourceLoadCallback = std::function <void (std::string, std::string)>;
-	using MapResourcesLoadCallback = std::function <void ()>;
-
 	struct PropMeshResource {
 		using VertexType = float;
 		using NormalType = float;
@@ -75,6 +73,10 @@ public:
 		std::vector <TriangleCollider> triangleColliders;
 	};
 
+	using MeshResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>)>;
+	using TextureResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropTextureResource>)>;
+	using MapResourcesLoadCallback = std::function <void ()>;
+
 private:
 	struct ParsedMeshInfo {
 		std::vector <PropMeshResource> meshResources;
@@ -102,21 +104,21 @@ public:
 	 *
 	 * @param textureDescriptors {{libraryName, {diffuseFileName, alphaFileName}}}
 	 */
-	void loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors);
+	void loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors);
 
 	void loadMapResources (const Map & map);
 
 	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
-	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
-	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
-	[[nodiscard]] const std::map <std::string, std::map <std::string, Collider>> & colliders () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> & propMeshResources () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> & propTextureResources () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <Collider>>> & colliders () const;
 
 	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
 
-	void setMeshResourceLoadCallback (const ResourceLoadCallback & callback);
-	void setTextureResourceLoadCallback (const ResourceLoadCallback & callback);
+	void setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback);
+	void setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback);
 	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 	void setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback);
 	void clearCallbacks ();
@@ -127,13 +129,13 @@ private:
 
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
-	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
-	std::map <std::string, std::map <std::string, PropTextureResource>> m_propTextureResources;
-	std::map <std::string, std::map <std::string, Collider>> m_colliders;
+	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
+	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
+	std::map <std::string, std::map <std::string, std::shared_ptr <Collider>>> m_colliders;
 
 	struct {
-		ResourceLoadCallback meshResourceLoad = nullptr;
-		ResourceLoadCallback textureResourceLoad = nullptr;
+		MeshResourceLoadCallback meshResourceLoad = nullptr;
+		TextureResourceLoadCallback textureResourceLoad = nullptr;
 		MapResourcesLoadCallback mapMeshResourcesLoad = nullptr;
 		MapResourcesLoadCallback mapTextureResourcesLoad = nullptr;
 	} m_callbacks;

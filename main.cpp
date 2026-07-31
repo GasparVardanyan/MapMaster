@@ -4,8 +4,6 @@
 # include <string>
 
 # include <raylib.h>
-# include <rlgl.h>
-# include <thread>
 
 # include "RaylibMap.hpp"
 # include "Map.hpp"
@@ -18,8 +16,6 @@ static constexpr float scale = 0.01F;
 // NOLINTBEGIN(*)
 int main (void)
 {
-	while (true) {
-	std::this_thread::sleep_for(std::chrono::milliseconds (500));
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
@@ -27,7 +23,7 @@ int main (void)
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
 	InitWindow (screenWidth, screenHeight, "MapMaster");
 
-	auto start = std::chrono::steady_clock::now ();
+	std::chrono::time_point start = std::chrono::steady_clock::now ();
 
 	std::shared_ptr <RaylibMap> rmap = std::make_shared <RaylibMap> ();
 	rmap->setResourceManager (std::make_shared <RaylibPropResourceManager> (true));
@@ -56,7 +52,7 @@ int main (void)
 	// this creates the map scene
 	rmap->loadScene (scale);
 
-	auto end = std::chrono::steady_clock::now ();
+	std::chrono::time_point end = std::chrono::steady_clock::now ();
 
 	std::cout << "Elapsed: "
 		<< std::chrono::duration <double> (end - start).count ()
@@ -85,10 +81,12 @@ int main (void)
 
 	bool drawCollisionGeometry = false;
 
-	// while (false == WindowShouldClose ()) {
+	while (false == WindowShouldClose ()) {
 		UpdateCamera (& camera, CAMERA_THIRD_PERSON);
 
-		if (IsKeyPressed(KEY_SPACE)) drawCollisionGeometry = !drawCollisionGeometry;
+		if (true == IsKeyPressed (KEY_SPACE)) {
+			drawCollisionGeometry = !drawCollisionGeometry;
+		}
 
 		BeginDrawing ();
 
@@ -113,13 +111,12 @@ int main (void)
 		DrawFPS (10, 10);
 
 		EndDrawing ();
-	// }
+	}
 
 	rmap.reset ();
 
 	CloseWindow ();
-	}
-	return 0;
 
+	return 0;
 }
 // NOLINTEND(*)

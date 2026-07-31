@@ -7,7 +7,6 @@
 # include <utility>
 
 # include <Eigen/Core>
-# include <Eigen/Eigen>
 # include <Eigen/Geometry>
 # include <raylib.h>
 # include <rlgl.h>
@@ -44,7 +43,7 @@ void RaylibMap::loadScene (float scale) {
 					const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
 					const std::string meshFile = propMesh.file;
 
-					const PropResourceManager::Collider & collider = resourceManager.colliders ().at (libraryName).at (meshFile);
+					const PropResourceManager::Collider & collider = * resourceManager.colliders ().at (libraryName).at (meshFile);
 
 
 					for (const Map::MapObject & mapObject : propInfo) {

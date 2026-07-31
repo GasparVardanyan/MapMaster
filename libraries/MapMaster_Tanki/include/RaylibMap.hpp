@@ -1,8 +1,9 @@
 # pragma once
 
 # include <memory>
-# include <raylib.h>
 # include <vector>
+
+# include <raylib.h>
 
 # include "Map.hpp"
 # include "PropResourceManager.hpp"

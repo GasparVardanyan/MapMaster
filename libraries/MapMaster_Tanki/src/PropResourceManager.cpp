@@ -15,6 +15,7 @@
 # include <set>
 # include <stdexcept>
 # include <string>
+# include <tuple>
 # include <utility>
 # include <vector>
 
@@ -97,92 +98,111 @@ PropResourceManager::PropTextureResource PropResourceManager::PropTextureResourc
 //
 
 void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
-	std::vector <ParsedMeshInfo> meshInfos;
-	meshInfos.resize (meshDescriptors.size ());
+	std::vector <std::pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>>> resources;
+	resources.resize (meshDescriptors.size ());
 
 	std::transform (
 		std::execution::par_unseq,
 		meshDescriptors.cbegin (),
 		meshDescriptors.cend (),
-		meshInfos.begin (),
-		[this] (const std::pair <std::string, std::string> & descriptor) -> ParsedMeshInfo {
-			return loadMeshResource (descriptor.first, descriptor.second);
+		resources.begin (),
+		[this] (const std::pair <std::string, std::string> & descriptor) -> std::pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> {
+			ParsedMeshInfo meshInfo = loadMeshResource (descriptor.first, descriptor.second);
+			std::shared_ptr <Collider> collider = std::make_shared <Collider> (std::move (meshInfo.collider));
+
+			if (1 == meshInfo.meshResources.size ()) {
+				std::shared_ptr <PropMeshResource> meshResource = std::make_shared <PropMeshResource> (std::move (meshInfo.meshResources [0]));
+
+				if (nullptr != m_callbacks.meshResourceLoad) {
+					m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, meshResource, collider);
+				}
+
+				// NOLINTNEXTLINE(google-build-explicit-make-pair)
+				return std::make_pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> (
+					std::move (meshResource),
+					std::move (collider)
+				);
+			}
+			else {
+				PropMeshResource meshResource {};
+				meshResource.textureFile = meshInfo.meshResources [0].textureFile;
+
+				std::size_t vertexBufferSize = 0;
+				std::size_t indexBufferSize = 0;
+				std::size_t indexBufferOffset = 0;
+				std::size_t uvBufferSize = 0;
+				std::size_t normalBufferSize = 0;
+
+				for (const PropMeshResource & res : meshInfo.meshResources) {
+					vertexBufferSize += res.vertexBuffer.size ();
+					indexBufferSize += res.indexBuffer.size ();
+					uvBufferSize += res.uvBuffer.size ();
+					normalBufferSize += res.normalBuffer.size ();
+				}
+
+				meshResource.vertexBuffer.reserve (vertexBufferSize);
+				meshResource.indexBuffer.resize (indexBufferSize);
+				meshResource.uvBuffer.reserve (uvBufferSize);
+				meshResource.normalBuffer.reserve (normalBufferSize);
+
+				for (PropMeshResource & res : meshInfo.meshResources) {
+					std::size_t vertexBufferOffset = meshResource.vertexBuffer.size () / 3;
+
+					meshResource.vertexBuffer.insert (
+						meshResource.vertexBuffer.end (),
+						std::make_move_iterator (res.vertexBuffer.begin ()),
+						std::make_move_iterator (res.vertexBuffer.end ())
+					);
+
+					std::transform (
+						res.indexBuffer.cbegin (),
+						res.indexBuffer.cend (),
+						meshResource.indexBuffer.begin () + indexBufferOffset,
+						[&vertexBufferOffset] (PropMeshResource::IndexType i) -> PropMeshResource::IndexType { return vertexBufferOffset + i; }
+					);
+					indexBufferOffset += res.indexBuffer.size ();
+
+					meshResource.uvBuffer.insert (
+						meshResource.uvBuffer.end (),
+						std::make_move_iterator (res.uvBuffer.begin ()),
+						std::make_move_iterator (res.uvBuffer.end ())
+					);
+
+					meshResource.normalBuffer.insert (
+						meshResource.normalBuffer.end (),
+						std::make_move_iterator (res.normalBuffer.begin ()),
+						std::make_move_iterator (res.normalBuffer.end ())
+					);
+				}
+
+				std::shared_ptr <PropMeshResource> res = std::make_shared <PropMeshResource> (std::move (meshResource));
+
+				if (nullptr != m_callbacks.meshResourceLoad) {
+					m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, res, collider);
+				}
+
+				// NOLINTNEXTLINE(google-build-explicit-make-pair)
+				return std::make_pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> (
+					std::move (res),
+					std::move (collider)
+				);
+			}
 		}
 	);
 
 	std::size_t mI = 0;
 
-	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
-		ParsedMeshInfo & meshInfo = meshInfos [mI];
-		m_colliders [descriptor.first] [descriptor.second] = std::move (meshInfo.collider);
-		if (1 == meshInfos [mI].meshResources.size ()) {
-			m_propMeshResources [descriptor.first] [descriptor.second] = std::move (meshInfo.meshResources [0]);
-		}
-		else {
-			PropMeshResource resource {};
-			resource.textureFile = meshInfo.meshResources [0].textureFile;
-
-			std::size_t vertexBufferSize = 0;
-			std::size_t indexBufferSize = 0;
-			std::size_t indexBufferOffset = 0;
-			std::size_t uvBufferSize = 0;
-			std::size_t normalBufferSize = 0;
-
-			for (const PropMeshResource & res : meshInfo.meshResources) {
-				vertexBufferSize += res.vertexBuffer.size ();
-				indexBufferSize += res.indexBuffer.size ();
-				uvBufferSize += res.uvBuffer.size ();
-				normalBufferSize += res.normalBuffer.size ();
-			}
-
-			resource.vertexBuffer.reserve (vertexBufferSize);
-			resource.indexBuffer.resize (indexBufferSize);
-			resource.uvBuffer.reserve (uvBufferSize);
-			resource.normalBuffer.reserve (normalBufferSize);
-
-			for (PropMeshResource & res : meshInfo.meshResources) {
-				std::size_t vertexBufferOffset = resource.vertexBuffer.size () / 3;
-
-				resource.vertexBuffer.insert (
-					resource.vertexBuffer.end (),
-					std::make_move_iterator (res.vertexBuffer.begin ()),
-					std::make_move_iterator (res.vertexBuffer.end ())
-				);
-
-				std::transform (
-					res.indexBuffer.cbegin (),
-					res.indexBuffer.cend (),
-					resource.indexBuffer.begin () + indexBufferOffset,
-					[&vertexBufferOffset] (PropMeshResource::IndexType i) -> PropMeshResource::IndexType { return vertexBufferOffset + i; }
-				);
-				indexBufferOffset += res.indexBuffer.size ();
-
-				resource.uvBuffer.insert (
-					resource.uvBuffer.end (),
-					std::make_move_iterator (res.uvBuffer.begin ()),
-					std::make_move_iterator (res.uvBuffer.end ())
-				);
-
-				resource.normalBuffer.insert (
-					resource.normalBuffer.end (),
-					std::make_move_iterator (res.normalBuffer.begin ()),
-					std::make_move_iterator (res.normalBuffer.end ())
-				);
-			}
-
-			m_propMeshResources [descriptor.first] [descriptor.second] = std::move (resource);
-		}
-
-		if (nullptr != m_callbacks.meshResourceLoad) {
-			m_callbacks.meshResourceLoad (descriptor.first, descriptor.second);
-		}
+	for (const auto & [libraryName, meshFile] : meshDescriptors) {
+		auto & [meshResource, collider] = resources [mI];
+		m_propMeshResources [libraryName] [meshFile] = std::move (meshResource);
+		m_colliders [libraryName] [meshFile] = std::move (collider);
 
 		mI++;
 	}
 }
 
-void PropResourceManager::loadTextureResources (const std::vector <std::pair <std::string, std::pair <std::string, std::string>>> & textureDescriptors) {
-	std::vector <PropTextureResource> resources;
+void PropResourceManager::loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors) {
+	std::vector <std::shared_ptr <PropTextureResource>> resources;
 	resources.resize (textureDescriptors.size ());
 
 	std::transform (
@@ -190,24 +210,28 @@ void PropResourceManager::loadTextureResources (const std::vector <std::pair <st
 		textureDescriptors.cbegin (),
 		textureDescriptors.cend (),
 		resources.begin (),
-		[this] (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor) -> PropTextureResource {
-			return loadTextureResource (descriptor.first, descriptor.second.first, descriptor.second.second);
+		[this] (const std::tuple <std::string, std::string, std::string> & descriptor) -> std::shared_ptr <PropTextureResource> {
+			std::shared_ptr <PropTextureResource> textureResource = std::make_shared <PropTextureResource> (loadTextureResource (std::get <0> (descriptor), std::get <1> (descriptor), std::get <2> (descriptor)));
+
+			if (nullptr != m_callbacks.textureResourceLoad) {
+
+				m_callbacks.textureResourceLoad (std::get <0> (descriptor), std::get <1> (descriptor), textureResource);
+			}
+			return textureResource;
 		}
 	);
 
 	std::size_t tI = 0;
-	for (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor : textureDescriptors) {
-		m_propTextureResources [descriptor.first] [descriptor.second.first] = std::move (resources [tI]);
-		if (nullptr != m_callbacks.textureResourceLoad) {
-			m_callbacks.textureResourceLoad (descriptor.first, descriptor.second.first);
-		}
+	for (const auto & [libraryName, diffuseFile, _] : textureDescriptors) {
+		m_propTextureResources [libraryName] [diffuseFile] = (std::move (resources [tI]));
+
 		tI++;
 	}
 }
 
 void PropResourceManager::loadMapResources (const Map & map) {
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
-	std::vector <std::pair <std::string, std::pair <std::string, std::string>>> textureDescriptors;
+	std::vector <std::tuple <std::string, std::string, std::string>> textureDescriptors;
 
 	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
 
@@ -236,10 +260,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 							if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 								diffuseFile = it->second;
 							}
-							textureDescriptors.emplace_back (
-								libraryName,
-								std::pair <std::string, std::string> {diffuseFile, alphaFile}
-							);
+							textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 						}
 						else {
 							defaultTextures [libraryName] [groupName].insert (propName);
@@ -257,10 +278,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 						diffuseFile = it->second;
 					}
 
-					textureDescriptors.emplace_back (
-						libraryName,
-						std::pair <std::string, std::string> {diffuseFile, alphaFile}
-					);
+					textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 				}
 			}
 		}
@@ -278,7 +296,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 	for (const auto & [libraryName, groupData] : defaultTextures) {
 		const PropLibrary & library = * m_propLibraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
-		const std::map <std::string, PropMeshResource> & libraryMeshResources = m_propMeshResources.at (libraryName);
+		const std::map <std::string, std::shared_ptr <PropMeshResource>> & libraryMeshResources = m_propMeshResources.at (libraryName);
 
 		for (const auto & [groupName, props] : groupData) {
 			const PropLibrary::Group & group = groups.at (groupName);
@@ -286,7 +304,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 			for (const std::string & propName : props) {
 				const PropLibrary::PropMesh & prop = group.meshes.at (propName);
 
-				std::string diffuseFile = libraryMeshResources.at (prop.file).textureFile;
+				std::string diffuseFile = libraryMeshResources.at (prop.file)->textureFile;
 				std::string alphaFile;
 
 				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
@@ -295,10 +313,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
 					diffuseFile = it->second;
 				}
-				textureDescriptors.emplace_back (
-					libraryName,
-					std::pair <std::string, std::string> {diffuseFile, alphaFile}
-				);
+				textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 			}
 		}
 	}
@@ -357,7 +372,7 @@ PropResourceManager::ParsedMeshInfo PropResourceManager::loadMeshResource (const
 			aiNode * node = nodes.front ();
 			nodes.pop ();
 
-			if (node != visualNode) {
+			if (node != visualNode) { // TODO: read occluders
 				aiMatrix4x4 transform = node->mTransformation;
 				// for (aiNode * p = node->mParent; scene->mRootNode != p; p = p->mParent) {
 				// 	transform = p->mTransformation * transform;
@@ -456,22 +471,8 @@ PropResourceManager::ParsedMeshInfo PropResourceManager::loadMeshResource (const
 				nodes.push (node->mChildren [i]);
 			}
 		}
-		// printttt (str, scene->mRootNode);
 	}
 
-
-	// for (std::size_t i = 0; i < scene->mNumMeshes; i++) {
-	// 	aiMesh * _mesh = scene->mMeshes [i];
-	// 	std::string meshName = _mesh->mName.C_Str ();
-	// 	std::ranges::transform (meshName, meshName.begin (), [] (char c) -> char {
-	// 		return static_cast <char> (std::tolower (c));
-	// 	});
-	//
-	// 	if (0 == std::strcmp (meshName.c_str (), "occl")) {
-	// 		std::cerr << "Found occluder! Unhandled!!" << '\n';
-	// 		std::terminate ();
-	// 	}
-	// }
 
 	for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
 		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
@@ -596,21 +597,21 @@ const std::map <std::string, std::shared_ptr <PropLibrary>> & PropResourceManage
 	return m_propLibraries;
 }
 
-const std::map <std::string, std::map <std::string, PropResourceManager::PropMeshResource>> & PropResourceManager::propMeshResources () const {
+const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropMeshResource>>> & PropResourceManager::propMeshResources () const {
 	return m_propMeshResources;
 }
 
-const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & PropResourceManager::propTextureResources () const {
+const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & PropResourceManager::propTextureResources () const {
 	return m_propTextureResources;
 }
 
-const std::map <std::string, std::map <std::string, PropResourceManager::Collider>> & PropResourceManager::colliders () const {
+const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::Collider>>> & PropResourceManager::colliders () const {
 	return m_colliders;
 }
 
 const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
 	const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propName).file;
-	return m_propMeshResources.at (libraryName).at (meshFile);
+	return * m_propMeshResources.at (libraryName).at (meshFile);
 }
 
 const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const {
@@ -618,18 +619,18 @@ const PropResourceManager::PropTextureResource & PropResourceManager::getTexture
 
 	if (false == textureName.empty ()) {
 		const std::string & textureFile = library.groups ().at (groupName).meshes.at (propMeshName).textures.at (textureName);
-		return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (textureFile));
+		return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (textureFile));
 	}
 	else {
 		const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propMeshName).file;
-		return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile).textureFile));
+		return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile)->textureFile));
 	}
 }
 
 const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const {
 	const PropLibrary & library = * m_propLibraries.at (libraryName);
 
-	return m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
+	return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
 }
 
 
@@ -643,10 +644,10 @@ const PropResourceManager::PropTextureResource & PropResourceManager::getTexture
 //  \_____/_/    \_\______|______|____/_/    \_\_____|_|\_\_____/
 //
 
-void PropResourceManager::setMeshResourceLoadCallback (const ResourceLoadCallback & callback) {
+void PropResourceManager::setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback) {
 	m_callbacks.meshResourceLoad = callback;
 }
-void PropResourceManager::setTextureResourceLoadCallback (const ResourceLoadCallback & callback) {
+void PropResourceManager::setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback) {
 	m_callbacks.textureResourceLoad = callback;
 }
 
