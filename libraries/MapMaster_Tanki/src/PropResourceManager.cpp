@@ -105,7 +105,7 @@ void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::
 		meshDescriptors.cbegin (),
 		meshDescriptors.cend (),
 		meshInfos.begin (),
-		[this] (const std::pair <std::string, std::string> & descriptor) {
+		[this] (const std::pair <std::string, std::string> & descriptor) -> ParsedMeshInfo {
 			return loadMeshResource (descriptor.first, descriptor.second);
 		}
 	);
@@ -190,7 +190,7 @@ void PropResourceManager::loadTextureResources (const std::vector <std::pair <st
 		textureDescriptors.cbegin (),
 		textureDescriptors.cend (),
 		resources.begin (),
-		[this] (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor) {
+		[this] (const std::pair <std::string, std::pair <std::string, std::string>> & descriptor) -> PropTextureResource {
 			return loadTextureResource (descriptor.first, descriptor.second.first, descriptor.second.second);
 		}
 	);

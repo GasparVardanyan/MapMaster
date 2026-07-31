@@ -40,6 +40,12 @@ function (enableReleaseBuildOptimizations target)
 	)
 endfunction ()
 
+function (enableDebugBuildDebugInfos target)
+	target_compile_options(${target} PRIVATE
+		$<$<CONFIG:Debug>:-g -fno-omit-frame-pointer>
+	)
+endfunction ()
+
 add_subdirectory (external_libraries/stb)
 add_subdirectory (libraries/MapMaster_Tanki)
 
@@ -49,6 +55,7 @@ add_executable (${PROJECT_NAME}
 
 target_link_libraries (${PROJECT_NAME} MapMaster_Tanki)
 enableReleaseBuildOptimizations (${PROJECT_NAME})
+enableDebugBuildDebugInfos (${PROJECT_NAME})
 
 # set (CPACK_PROJECT_NAME ${PROJECT_NAME})
 # set (CPACK_PROJECT_VERSION ${PROJECT_VERSION})

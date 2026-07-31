@@ -1,14 +1,14 @@
 # include "RaylibMap.hpp"
 
-# include <Eigen/Core>
-# include <Eigen/Geometry>
 # include <map>
 # include <memory>
 # include <numbers>
 # include <string>
 # include <utility>
 
+# include <Eigen/Core>
 # include <Eigen/Eigen>
+# include <Eigen/Geometry>
 # include <raylib.h>
 # include <rlgl.h>
 

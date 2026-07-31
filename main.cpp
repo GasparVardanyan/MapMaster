@@ -5,6 +5,7 @@
 
 # include <raylib.h>
 # include <rlgl.h>
+# include <thread>
 
 # include "RaylibMap.hpp"
 # include "Map.hpp"
@@ -17,6 +18,8 @@ static constexpr float scale = 0.01F;
 // NOLINTBEGIN(*)
 int main (void)
 {
+	while (true) {
+	std::this_thread::sleep_for(std::chrono::milliseconds (500));
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
@@ -36,7 +39,7 @@ int main (void)
 	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
-	// rmap->map ()->loadFile (DATA_DIR "map.xml");
+	// rmap->map ()->loadFile ("/media/shared/mm.xml");
 
 	// this loads the xml data of the necessary proplibs from the given directory
 	// all proplibs must be directly in this directory and their directories must
@@ -82,7 +85,7 @@ int main (void)
 
 	bool drawCollisionGeometry = false;
 
-	while (false == WindowShouldClose ()) {
+	// while (false == WindowShouldClose ()) {
 		UpdateCamera (& camera, CAMERA_THIRD_PERSON);
 
 		if (IsKeyPressed(KEY_SPACE)) drawCollisionGeometry = !drawCollisionGeometry;
@@ -110,12 +113,13 @@ int main (void)
 		DrawFPS (10, 10);
 
 		EndDrawing ();
-	}
+	// }
 
 	rmap.reset ();
 
 	CloseWindow ();
-
+	}
 	return 0;
+
 }
 // NOLINTEND(*)
