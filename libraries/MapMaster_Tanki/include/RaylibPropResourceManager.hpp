@@ -34,6 +34,8 @@ public:
 	};
 
 public:
+	explicit RaylibPropResourceManager (bool parseCollisionPrimitives = false);
+
 	void loadLibrary (const std::string & path);
 	void loadMapLibraries (const Map & map, const std::string & libraryRootDir);
 	void loadMapResources (const Map & map);

@@ -27,12 +27,13 @@ int main (void)
 	auto start = std::chrono::steady_clock::now ();
 
 	std::shared_ptr <RaylibMap> rmap = std::make_shared <RaylibMap> ();
+	rmap->setResourceManager (std::make_shared <RaylibPropResourceManager> (true));
 
 	// this loads the map xml data
-	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
+	rmap->map ()->loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Iran_MM.xml");
 	// rmap->map ()->loadFile (DATA_DIR "finalboss.xml");
-	rmap->map ()->loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
+	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
 	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
 	// rmap->map ()->loadFile (DATA_DIR "map.xml");
@@ -79,8 +80,12 @@ int main (void)
 
 	SetTargetFPS (60);
 
+	bool drawCollisionGeometry = false;
+
 	while (false == WindowShouldClose ()) {
 		UpdateCamera (& camera, CAMERA_THIRD_PERSON);
+
+		if (IsKeyPressed(KEY_SPACE)) drawCollisionGeometry = !drawCollisionGeometry;
 
 		BeginDrawing ();
 
@@ -88,7 +93,12 @@ int main (void)
 
 		BeginMode3D (camera);
 
-		rmap->render (camera);
+		if (true == drawCollisionGeometry) {
+			rmap->renderCollisionGeometry ();
+		}
+		else {
+			rmap->render (camera);
+		}
 
 		// rlPushMatrix ();
 		// rlRotatef (90.0f, 1.0f, 0.0f, 0.0f);

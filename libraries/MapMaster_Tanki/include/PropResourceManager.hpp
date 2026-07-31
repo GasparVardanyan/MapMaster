@@ -49,12 +49,41 @@ public:
 		Ignore, Override
 	};
 
+	struct Collider {
+		using VertexType = float;
+
+		static_assert (std::is_floating_point_v <VertexType>);
+
+		struct BoxCollider {
+			struct {
+				VertexType x, y, z;
+			} vMin, vMax;
+		};
+		struct RectCollider {
+			struct {
+				VertexType x, y, z;
+			} v1, v2, v3, v4;
+		};
+		struct TriangleCollider {
+			struct {
+				VertexType x, y, z;
+			} v1, v2, v3;
+		};
+
+		std::vector <BoxCollider> boxColliders;
+		std::vector <RectCollider> rectColliders;
+		std::vector <TriangleCollider> triangleColliders;
+	};
+
 private:
 	struct ParsedMeshInfo {
 		std::vector <PropMeshResource> meshResources;
+		Collider collider;
 	};
 
 public:
+	explicit PropResourceManager (bool parseCollisionPrimitives = false);
+
 	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();
 	void removePropLibrary (const std::string & name);
@@ -80,6 +109,7 @@ public:
 	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropMeshResource>> & propMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, PropTextureResource>> & propTextureResources () const;
+	[[nodiscard]] const std::map <std::string, std::map <std::string, Collider>> & colliders () const;
 
 	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
@@ -99,6 +129,7 @@ private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, PropMeshResource>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, PropTextureResource>> m_propTextureResources;
+	std::map <std::string, std::map <std::string, Collider>> m_colliders;
 
 	struct {
 		ResourceLoadCallback meshResourceLoad = nullptr;
@@ -108,5 +139,7 @@ private:
 	} m_callbacks;
 
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
+	const bool m_parseCollisionPrimitives;
 };
 // cppcheck-suppress-end unusedStructMember

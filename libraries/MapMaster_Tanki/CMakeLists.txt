@@ -15,11 +15,12 @@ enableReleaseBuildOptimizations (MapMaster_Tanki)
 find_package (raylib REQUIRED)
 find_package (assimp REQUIRED)
 find_package (TBB REQUIRED)
+find_package (Eigen3 REQUIRED)
 
 target_link_libraries (
 	MapMaster_Tanki
 	PUBLIC
-	TBB::tbb assimp stb raylib
+	TBB::tbb assimp stb raylib Eigen3::Eigen
 )
 
 target_include_directories (MapMaster_Tanki PUBLIC include)

@@ -1,9 +1,9 @@
 # include "Map.hpp"
 
+# include <initializer_list>
 # include <iostream>
 # include <map>
 # include <string>
-# include <initializer_list>
 
 # include <pugixml.hpp>
 

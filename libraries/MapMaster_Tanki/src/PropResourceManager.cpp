@@ -1,6 +1,7 @@
 # include "PropResourceManager.hpp"
 
 # include <algorithm>
+# include <array>
 # include <cctype>
 # include <cstdlib>
 # include <cstring>
@@ -10,6 +11,7 @@
 # include <iterator>
 # include <map>
 # include <memory>
+# include <queue>
 # include <set>
 # include <stdexcept>
 # include <string>
@@ -20,16 +22,23 @@
 # include <assimp/config.h>
 # include <assimp/material.h>
 # include <assimp/material.inl>
+# include <assimp/matrix4x4.h>
 # include <assimp/mesh.h>
 # include <assimp/postprocess.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
+# include <assimp/vector3.h>
 # include <stb_image.h>
 
 # include "Map.hpp"
 # include "PropLibrary.hpp"
 
 
+
+PropResourceManager::PropResourceManager (bool parseCollisionPrimitives)
+	: m_parseCollisionPrimitives (parseCollisionPrimitives)
+{
+}
 
 // NOLINTNEXTLINE(performance-unnecessary-value-param)
 void PropResourceManager::addPropLibrary (std::shared_ptr <PropLibrary> propLibrary) {
@@ -105,6 +114,7 @@ void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::
 
 	for (const std::pair <std::string, std::string> & descriptor : meshDescriptors) {
 		ParsedMeshInfo & meshInfo = meshInfos [mI];
+		m_colliders [descriptor.first] [descriptor.second] = std::move (meshInfo.collider);
 		if (1 == meshInfos [mI].meshResources.size ()) {
 			m_propMeshResources [descriptor.first] [descriptor.second] = std::move (meshInfo.meshResources [0]);
 		}
@@ -335,29 +345,119 @@ PropResourceManager::ParsedMeshInfo PropResourceManager::loadMeshResource (const
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 
 	const aiScene * scene = importer.ReadFile (meshPath, aiProcess_Triangulate | aiProcess_RemoveComponent | aiProcess_FlipUVs);
+	ParsedMeshInfo info {};
 
-	// {
-	// 	std::osyncstream str (std::cout);
-	// 	std::queue <aiNode *> nodes;
-	// 	nodes.push (scene->mRootNode);
-	//
-	// 	while (false == nodes.empty ()) {
-	// 		aiNode * node = nodes.front ();
-	// 		nodes.pop ();
-	//
-	// 		str << "NUMMESHES: " << node->mNumMeshes << '\n';
-	// 		str << "NUMCHILDS: " << node->mNumChildren << '\n';
-	//
-	// 		if (node->mNumMeshes > 1) {
-	// 			str << "====================================================================================================\n";
-	// 		}
-	//
-	// 		for (int i = 0; i < node->mNumChildren; i++) {
-	// 			nodes.push (node->mChildren [i]);
-	// 		}
-	// 	}
-	// 	// printttt (str, scene->mRootNode);
-	// }
+	const aiNode * visualNode = scene->mRootNode->mChildren [0];
+
+	{
+		std::queue <aiNode *> nodes;
+		nodes.push (scene->mRootNode);
+
+		while (false == nodes.empty ()) {
+			aiNode * node = nodes.front ();
+			nodes.pop ();
+
+			if (node != visualNode) {
+				aiMatrix4x4 transform = node->mTransformation;
+				// for (aiNode * p = node->mParent; scene->mRootNode != p; p = p->mParent) {
+				// 	transform = p->mTransformation * transform;
+				// }
+
+				if (true == m_parseCollisionPrimitives) {
+					std::string nodeName = node->mName.C_Str ();
+					std::ranges::transform (nodeName, nodeName.begin (), [] (char c) -> char {
+						return static_cast <char> (std::tolower (c));
+					});
+
+					if (true == nodeName.starts_with ("plane")) {
+						const aiMesh * rectMesh = scene->mMeshes [node->mMeshes [0]];
+
+						const aiVector3D * _v1 = rectMesh->mVertices;
+						const aiVector3D * _v2 = rectMesh->mVertices + 1;
+						const aiVector3D * _v3 = rectMesh->mVertices + 2;
+
+						using VertexAndOppositeEdgeLengthSqaurePair = std::pair <const aiVector3D *, double>;
+
+						std::array <VertexAndOppositeEdgeLengthSqaurePair, 3> vedata = {
+							VertexAndOppositeEdgeLengthSqaurePair {_v1, (* _v2 - * _v3).SquareLength ()},
+							VertexAndOppositeEdgeLengthSqaurePair {_v2, (* _v1 - * _v3).SquareLength ()},
+							VertexAndOppositeEdgeLengthSqaurePair {_v3, (* _v1 - * _v2).SquareLength ()}
+						};
+
+						auto hIt = std::ranges::max_element (vedata, [] (const VertexAndOppositeEdgeLengthSqaurePair & ved1, const VertexAndOppositeEdgeLengthSqaurePair & ved2) -> bool {
+							return ved1.second < ved2.second;
+						});
+
+						std::ranges::iter_swap (vedata.begin (), hIt);
+
+						aiVector3D v1 = transform * * vedata [0].first;
+						aiVector3D v2 = transform * * vedata [1].first;
+						aiVector3D v3 = transform * * vedata [2].first;
+						aiVector3D v4 = v2 + v3 - v1;
+
+						info.collider.rectColliders.push_back ({
+							.v1 = { .x = v1.x, .y = v1.y, .z = v1.z },
+							.v2 = { .x = v2.x, .y = v2.y, .z = v2.z },
+							.v3 = { .x = v3.x, .y = v3.y, .z = v3.z },
+							.v4 = { .x = v4.x, .y = v4.y, .z = v4.z },
+						});
+					}
+					else if (true == nodeName.starts_with ("box")) {
+						const aiMesh * boxMesh = scene->mMeshes [node->mMeshes [0]];
+						Collider::VertexType minX, maxX, minY, maxY, minZ, maxZ;
+						const aiVector3D v1 = transform * boxMesh->mVertices [0];
+						minX = maxX = v1.x;
+						minY = maxY = v1.y;
+						minZ = maxZ = v1.z;
+
+						for (unsigned int i = 1; i < boxMesh->mNumVertices; i++) {
+							const aiVector3D v = transform * boxMesh->mVertices [i];
+							if (v.x < minX) {
+								minX = v.x;
+							}
+							else if (v.x > maxX) {
+								maxX = v.x;
+							}
+							if (v.y < minY) {
+								minY = v.y;
+							}
+							else if (v.y > maxY) {
+								maxY = v.y;
+							}
+							if (v.z < minZ) {
+								minZ = v.z;
+							}
+							else if (v.z > maxZ) {
+								maxZ = v.z;
+							}
+						}
+
+						info.collider.boxColliders.push_back ({
+							.vMin = { .x = minX, .y = minY, .z = minZ},
+							.vMax = { .x = maxX, .y = maxY, .z = maxZ},
+						});
+					}
+					else if (true == nodeName.starts_with ("tri")) {
+						const aiMesh * triangleMesh = scene->mMeshes [node->mMeshes [0]];
+						aiVector3D v1 = transform * triangleMesh->mVertices [0];
+						aiVector3D v2 = transform * triangleMesh->mVertices [1];
+						aiVector3D v3 = transform * triangleMesh->mVertices [2];
+
+						info.collider.triangleColliders.push_back ({
+							.v1 = { .x = v1.x, .y = v1.y, .z = v1.z },
+							.v2 = { .x = v2.x, .y = v2.y, .z = v2.z },
+							.v3 = { .x = v3.x, .y = v3.y, .z = v3.z },
+						});
+					}
+				}
+			}
+
+			for (int i = 0; i < node->mNumChildren; i++) {
+				nodes.push (node->mChildren [i]);
+			}
+		}
+		// printttt (str, scene->mRootNode);
+	}
 
 
 	// for (std::size_t i = 0; i < scene->mNumMeshes; i++) {
@@ -373,11 +473,8 @@ PropResourceManager::ParsedMeshInfo PropResourceManager::loadMeshResource (const
 	// 	}
 	// }
 
-	ParsedMeshInfo info;
-	const aiNode * meshNode = scene->mRootNode->mChildren [0];
-
-	for (unsigned int meshI = 0; meshI < meshNode->mNumMeshes; meshI++) {
-		const aiMesh * mesh = scene->mMeshes [meshNode->mMeshes [meshI]];
+	for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
+		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
 		PropMeshResource resource {};
 
 		aiString diffuseMapUrl;
@@ -505,6 +602,10 @@ const std::map <std::string, std::map <std::string, PropResourceManager::PropMes
 
 const std::map <std::string, std::map <std::string, PropResourceManager::PropTextureResource>> & PropResourceManager::propTextureResources () const {
 	return m_propTextureResources;
+}
+
+const std::map <std::string, std::map <std::string, PropResourceManager::Collider>> & PropResourceManager::colliders () const {
+	return m_colliders;
 }
 
 const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {

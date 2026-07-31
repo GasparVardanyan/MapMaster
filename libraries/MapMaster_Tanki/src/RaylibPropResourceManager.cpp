@@ -22,6 +22,11 @@
 
 
 
+RaylibPropResourceManager::RaylibPropResourceManager (bool parseCollisionPrimitives)
+	: m_resourceManager (parseCollisionPrimitives)
+{
+}
+
 void RaylibPropResourceManager::loadLibrary (const std::string & path) {
 	std::shared_ptr <PropLibrary> library = std::make_shared <PropLibrary> ();
 	library->loadDirectory (path);
