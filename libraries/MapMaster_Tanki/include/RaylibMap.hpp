@@ -59,6 +59,11 @@ public:
 	void render (Camera & camera);
 	void renderCollisionGeometry (bool wireframe = true);
 
+	void setCollisionGeometryFaceColor (Color color);
+	void setCollisionGeometryEdgeColor (Color color);
+	Color collisionGeometryFaceColor ();
+	Color collisionGeometryEdgeColor ();
+
 private:
 	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager = std::make_shared <RaylibPropResourceManager> (false);
 	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
@@ -69,5 +74,10 @@ private:
 		std::vector <SceneRectCollider> rectColliders;
 		std::vector <SceneBoxCollider> boxColliders;
 	} m_sceneObjects;
+
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+	Color m_collisionGeometryFaceColor = {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF};
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+	Color m_collisionGeometryEdgeColor = {.r = 0x00, .g = 0x00, .b = 0x00, .a = 0xFF};
 };
 // cppcheck-suppress-end unusedStructMember

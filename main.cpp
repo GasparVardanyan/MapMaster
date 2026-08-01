@@ -90,7 +90,7 @@ int main (void)
 
 		BeginDrawing ();
 
-		ClearBackground (RAYWHITE);
+		ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66});
 
 		BeginMode3D (camera);
 

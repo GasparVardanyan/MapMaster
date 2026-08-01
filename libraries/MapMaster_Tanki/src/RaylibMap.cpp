@@ -231,39 +231,37 @@ void RaylibMap::render (Camera & camera) {
 
 void RaylibMap::renderCollisionGeometry (bool wireframe) {
 	for (const SceneTriangleCollider & collider : m_sceneObjects.triangleColliders) {
-		DrawTriangle3D (collider.v1, collider.v2, collider.v3, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
-		DrawTriangle3D (collider.v1, collider.v3, collider.v2, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
+		DrawTriangle3D (collider.v1, collider.v2, collider.v3, m_collisionGeometryFaceColor);
+		DrawTriangle3D (collider.v1, collider.v3, collider.v2, m_collisionGeometryFaceColor);
+
+		if (true == wireframe) {
+			DrawLine3D (collider.v1, collider.v2, m_collisionGeometryEdgeColor);
+			DrawLine3D (collider.v2, collider.v3, m_collisionGeometryEdgeColor);
+			DrawLine3D (collider.v3, collider.v1, m_collisionGeometryEdgeColor);
+		}
 	}
 
 	for (const SceneRectCollider & collider : m_sceneObjects.rectColliders) {
-		DrawTriangle3D (collider.v1, collider.v2, collider.v3, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
-		DrawTriangle3D (collider.v1, collider.v3, collider.v2, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
+		DrawTriangle3D (collider.v1, collider.v2, collider.v3, m_collisionGeometryFaceColor);
+		DrawTriangle3D (collider.v1, collider.v3, collider.v2, m_collisionGeometryFaceColor);
 
-		DrawTriangle3D (collider.v2, collider.v3, collider.v4, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
-		DrawTriangle3D (collider.v2, collider.v4, collider.v3, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
+		DrawTriangle3D (collider.v2, collider.v3, collider.v4, m_collisionGeometryFaceColor);
+		DrawTriangle3D (collider.v2, collider.v4, collider.v3, m_collisionGeometryFaceColor);
+
+		if (true == wireframe) {
+			DrawLine3D (collider.v1, collider.v2, m_collisionGeometryEdgeColor);
+			DrawLine3D (collider.v2, collider.v4, m_collisionGeometryEdgeColor);
+			DrawLine3D (collider.v4, collider.v3, m_collisionGeometryEdgeColor);
+			DrawLine3D (collider.v3, collider.v1, m_collisionGeometryEdgeColor);
+		}
 	}
 
 	for (const SceneBoxCollider & collider : m_sceneObjects.boxColliders) {
-		DrawCubeV (collider.position, collider.size, {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF});
-	}
+		DrawCubeV (collider.position, collider.size, m_collisionGeometryFaceColor);
 
-	if (true == wireframe) {
-		rlEnableWireMode ();
-		for (const SceneMesh & mesh : m_sceneObjects.meshes) {
-			const Model & model = * mesh.model;
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-			model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = * mesh.texture;
-
-			DrawModelEx (
-				model,
-				mesh.position,
-				{ .x = 0, .y = 0, .z = 1 },
-				mesh.rotation.z,
-				mesh.scale,
-				mesh.tint
-			);
+		if (true == wireframe) {
+			DrawCubeWiresV (collider.position, collider.size, m_collisionGeometryEdgeColor);
 		}
-		rlDisableWireMode ();
 	}
 }
 
@@ -283,4 +281,20 @@ void RaylibMap::setMap (std::shared_ptr <Map> map) {
 
 std::shared_ptr <Map> RaylibMap::map () const {
 	return m_map;
+}
+
+void RaylibMap::setCollisionGeometryFaceColor (Color color) {
+	m_collisionGeometryFaceColor = color;
+}
+
+void RaylibMap::setCollisionGeometryEdgeColor (Color color) {
+	m_collisionGeometryEdgeColor = color;
+}
+
+Color RaylibMap::collisionGeometryFaceColor () {
+	return m_collisionGeometryFaceColor;
+}
+
+Color RaylibMap::collisionGeometryEdgeColor () {
+	return m_collisionGeometryEdgeColor;
 }
