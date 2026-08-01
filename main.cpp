@@ -4,6 +4,7 @@
 # include <string>
 
 # include <raylib.h>
+# include <rlgl.h>
 
 # include "RaylibMap.hpp"
 # include "Map.hpp"
@@ -13,9 +14,19 @@
 
 static constexpr float scale = 0.01F;
 
-// NOLINTBEGIN(*)
-int main (void)
+int main (int argc, char ** argv)
 {
+	// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
+	std::string propLibsRoot, mapFile;
+
+	if (argc <= 3) {
+		propLibsRoot = argv [1];
+		mapFile = argv [2];
+	}
+	else {
+		return 0;
+	}
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
@@ -29,13 +40,7 @@ int main (void)
 	rmap->setResourceManager (std::make_shared <RaylibPropResourceManager> (true));
 
 	// this loads the map xml data
-	rmap->map ()->loadFile (DATA_DIR "maps/M/map_silence_remake_cy95v_summer/map.xml");
-	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Iran_MM.xml");
-	// rmap->map ()->loadFile (DATA_DIR "finalboss.xml");
-	// rmap->map ()->loadFile (DATA_DIR "maps/Summer/Sandbox_MM.xml");
-	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_sandbox_2.0_summer/map.xml");
-	// rmap->map ()->loadFile (DATA_DIR "maps/M/map_tutorial_summer/map.xml");
-	// rmap->map ()->loadFile ("/media/shared/mm.xml");
+	rmap->map ()->loadFile (mapFile);
 
 	// this loads the xml data of the necessary proplibs from the given directory
 	// all proplibs must be directly in this directory and their directories must
@@ -43,7 +48,7 @@ int main (void)
 	//
 	// otherwise manually load the directories with the loadLibrary method
 	// rmap->resourceManager ()->loadMapLibraries (* rmap->map (), DATA_DIR "PLVK");
-	rmap->resourceManager ()->loadMapLibraries (* rmap->map (), DATA_DIR "propslibs");
+	rmap->resourceManager ()->loadMapLibraries (* rmap->map (), propLibsRoot);
 
 	// this loads all the necessary mesh and texture resources to the gpu and
 	// generates sprite info for rendering
@@ -61,25 +66,27 @@ int main (void)
 
 	Camera camera = {
 		.position = {
-			.x = 50.0f,
-			.y = 50.0f,
-			.z = 50.0f,
+			.x = 50.0F,
+			.y = 50.0F,
+			.z = 50.0F,
 		},
 		.target = {
-			.x = 0.0f, .y = 12.0f, .z = 0.0f
+			.x = 0.0F, .y = 12.0F, .z = 0.0F
 		},
 		.up = {
-			.x = 0.0f,
-			.y = 0.0f,
-			.z = 1.0f,
+			.x = 0.0F,
+			.y = 0.0F,
+			.z = 1.0F,
 		},
-		.fovy = 45.0f,
+		.fovy = 45.0F,
 		.projection = CAMERA_PERSPECTIVE,
 	};
 
 	SetTargetFPS (60);
 
 	bool drawCollisionGeometry = false;
+
+	// rmap->setCollisionGeometryFaceColor ({0x77, 0xAA, 0x77, 0xFF});
 
 	while (false == WindowShouldClose ()) {
 		UpdateCamera (& camera, CAMERA_THIRD_PERSON);
@@ -90,7 +97,7 @@ int main (void)
 
 		BeginDrawing ();
 
-		ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66});
+		ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
 
 		BeginMode3D (camera);
 
@@ -99,12 +106,12 @@ int main (void)
 		}
 		else {
 			rmap->render (camera);
-		}
 
-		// rlPushMatrix ();
-		// rlRotatef (90.0f, 1.0f, 0.0f, 0.0f);
-		// DrawGrid (50, 500.0f * scale);
-		// rlPopMatrix ();
+			rlPushMatrix ();
+			rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
+			DrawGrid (50, 500.0F * scale);
+			rlPopMatrix ();
+		}
 
 		EndMode3D ();
 
@@ -118,5 +125,6 @@ int main (void)
 	CloseWindow ();
 
 	return 0;
+
+	// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 }
-// NOLINTEND(*)
