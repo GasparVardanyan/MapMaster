@@ -4,11 +4,11 @@ find_package (assimp REQUIRED)
 find_package (raylib REQUIRED)
 
 add_library (MapMaster_Tanki SHARED
-	include/PropLibrary.hpp
-	include/PropResourceManager.hpp
-	include/RaylibPropResourceManager.hpp
-	include/RaylibMap.hpp
-	include/Map.hpp
+	include/MapMaster/Tanki/PropLibrary.hpp
+	include/MapMaster/Tanki/PropResourceManager.hpp
+	include/MapMaster/Tanki/RaylibPropResourceManager.hpp
+	include/MapMaster/Tanki/RaylibMap.hpp
+	include/MapMaster/Tanki/Map.hpp
 	src/PropLibrary.cpp
 	src/PropResourceManager.cpp
 	src/RaylibPropResourceManager.cpp
@@ -19,9 +19,7 @@ add_library (MapMaster_Tanki SHARED
 enableReleaseBuildOptimizations (MapMaster_Tanki)
 enableDebugBuildDebugInfos (MapMaster_Tanki)
 
-target_link_libraries (
-	MapMaster_Tanki
-	PUBLIC
+target_link_libraries (MapMaster_Tanki PUBLIC
 	Eigen3::Eigen TBB::tbb assimp raylib stb
 )
 

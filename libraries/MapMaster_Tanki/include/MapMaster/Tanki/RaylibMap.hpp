@@ -5,9 +5,9 @@
 
 # include <raylib.h>
 
-# include "Map.hpp"
-# include "PropResourceManager.hpp"
-# include "RaylibPropResourceManager.hpp"
+# include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
 // cppcheck-suppress-begin unusedStructMember
 class RaylibMap {

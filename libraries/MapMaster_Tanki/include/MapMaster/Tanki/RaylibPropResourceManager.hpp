@@ -7,7 +7,7 @@
 # include <utility>
 # include <vector>
 
-# include "PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropResourceManager.hpp"
 
 class Map;
 

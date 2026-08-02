@@ -1,4 +1,4 @@
-# include "RaylibMap.hpp"
+# include "MapMaster/Tanki/RaylibMap.hpp"
 
 # include <map>
 # include <memory>
@@ -11,10 +11,10 @@
 # include <raylib.h>
 # include <rlgl.h>
 
-# include "Map.hpp"
-# include "PropLibrary.hpp"
-# include "PropResourceManager.hpp"
-# include "RaylibPropResourceManager.hpp"
+# include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
 void RaylibMap::loadScene (float scale) {
 	m_sceneObjects = {};

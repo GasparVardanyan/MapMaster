@@ -1,4 +1,4 @@
-# include "RaylibPropResourceManager.hpp"
+# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
 # include <algorithm>
 # include <condition_variable>
@@ -17,9 +17,9 @@
 
 # include <raylib.h>
 
-# include "Map.hpp"
-# include "PropLibrary.hpp"
-# include "PropResourceManager.hpp"
+# include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/PropResourceManager.hpp"
 
 
 

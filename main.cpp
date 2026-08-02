@@ -6,9 +6,10 @@
 # include <raylib.h>
 # include <rlgl.h>
 
-# include "RaylibMap.hpp"
-# include "Map.hpp"
-# include "RaylibPropResourceManager.hpp"
+# include "MapMaster/Scene3D/CameraController.hpp"
+# include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/RaylibMap.hpp"
+# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
 
 
@@ -20,7 +21,7 @@ int main (int argc, char ** argv)
 
 	std::string propLibsRoot, mapFile;
 
-	if (argc <= 3) {
+	if (argc >= 3) {
 		propLibsRoot = argv [1];
 		mapFile = argv [2];
 	}
@@ -86,10 +87,13 @@ int main (int argc, char ** argv)
 
 	bool drawCollisionGeometry = false;
 
-	// rmap->setCollisionGeometryFaceColor ({0x77, 0xAA, 0x77, 0xFF});
+	CameraController cameraController;
+	cameraController.setCamera (& camera);
+	cameraController.setMoveSpeed (cameraController.moveSpeed () * scale);
 
 	while (false == WindowShouldClose ()) {
-		UpdateCamera (& camera, CAMERA_THIRD_PERSON);
+		// UpdateCamera (& camera, CAMERA_THIRD_PERSON);
+		cameraController.updateCamera ();
 
 		if (true == IsKeyPressed (KEY_SPACE)) {
 			drawCollisionGeometry = !drawCollisionGeometry;

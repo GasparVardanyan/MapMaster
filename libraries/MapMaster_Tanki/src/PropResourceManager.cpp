@@ -1,4 +1,4 @@
-# include "PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropResourceManager.hpp"
 
 # include <algorithm>
 # include <array>
@@ -31,8 +31,8 @@
 # include <assimp/vector3.h>
 # include <stb_image.h>
 
-# include "Map.hpp"
-# include "PropLibrary.hpp"
+# include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/PropLibrary.hpp"
 
 
 

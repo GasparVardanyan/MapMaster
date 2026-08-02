@@ -1,0 +1,4 @@
+- [ ] fix the smart ptr vs reference mess
+- [ ] resource overlap behaviour
+- [ ] better camera controller
+- [ ] parse occluders
