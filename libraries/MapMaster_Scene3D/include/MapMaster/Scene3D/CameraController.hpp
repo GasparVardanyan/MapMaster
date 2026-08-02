@@ -17,6 +17,23 @@ public:
 
 	void updateCamera () const;
 
+	void groundMoveForward (float moveSpeedCoeff = 1.0F) const;
+	void groundMoveBackward (float moveSpeedCoeff = 1.0F) const;
+	void groundMoveLeft (float moveSpeedCoeff = 1.0F) const;
+	void groundMoveRight (float moveSpeedCoeff = 1.0F) const;
+	void freeMoveBackward (float moveSpeedCoeff = 1.0F) const;
+	void freeMoveForward (float moveSpeedCoeff = 1.0F) const;
+	void freeMoveUp (float moveSpeedCoeff = 1.0F) const;
+	void freeMoveDown (float moveSpeedCoeff = 1.0F) const;
+	void freeRotateLeft (float rotationSpeedCoeff = 1.0F) const;
+	void freeRotateRight (float rotationSpeedCoeff = 1.0F) const;
+	void freeRotateDown (float rotationSpeedCoeff = 1.0F) const;
+	void freeRotateUp (float rotationSpeedCoeff = 1.0F) const;
+	void orbitalRotateLeft (float rotationSpeedCoeff = 1.0F) const;
+	void orbitalRotateRight (float rotationSpeedCoeff = 1.0F) const;
+	void orbitalRotateDown (float rotationSpeedCoeff = 1.0F) const;
+	void orbitalRotateUp (float rotationSpeedCoeff = 1.0F) const;
+
 private:
 	// NOLINTNEXTLINE(hicpp-uppercase-literal-suffix,cppcoreguidelines-avoid-magic-numbers)
 	float m_moveSpeed = 5000.0F;

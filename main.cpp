@@ -7,7 +7,6 @@
 # include <rlgl.h>
 
 # include "MapMaster/Scene3D/CameraController.hpp"
-# include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/RaylibMap.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 

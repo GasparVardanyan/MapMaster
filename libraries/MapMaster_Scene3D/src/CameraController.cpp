@@ -29,35 +29,112 @@ Camera3D * CameraController::camera () const {
 }
 
 void CameraController::updateCamera () const {
-    // Camera speeds based on frame time
-    float cameraMoveSpeed = m_moveSpeed*GetFrameTime();
-    float cameraRotationSpeed = m_rotationSpeed*GetFrameTime();
-    // float cameraPanSpeed = CAMERA_PAN_SPEED*GetFrameTime();
-    // float cameraOrbitalSpeed = CAMERA_ORBITAL_SPEED*GetFrameTime();
+	float moveSpeedCoeff = 1.0F;
+	float rotationSpeedCoeff = 1.0F;
 
-	// NOLINTBEGIN(readability-braces-around-statements,hicpp-braces-around-statements)
-	if (IsKeyDown (KEY_LEFT_SHIFT) || IsKeyDown (KEY_RIGHT_SHIFT)) cameraMoveSpeed *= 2, cameraRotationSpeed *= 2;
-
-	if (IsKeyDown(KEY_W)) CameraMoveForward(m_camera, cameraMoveSpeed, true);
-	if (IsKeyDown(KEY_A)) CameraMoveRight(m_camera, -cameraMoveSpeed, true);
-	if (IsKeyDown(KEY_S)) CameraMoveForward(m_camera, -cameraMoveSpeed, true);
-	if (IsKeyDown(KEY_D)) CameraMoveRight(m_camera, cameraMoveSpeed, true);
-	if (IsKeyDown(KEY_J)) CameraMoveForward(m_camera, -cameraMoveSpeed, false);
-	if (IsKeyDown(KEY_K)) CameraMoveForward(m_camera, cameraMoveSpeed, false);
-	if (IsKeyDown(KEY_Q)) CameraMoveUp(m_camera, cameraMoveSpeed);
-	if (IsKeyDown(KEY_E)) CameraMoveUp(m_camera, -cameraMoveSpeed);
-
-	bool ctrlDown = true == IsKeyDown (KEY_LEFT_CONTROL) || true == IsKeyDown (KEY_RIGHT_CONTROL);
-
-	bool rotateAroundTarget = false == ctrlDown;
-	float x = 1;
-	if (true == ctrlDown) {
-		x = -1;
+	if (true == IsKeyDown (KEY_LEFT_SHIFT) || true == IsKeyDown (KEY_RIGHT_SHIFT)) {
+		moveSpeedCoeff = 2;
+		rotationSpeedCoeff = 2;
 	}
 
-	if (IsKeyDown(KEY_Z)) CameraYaw(m_camera, x * -cameraRotationSpeed, rotateAroundTarget);
-	if (IsKeyDown(KEY_X)) CameraYaw(m_camera, x * cameraRotationSpeed, rotateAroundTarget);
-	if (IsKeyDown(KEY_C)) CameraPitch(m_camera, x * cameraRotationSpeed, true, rotateAroundTarget, false);
-	if (IsKeyDown(KEY_V)) CameraPitch(m_camera, x * -cameraRotationSpeed, true, rotateAroundTarget, false);
-	// NOLINTEND(readability-braces-around-statements,hicpp-braces-around-statements)
+	if (true == IsKeyDown (KEY_W)) { groundMoveForward (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_S)) { groundMoveBackward (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_A)) { groundMoveLeft (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_D)) { groundMoveRight (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_J)) { freeMoveBackward (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_K)) { freeMoveForward (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_Q)) { freeMoveUp (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_E)) { freeMoveDown (moveSpeedCoeff); }
+
+	if (true == IsKeyDown (KEY_LEFT_CONTROL) || true == IsKeyDown (KEY_RIGHT_CONTROL)) {
+
+		if (true == IsKeyDown (KEY_Z)) { freeRotateLeft (rotationSpeedCoeff); }
+
+		if (true == IsKeyDown (KEY_X)) { freeRotateRight (rotationSpeedCoeff); }
+
+		if (true == IsKeyDown (KEY_C)) { freeRotateDown (rotationSpeedCoeff); }
+
+		if (true == IsKeyDown (KEY_V)) { freeRotateUp (rotationSpeedCoeff); }
+	}
+	else {
+
+		if (true == IsKeyDown (KEY_Z)) { orbitalRotateLeft (rotationSpeedCoeff); }
+
+		if (true == IsKeyDown (KEY_X)) { orbitalRotateRight (rotationSpeedCoeff); }
+
+		if (true == IsKeyDown (KEY_C)) { orbitalRotateDown (rotationSpeedCoeff); }
+
+		if (true == IsKeyDown (KEY_V)) { orbitalRotateUp (rotationSpeedCoeff); }
+	}
+}
+
+void CameraController::groundMoveForward (float moveSpeedCoeff) const {
+	 CameraMoveForward (m_camera, moveSpeedCoeff * m_moveSpeed * GetFrameTime (), true);
+}
+
+void CameraController::groundMoveBackward (float moveSpeedCoeff) const {
+	 CameraMoveForward (m_camera, -moveSpeedCoeff * m_moveSpeed * GetFrameTime (), true);
+}
+
+void CameraController::groundMoveLeft (float moveSpeedCoeff) const {
+	 CameraMoveRight (m_camera, -moveSpeedCoeff * m_moveSpeed * GetFrameTime (), true);
+}
+
+void CameraController::groundMoveRight (float moveSpeedCoeff) const {
+	 CameraMoveRight (m_camera, moveSpeedCoeff * m_moveSpeed * GetFrameTime (), true);
+}
+
+void CameraController::freeMoveBackward (float moveSpeedCoeff) const {
+	 CameraMoveForward (m_camera, -moveSpeedCoeff * m_moveSpeed * GetFrameTime (), false);
+}
+
+void CameraController::freeMoveForward (float moveSpeedCoeff) const {
+	 CameraMoveForward (m_camera, moveSpeedCoeff * m_moveSpeed * GetFrameTime (), false);
+}
+
+void CameraController::freeMoveUp (float moveSpeedCoeff) const {
+	 CameraMoveUp (m_camera, moveSpeedCoeff * m_moveSpeed * GetFrameTime ());
+}
+
+void CameraController::freeMoveDown (float moveSpeedCoeff) const {
+	 CameraMoveUp (m_camera, -moveSpeedCoeff * m_moveSpeed * GetFrameTime ());
+}
+
+void CameraController::freeRotateLeft (float rotationSpeedCoeff) const {
+	 CameraYaw (m_camera, rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), false);
+}
+
+void CameraController::freeRotateRight (float rotationSpeedCoeff) const {
+	 CameraYaw (m_camera, -rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), false);
+}
+
+void CameraController::freeRotateDown (float rotationSpeedCoeff) const {
+	 CameraPitch (m_camera, -rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), true, false, false);
+}
+
+void CameraController::freeRotateUp (float rotationSpeedCoeff) const {
+	 CameraPitch (m_camera, rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), true, false, false);
+}
+
+void CameraController::orbitalRotateLeft (float rotationSpeedCoeff) const {
+	 CameraYaw (m_camera, -rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), true);
+}
+
+void CameraController::orbitalRotateRight (float rotationSpeedCoeff) const {
+	 CameraYaw (m_camera, rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), true);
+}
+
+void CameraController::orbitalRotateDown (float rotationSpeedCoeff) const {
+	 CameraPitch (m_camera, rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), true, true, false);
+}
+
+void CameraController::orbitalRotateUp (float rotationSpeedCoeff) const {
+	 CameraPitch (m_camera, -rotationSpeedCoeff * m_rotationSpeed * GetFrameTime (), true, true, false);
 }
