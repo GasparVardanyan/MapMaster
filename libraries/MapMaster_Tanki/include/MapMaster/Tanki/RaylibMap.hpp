@@ -14,13 +14,9 @@
 class RaylibMap {
 public:
 	struct SceneMesh {
-		Vector3 position = {};
-		Vector3 rotation = {};
-		Vector3 scale = {};
 		Matrix transform = {};
 		std::shared_ptr <Mesh> mesh = nullptr;
 		Material material = {};
-		std::shared_ptr <Texture2D> texture = nullptr;
 		Color tint = WHITE;
 	};
 

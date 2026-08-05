@@ -6,8 +6,6 @@
 # include <string>
 # include <utility>
 
-# include <Eigen/Core>
-# include <Eigen/Geometry>
 # include <raylib.h>
 # include <raymath.h>
 # include <rlgl.h>
@@ -62,22 +60,8 @@ void RaylibMap::loadScene (float scale) {
 						const RaylibPropResourceManager::RaylibMeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
 						const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
 
-						m_sceneObjects.meshes.push_back ({
-							.position = {
-								.x = scale * static_cast <float> (mapObject.positionX),
-								.y = scale * static_cast <float> (mapObject.positionY),
-								.z = scale * static_cast <float> (mapObject.positionZ),
-							},
-							.rotation = {
-								.x = 0,
-								.y = 0,
-								// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
-								.z = static_cast <float> (mapObject.rotationZ * 180 / std::numbers::pi),
-							},
-							.scale = {
-								.x = scale, .y = scale, .z = scale
-							},
-							.transform = MatrixMultiply(MatrixMultiply (
+						const Matrix transform = MatrixMultiply (
+							MatrixMultiply (
 								MatrixRotateZ (
 									// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 									static_cast <float> (mapObject.rotationZ)
@@ -87,92 +71,75 @@ void RaylibMap::loadScene (float scale) {
 									static_cast <float> (mapObject.positionY),
 									static_cast <float> (mapObject.positionZ)
 								)
-							), MatrixScale (scale, scale, scale)),
+							),
+							MatrixScale (scale, scale, scale)
+						);
+
+						SceneMesh sceneMesh = {
+							.transform = transform,
 							.mesh = raylibMeshResource.mesh,
 							.material = LoadMaterialDefault (),
-							.texture = raylibTextureResource.texture,
-						});
-						m_sceneObjects.meshes.back ().material.maps [MATERIAL_MAP_DIFFUSE].texture = * raylibTextureResource.texture;
+						};
+						sceneMesh.material.maps [MATERIAL_MAP_DIFFUSE].texture = * raylibTextureResource.texture;
 
-						Eigen::Affine3d transform = Eigen::Affine3d::Identity ();
-						transform.translate (Eigen::Vector3d (
-							mapObject.positionX,
-							mapObject.positionY,
-							mapObject.positionZ
-						));
-
-						transform.rotate (Eigen::AngleAxisd (
-							mapObject.rotationZ,
-							Eigen::Vector3d ::UnitZ ()
-						));
-
-						// transform.scale (scale);
+						m_sceneObjects.meshes.push_back (std::move (sceneMesh));
 
 						for (const PropResourceManager::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
-							Eigen::Vector3d v1 = transform * Eigen::Vector3d (triangleCollider.v1.x, triangleCollider.v1.y, triangleCollider.v1.z);
-							Eigen::Vector3d v2 = transform * Eigen::Vector3d (triangleCollider.v2.x, triangleCollider.v2.y, triangleCollider.v2.z);
-							Eigen::Vector3d v3 = transform * Eigen::Vector3d (triangleCollider.v3.x, triangleCollider.v3.y, triangleCollider.v3.z);
-
 							m_sceneObjects.triangleColliders.push_back ({
-								.v1 = { .x = scale * static_cast <float> (v1.x ()), .y = scale * static_cast <float> (v1.y ()), .z = scale * static_cast <float> (v1.z ())},
-								.v2 = { .x = scale * static_cast <float> (v2.x ()), .y = scale * static_cast <float> (v2.y ()), .z = scale * static_cast <float> (v2.z ())},
-								.v3 = { .x = scale * static_cast <float> (v3.x ()), .y = scale * static_cast <float> (v3.y ()), .z = scale * static_cast <float> (v3.z ())},
+								.v1 = Vector3Transform (Vector3 { .x = triangleCollider.v1.x, .y = triangleCollider.v1.y, .z = triangleCollider.v1.z}, transform),
+								.v2 = Vector3Transform (Vector3 { .x = triangleCollider.v2.x, .y = triangleCollider.v2.y, .z = triangleCollider.v2.z}, transform),
+								.v3 = Vector3Transform (Vector3 { .x = triangleCollider.v3.x, .y = triangleCollider.v3.y, .z = triangleCollider.v3.z}, transform),
 							});
 						}
 
 						for (const PropResourceManager::Collider::RectCollider & rectCollider : collider.rectColliders) {
-							Eigen::Vector3d v1 = transform * Eigen::Vector3d (rectCollider.v1.x, rectCollider.v1.y, rectCollider.v1.z);
-							Eigen::Vector3d v2 = transform * Eigen::Vector3d (rectCollider.v2.x, rectCollider.v2.y, rectCollider.v2.z);
-							Eigen::Vector3d v3 = transform * Eigen::Vector3d (rectCollider.v3.x, rectCollider.v3.y, rectCollider.v3.z);
-							Eigen::Vector3d v4 = transform * Eigen::Vector3d (rectCollider.v4.x, rectCollider.v4.y, rectCollider.v4.z);
-
 							m_sceneObjects.rectColliders.push_back ({
-								.v1 = { .x = scale * static_cast <float> (v1.x ()), .y = scale * static_cast <float> (v1.y ()), .z = scale * static_cast <float> (v1.z ())},
-								.v2 = { .x = scale * static_cast <float> (v2.x ()), .y = scale * static_cast <float> (v2.y ()), .z = scale * static_cast <float> (v2.z ())},
-								.v3 = { .x = scale * static_cast <float> (v3.x ()), .y = scale * static_cast <float> (v3.y ()), .z = scale * static_cast <float> (v3.z ())},
-								.v4 = { .x = scale * static_cast <float> (v4.x ()), .y = scale * static_cast <float> (v4.y ()), .z = scale * static_cast <float> (v4.z ())},
+								.v1 = Vector3Transform (Vector3 { .x = rectCollider.v1.x, .y = rectCollider.v1.y, .z = rectCollider.v1.z}, transform),
+								.v2 = Vector3Transform (Vector3 { .x = rectCollider.v2.x, .y = rectCollider.v2.y, .z = rectCollider.v2.z}, transform),
+								.v3 = Vector3Transform (Vector3 { .x = rectCollider.v3.x, .y = rectCollider.v3.y, .z = rectCollider.v3.z}, transform),
+								.v4 = Vector3Transform (Vector3 { .x = rectCollider.v4.x, .y = rectCollider.v4.y, .z = rectCollider.v4.z}, transform),
 							});
 						}
 
 						for (const PropResourceManager::Collider::BoxCollider & boxCollider : collider.boxColliders) {
-							Eigen::Vector3d v1 = transform * Eigen::Vector3d (boxCollider.vMin.x, boxCollider.vMin.y, boxCollider.vMin.z);
-							Eigen::Vector3d v2 = transform * Eigen::Vector3d (boxCollider.vMax.x, boxCollider.vMax.y, boxCollider.vMax.z);
+							Vector3 v1 = Vector3Transform (Vector3 { .x = boxCollider.vMin.x, .y = boxCollider.vMin.y, .z = boxCollider.vMin.z}, transform);
+							Vector3 v2 = Vector3Transform (Vector3 { .x = boxCollider.vMax.x, .y = boxCollider.vMax.y, .z = boxCollider.vMax.z}, transform);
+							Vector3 vMin, vMax;
 
-							Eigen::Vector3d vMin, vMax;
-
-							if (v1.x () < v2.x ()) {
-								vMin.x () = v1.x ();
-								vMax.x () = v2.x ();
+							if (v1.x < v2.x) {
+								vMin.x = v1.x;
+								vMax.x = v2.x;
 							}
 							else {
-								vMin.x () = v2.x ();
-								vMax.x () = v1.x ();
+								vMin.x = v2.x;
+								vMax.x = v1.x;
 							}
 
-							if (v1.y () < v2.y ()) {
-								vMin.y () = v1.y ();
-								vMax.y () = v2.y ();
+							if (v1.y < v2.y) {
+								vMin.y = v1.y;
+								vMax.y = v2.y;
 							}
 							else {
-								vMin.y () = v2.y ();
-								vMax.y () = v1.y ();
+								vMin.y = v2.y;
+								vMax.y = v1.y;
 							}
 
-							if (v1.z () < v2.z ()) {
-								vMin.z () = v1.z ();
-								vMax.z () = v2.z ();
+							if (v1.z < v2.z) {
+								vMin.z = v1.z;
+								vMax.z = v2.z;
 							}
 							else {
-								vMin.z () = v2.z ();
-								vMax.z () = v1.z ();
+								vMin.z = v2.z;
+								vMax.z = v1.z;
 							}
 
-							Eigen::Vector3d position = (vMin + vMax) / 2;
-							Eigen::Vector3d size = vMax - vMin;
+							// Vector3d position = (vMin + vMax) / 2;
+							// Vector3d size = vMax - vMin;
 
 							m_sceneObjects.boxColliders.push_back ({
-								.position = { .x = scale * static_cast <float> (position.x ()), .y = scale * static_cast <float> (position.y ()), .z = scale * static_cast <float> (position.z ())},
-								.size = { .x = scale * static_cast <float> (size.x ()), .y = scale * static_cast <float> (size.y ()), .z = scale * static_cast <float> (size.z ())},
+								// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+								.position = Vector3Scale (Vector3Add (vMin, vMax), 0.5F),
+								.size = Vector3Subtract (vMax, vMin),
 							});
 						}
 					}

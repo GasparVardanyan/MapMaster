@@ -5,3 +5,6 @@ add_library (stb SHARED
 target_include_directories (stb PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/../../external/stb
 )
+
+enableReleaseBuildOptimizations (stb)
+enableDebugBuildDebugInfos (stb)
