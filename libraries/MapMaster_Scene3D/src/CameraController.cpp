@@ -1,6 +1,5 @@
 # include "MapMaster/Scene3D/CameraController.hpp"
 
-# include <iostream>
 # include <raylib.h>
 # include <rcamera.h>
 
@@ -38,39 +37,24 @@ void CameraController::updateCamera () const {
 	}
 
 	if (true == IsKeyDown (KEY_W)) { groundMoveForward (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_S)) { groundMoveBackward (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_A)) { groundMoveLeft (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_D)) { groundMoveRight (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_J)) { freeMoveBackward (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_K)) { freeMoveForward (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_Q)) { freeMoveUp (moveSpeedCoeff); }
-
 	if (true == IsKeyDown (KEY_E)) { freeMoveDown (moveSpeedCoeff); }
 
 	if (true == IsKeyDown (KEY_LEFT_CONTROL) || true == IsKeyDown (KEY_RIGHT_CONTROL)) {
-
 		if (true == IsKeyDown (KEY_Z)) { freeRotateLeft (rotationSpeedCoeff); }
-
 		if (true == IsKeyDown (KEY_X)) { freeRotateRight (rotationSpeedCoeff); }
-
 		if (true == IsKeyDown (KEY_C)) { freeRotateDown (rotationSpeedCoeff); }
-
 		if (true == IsKeyDown (KEY_V)) { freeRotateUp (rotationSpeedCoeff); }
 	}
 	else {
-
 		if (true == IsKeyDown (KEY_Z)) { orbitalRotateLeft (rotationSpeedCoeff); }
-
 		if (true == IsKeyDown (KEY_X)) { orbitalRotateRight (rotationSpeedCoeff); }
-
 		if (true == IsKeyDown (KEY_C)) { orbitalRotateDown (rotationSpeedCoeff); }
-
 		if (true == IsKeyDown (KEY_V)) { orbitalRotateUp (rotationSpeedCoeff); }
 	}
 }

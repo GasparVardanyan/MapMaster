@@ -9,6 +9,7 @@
 # include <Eigen/Core>
 # include <Eigen/Geometry>
 # include <raylib.h>
+# include <raymath.h>
 # include <rlgl.h>
 
 # include "MapMaster/Tanki/Map.hpp"
@@ -18,6 +19,7 @@
 
 void RaylibMap::loadScene (float scale) {
 	m_sceneObjects = {};
+	m_indexMaps = {};
 
 	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
 	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
@@ -44,7 +46,6 @@ void RaylibMap::loadScene (float scale) {
 					const std::string meshFile = propMesh.file;
 
 					const PropResourceManager::Collider & collider = * resourceManager.colliders ().at (libraryName).at (meshFile);
-
 
 					for (const Map::MapObject & mapObject : propInfo) {
 						std::string textureName = mapObject.textureName;
@@ -76,9 +77,22 @@ void RaylibMap::loadScene (float scale) {
 							.scale = {
 								.x = scale, .y = scale, .z = scale
 							},
-							.model = raylibMeshResource.model,
+							.transform = MatrixMultiply(MatrixMultiply (
+								MatrixRotateZ (
+									// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
+									static_cast <float> (mapObject.rotationZ)
+								),
+								MatrixTranslate (
+									static_cast <float> (mapObject.positionX),
+									static_cast <float> (mapObject.positionY),
+									static_cast <float> (mapObject.positionZ)
+								)
+							), MatrixScale (scale, scale, scale)),
+							.mesh = raylibMeshResource.mesh,
+							.material = LoadMaterialDefault (),
 							.texture = raylibTextureResource.texture,
 						});
+						m_sceneObjects.meshes.back ().material.maps [MATERIAL_MAP_DIFFUSE].texture = * raylibTextureResource.texture;
 
 						Eigen::Affine3d transform = Eigen::Affine3d::Identity ();
 						transform.translate (Eigen::Vector3d (
@@ -200,18 +214,16 @@ void RaylibMap::loadScene (float scale) {
 
 void RaylibMap::render (Camera & camera) {
 	for (const SceneMesh & mesh : m_sceneObjects.meshes) {
-		const Model & model = * mesh.model;
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		model.materials [0].maps [MATERIAL_MAP_DIFFUSE].texture = * mesh.texture;
+		DrawMesh (* mesh.mesh, mesh.material, mesh.transform);
 
-		DrawModelEx (
-			model,
-			mesh.position,
-			{ .x = 0, .y = 0, .z = 1 },
-			mesh.rotation.z,
-			mesh.scale,
-			mesh.tint
-		);
+		// DrawModelEx (
+		// 	model,
+		// 	mesh.position,
+		// 	{ .x = 0, .y = 0, .z = 1 },
+		// 	mesh.rotation.z,
+		// 	mesh.scale,
+		// 	mesh.tint
+		// );
 	}
 
 	for (const SceneSprite & sprite : m_sceneObjects.sprites) {

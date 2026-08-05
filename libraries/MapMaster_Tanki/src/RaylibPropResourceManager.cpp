@@ -130,8 +130,7 @@ void RaylibPropResourceManager::loadMapResources (const Map & map) {
 				* meshRes.get ()
 			));
 
-			UploadMesh (& meshResource.mesh, false);
-			meshResource.model = std::shared_ptr <Model> (new Model (LoadModelFromMesh (meshResource.mesh)), unloadMeshResource);
+			UploadMesh (meshResource.mesh.get (), false);
 
 			meshesToProcess.pop ();
 		}
@@ -302,8 +301,7 @@ void RaylibPropResourceManager::loadMapResources_OLD (const Map & map) {
 
 	for (auto & [libraryName, meshFiles] : m_meshResources) {
 		for (auto & [meshFile, meshResource] : meshFiles) {
-			UploadMesh (& meshResource.mesh, false);
-			meshResource.model = std::make_shared <Model> (LoadModelFromMesh (meshResource.mesh));
+			UploadMesh (meshResource.mesh.get (), false);
 		}
 	}
 }
@@ -371,19 +369,20 @@ void RaylibPropResourceManager::loadTextureResources (const std::vector <std::pa
 // cppcheck-suppress functionStatic
 RaylibPropResourceManager::RaylibMeshResource RaylibPropResourceManager::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
 	RaylibMeshResource m = {};
+	m.mesh = std::shared_ptr <Mesh> (new Mesh {}, unloadMeshResource);
 
-	m.mesh.vertices = meshResource.vertexBuffer.data ();
-	m.mesh.vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
+	m.mesh->vertices = meshResource.vertexBuffer.data ();
+	m.mesh->vertexCount = static_cast <int> (meshResource.vertexBuffer.size () / 3);
 	if (false == meshResource.uvBuffer.empty ()) {
-		m.mesh.texcoords = meshResource.uvBuffer.data ();
+		m.mesh->texcoords = meshResource.uvBuffer.data ();
 	}
 	if (false == meshResource.normalBuffer.empty ()) {
-		m.mesh.normals = meshResource.normalBuffer.data ();
+		m.mesh->normals = meshResource.normalBuffer.data ();
 	}
 
-	m.mesh.triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
+	m.mesh->triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
 
-	m.mesh.indices = meshResource.indexBuffer.data ();
+	m.mesh->indices = meshResource.indexBuffer.data ();
 
 	return m;
 }
@@ -410,22 +409,18 @@ RaylibPropResourceManager::RaylibTextureResource RaylibPropResourceManager::load
 	};
 }
 
-void RaylibPropResourceManager::unloadMeshResource (Model * model) {
-	for (int i = 0; i < model->meshCount; i++) {
-		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-		Mesh & m = model->meshes [i];
-		m.vertices = nullptr;
-		m.vertexCount = 0;
-		m.texcoords = nullptr;
-		m.normals = nullptr;
+void RaylibPropResourceManager::unloadMeshResource (Mesh * mesh) {
+	mesh->vertices = nullptr;
+	mesh->vertexCount = 0;
+	mesh->texcoords = nullptr;
+	mesh->normals = nullptr;
 
-		m.triangleCount = 0;
+	mesh->triangleCount = 0;
 
-		m.indices = nullptr;
-	}
-	UnloadModel (* model);
-	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
-	delete model;
+	mesh->indices = nullptr;
+
+	UnloadMesh (* mesh);
+	delete mesh;
 }
 
 void RaylibPropResourceManager::unloadTextureResource (Texture2D * texture) {

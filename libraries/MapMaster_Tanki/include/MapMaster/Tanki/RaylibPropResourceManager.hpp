@@ -15,8 +15,7 @@ class Map;
 class RaylibPropResourceManager {
 public:
 	struct RaylibMeshResource {
-		Mesh mesh;
-		std::shared_ptr <Model> model;
+		std::shared_ptr <Mesh> mesh;
 
 		// TODO: clone()
 	};
@@ -63,7 +62,7 @@ public:
 private:
 	RaylibMeshResource loadMeshResource (PropResourceManager::PropMeshResource & meshResource);
 	RaylibTextureResource loadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
-	static void unloadMeshResource (Model * model);
+	static void unloadMeshResource (Mesh * mesh);
 	static void unloadTextureResource (Texture2D * texture);
 
 private:

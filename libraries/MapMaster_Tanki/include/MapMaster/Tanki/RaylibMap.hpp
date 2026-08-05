@@ -1,5 +1,6 @@
 # pragma once
 
+# include <cstddef>
 # include <memory>
 # include <vector>
 
@@ -16,7 +17,9 @@ public:
 		Vector3 position = {};
 		Vector3 rotation = {};
 		Vector3 scale = {};
-		std::shared_ptr <Model> model = nullptr;
+		Matrix transform = {};
+		std::shared_ptr <Mesh> mesh = nullptr;
+		Material material = {};
 		std::shared_ptr <Texture2D> texture = nullptr;
 		Color tint = WHITE;
 	};
@@ -67,6 +70,7 @@ public:
 private:
 	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager = std::make_shared <RaylibPropResourceManager> (false);
 	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
+
 	struct {
 		std::vector <SceneMesh> meshes;
 		std::vector <SceneSprite> sprites;
@@ -74,6 +78,20 @@ private:
 		std::vector <SceneRectCollider> rectColliders;
 		std::vector <SceneBoxCollider> boxColliders;
 	} m_sceneObjects;
+
+	struct {
+		std::vector <std::size_t> meshToBoxColliderMap;
+		std::vector <std::size_t> meshToRectColliderMap;
+		std::vector <std::size_t> meshToTriangleColliderMap;
+
+		std::vector <std::size_t> meshToBoxColliderCountMap;
+		std::vector <std::size_t> meshToRectColliderCountMap;
+		std::vector <std::size_t> meshToTriangleColliderCountMap;
+
+		std::vector <std::size_t> boxColliderToMeshMap;
+		std::vector <std::size_t> rectColliderToMeshMap;
+		std::vector <std::size_t> triangleColliderToMeshMap;
+	} m_indexMaps;
 
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 	Color m_collisionGeometryFaceColor = {.r = 0xFF, .g = 0x7F, .b = 0x7F, .a = 0xFF};
