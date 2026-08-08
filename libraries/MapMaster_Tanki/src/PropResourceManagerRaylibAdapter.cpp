@@ -1,5 +1,11 @@
 # include "MapMaster/Tanki/PropResourceManagerRaylibAdapter.hpp"
 
+# include <memory>
+
+# include <raylib.h>
+
+# include "MapMaster/Tanki/PropResourceManager.hpp"
+
 
 PropResourceManagerRaylibAdapter::MeshResource PropResourceManagerRaylibAdapter::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};

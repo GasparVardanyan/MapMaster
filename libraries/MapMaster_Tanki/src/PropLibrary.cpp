@@ -58,7 +58,12 @@ void PropLibrary::parse (pugi::xml_node libXml, const pugi::xml_document & imgXm
 
 void PropLibrary::parseImageMap (const pugi::xml_document & imgXml) {
 	for (const pugi::xml_node image : imgXml.child ("images").children ()) {
-		const std::string originalName = image.attribute ("name").value ();
+		std::string originalName = image.attribute ("name").value ();
+
+		std::ranges::transform (originalName, originalName.begin (), [] (char c) -> char {
+			return static_cast <char> (std::tolower (c));
+		});
+
 		std::string diffuseName = image.attribute ("new-name").value ();
 		std::string alphaName = image.attribute ("alpha").value ();
 

@@ -6,6 +6,7 @@
 
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 
+// cppcheck-suppress-begin unusedStructMember
 class PropResourceManagerRaylibAdapter {
 public:
 	struct MeshResource {
@@ -33,3 +34,4 @@ private:
 	static void unloadMeshResource (Mesh * mesh);
 	static void unloadTextureResource (Texture2D * texture);
 };
+// cppcheck-suppress-end unusedStructMember
