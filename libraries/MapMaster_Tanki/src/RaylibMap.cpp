@@ -55,8 +55,8 @@ void RaylibMap::loadScene (float scale) {
 
 						textureFile = library.getActualTextureFileName (textureFile);
 
-						const RaylibPropResourceManager::RaylibMeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
-						const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+						const RaylibPropResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
+						const RaylibPropResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
 
 						const Matrix transform = MatrixMultiply (
 							MatrixMultiply (
@@ -142,8 +142,8 @@ void RaylibMap::loadScene (float scale) {
 				}
 				else if (true == group.sprites.contains (propName)) {
 					std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
-					const RaylibPropResourceManager::RaylibTextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
-					const RaylibPropResourceManager::RaylibSpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
+					const RaylibPropResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+					const RaylibPropResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
 
 					for (const Map::MapObject & prop : propInfo) {
 						m_sceneObjects.sprites.push_back ({

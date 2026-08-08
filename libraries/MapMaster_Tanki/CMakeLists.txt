@@ -4,12 +4,16 @@ find_package (assimp REQUIRED)
 add_library (MapMaster_Tanki SHARED
 	include/MapMaster/Tanki/PropLibrary.hpp
 	include/MapMaster/Tanki/PropResourceManager.hpp
+	include/MapMaster/Tanki/PropResourceManagerFrontend.hpp
+	include/MapMaster/Tanki/PropResourceManagerRaylibAdapter.hpp
 	include/MapMaster/Tanki/RaylibPropResourceManager.hpp
 	include/MapMaster/Tanki/RaylibMap.hpp
 	include/MapMaster/Tanki/Map.hpp
 	src/PropLibrary.cpp
 	src/PropResourceManager.cpp
-	src/RaylibPropResourceManager.cpp
+	src/PropResourceManagerFrontend.cpp
+	src/PropResourceManagerRaylibAdapter.cpp
+	src/PropResourceManagerAdapters.cpp
 	src/RaylibMap.cpp
 	src/Map.cpp
 )

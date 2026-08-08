@@ -16,7 +16,7 @@ add_compile_options (-pedantic-errors -Werror=pedantic)
 project (${PROJECT_NAME} VERSION ${VERSION} LANGUAGES CXX)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options (-Weverything)
+	# add_compile_options (-Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-pre-c++17-compat)
 endif ()
 
 get_filename_component (PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
