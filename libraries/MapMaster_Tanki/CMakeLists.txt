@@ -18,6 +18,8 @@ add_library (MapMaster_Tanki SHARED
 	src/Map.cpp
 )
 
+include (MapMasterBuildUtils)
+
 enableReleaseBuildOptimizations (MapMaster_Tanki)
 enableDebugBuildDebugInfos (MapMaster_Tanki)
 

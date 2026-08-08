@@ -3,6 +3,8 @@ add_library (MapMaster_Scene3D SHARED
 	src/CameraController.cpp
 )
 
+include (MapMasterBuildUtils)
+
 enableReleaseBuildOptimizations (MapMaster_Scene3D)
 enableDebugBuildDebugInfos (MapMaster_Scene3D)
 

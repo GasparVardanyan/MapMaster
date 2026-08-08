@@ -14,5 +14,7 @@ set_target_properties (raylib PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+include (MapMasterBuildUtils)
+
 enableReleaseBuildOptimizations (raylib)
 enableDebugBuildDebugInfos (raylib)
