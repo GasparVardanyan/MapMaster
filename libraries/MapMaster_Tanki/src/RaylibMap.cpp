@@ -2,7 +2,6 @@
 
 # include <map>
 # include <memory>
-# include <numbers>
 # include <string>
 # include <utility>
 
@@ -23,7 +22,6 @@ void RaylibMap::loadScene (float scale) {
 	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
 	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
 
-	// cppcheck-suppress shadowFunction
 	const PropResourceManager & resourceManager = m_raylibResourceManager->resourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
 
@@ -80,6 +78,7 @@ void RaylibMap::loadScene (float scale) {
 							.mesh = raylibMeshResource.mesh,
 							.material = LoadMaterialDefault (),
 						};
+						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 						sceneMesh.material.maps [MATERIAL_MAP_DIFFUSE].texture = * raylibTextureResource.texture;
 
 						m_sceneObjects.meshes.push_back (std::move (sceneMesh));
@@ -133,9 +132,6 @@ void RaylibMap::loadScene (float scale) {
 								vMax.z = v1.z;
 							}
 
-							// Vector3d position = (vMin + vMax) / 2;
-							// Vector3d size = vMax - vMin;
-
 							m_sceneObjects.boxColliders.push_back ({
 								// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 								.position = Vector3Scale (Vector3Add (vMin, vMax), 0.5F),
@@ -182,15 +178,6 @@ void RaylibMap::loadScene (float scale) {
 void RaylibMap::render (Camera & camera) {
 	for (const SceneMesh & mesh : m_sceneObjects.meshes) {
 		DrawMesh (* mesh.mesh, mesh.material, mesh.transform);
-
-		// DrawModelEx (
-		// 	model,
-		// 	mesh.position,
-		// 	{ .x = 0, .y = 0, .z = 1 },
-		// 	mesh.rotation.z,
-		// 	mesh.scale,
-		// 	mesh.tint
-		// );
 	}
 
 	for (const SceneSprite & sprite : m_sceneObjects.sprites) {

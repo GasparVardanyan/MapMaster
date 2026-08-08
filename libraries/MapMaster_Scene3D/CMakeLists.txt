@@ -1,5 +1,3 @@
-find_package (raylib REQUIRED)
-
 add_library (MapMaster_Scene3D SHARED
 	include/MapMaster/Scene3D/CameraController.hpp
 	src/CameraController.cpp

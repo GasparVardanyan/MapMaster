@@ -17,7 +17,6 @@ public:
 		Matrix transform = {};
 		std::shared_ptr <Mesh> mesh = nullptr;
 		Material material = {};
-		Color tint = WHITE;
 	};
 
 	struct SceneSprite {

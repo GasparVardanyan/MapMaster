@@ -15,6 +15,10 @@ add_compile_options (-pedantic-errors -Werror=pedantic)
 
 project (${PROJECT_NAME} VERSION ${VERSION} LANGUAGES CXX)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options (-Weverything)
+endif ()
+
 get_filename_component (PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)
 
 if (PROJECT_PATH MATCHES "^/src/.*")
@@ -46,6 +50,7 @@ function (enableDebugBuildDebugInfos target)
 	)
 endfunction ()
 
+add_subdirectory (external_libraries/raylib)
 add_subdirectory (external_libraries/stb)
 add_subdirectory (libraries/MapMaster_Tanki)
 add_subdirectory (libraries/MapMaster_Scene3D)

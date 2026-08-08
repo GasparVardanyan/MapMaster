@@ -1,6 +1,5 @@
 find_package (TBB REQUIRED)
 find_package (assimp REQUIRED)
-find_package (raylib REQUIRED)
 
 add_library (MapMaster_Tanki SHARED
 	include/MapMaster/Tanki/PropLibrary.hpp

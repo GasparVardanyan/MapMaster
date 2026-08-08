@@ -30,7 +30,7 @@ int main (int argc, char ** argv)
 	const int screenWidth = 800;
 	const int screenHeight = 450;
 
-	// SetTraceLogLevel (LOG_NONE);
+	SetTraceLogLevel (LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
 	InitWindow (screenWidth, screenHeight, "MapMaster");
 
