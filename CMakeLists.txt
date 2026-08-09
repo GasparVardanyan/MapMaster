@@ -39,6 +39,7 @@ add_subdirectory (external_libraries/raylib)
 add_subdirectory (external_libraries/stb)
 add_subdirectory (libraries/MapMaster_Tanki)
 add_subdirectory (libraries/MapMaster_Scene3D)
+add_subdirectory (libraries/MapMaster_Utils)
 
 add_executable (${PROJECT_NAME}
 	main.cpp
@@ -46,6 +47,7 @@ add_executable (${PROJECT_NAME}
 
 target_link_libraries (${PROJECT_NAME} MapMaster_Tanki)
 target_link_libraries (${PROJECT_NAME} MapMaster_Scene3D)
+target_link_libraries (${PROJECT_NAME} MapMaster_Utils)
 enableReleaseBuildOptimizations (${PROJECT_NAME})
 enableDebugBuildDebugInfos (${PROJECT_NAME})
 

@@ -9,10 +9,13 @@
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/RaylibMap.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
+# include "MapMaster/Utils/Tanki.hpp"
 
 
 
 using namespace MapMaster::Tanki;
+using namespace MapMaster::Scene3D;
+using namespace MapMaster::Utils;
 
 
 
@@ -31,8 +34,9 @@ int main (int argc, char ** argv)
 	else {
 		return 0;
 	}
-	const int screenWidth = 800;
-	const int screenHeight = 450;
+
+	const int screenWidth = 1680;
+	const int screenHeight = 1050;
 
 	SetTraceLogLevel (LOG_NONE);
 	SetConfigFlags (FLAG_MSAA_4X_HINT);
@@ -41,6 +45,32 @@ int main (int argc, char ** argv)
 	std::chrono::time_point start = std::chrono::steady_clock::now ();
 
 	std::shared_ptr <RaylibMap> rmap = std::make_shared <RaylibMap> ();
+
+
+
+	if (true)
+	{
+		std::cout << "LOADING: " << argv [1] << " : " << argv [2] << '\n';
+		std::map <std::string, std::vector <std::string>> libraryInfo = Tanki::FindPropLibraries (argv [1]);
+
+		rmap->setResourceManager (std::make_shared <RaylibPropResourceManager> (true));
+		rmap->map ()->loadFile (argv [2]);
+
+		std::vector <std::string> mapLibrarySources = Tanki::FindMapLibraries (libraryInfo, * rmap->map ());
+
+		for (const std::string & source : mapLibrarySources) {
+			rmap->resourceManager ()->loadLibrary (source);
+		}
+
+		rmap->resourceManager()->loadMapResources(* rmap->map ());
+
+		rmap->loadScene (scale);
+	}
+
+	else {
+
+
+
 	rmap->setResourceManager (std::make_shared <RaylibPropResourceManager> (true));
 
 	// this loads the map xml data
@@ -60,6 +90,8 @@ int main (int argc, char ** argv)
 
 	// this creates the map scene
 	rmap->loadScene (scale);
+
+	}
 
 	std::chrono::time_point end = std::chrono::steady_clock::now ();
 
@@ -114,15 +146,17 @@ int main (int argc, char ** argv)
 		else {
 			rmap->render (camera);
 
-			rlPushMatrix ();
-			rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
-			DrawGrid (50, 500.0F * scale);
-			rlPopMatrix ();
+			// rlPushMatrix ();
+			// rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
+			// DrawGrid (50, 500.0F * scale);
+			// rlPopMatrix ();
 		}
 
 		EndMode3D ();
 
 		DrawFPS (10, 10);
+		DrawText (argv [1], 10, 40, 20, GREEN);
+		DrawText (argv [2], 10, 70, 20, GREEN);
 
 		EndDrawing ();
 	}
