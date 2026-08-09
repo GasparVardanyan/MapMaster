@@ -1,6 +1,7 @@
 # include "MapMaster/Tanki/PropResourceManagerRaylibAdapter.hpp"
 
 # include <memory>
+# include <vector>
 
 # include <raylib.h>
 

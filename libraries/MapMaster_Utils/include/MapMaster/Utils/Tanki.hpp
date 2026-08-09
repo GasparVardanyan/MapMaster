@@ -1,17 +1,57 @@
 # pragma once
 
 # include <map>
+# include <memory>
 # include <string>
 # include <vector>
 
-# include <MapMaster/Tanki/Map.hpp>
+# include <raylib.h>
+
+namespace MapMaster::Tanki {
+class Map;
+class PropLibrary;
+class PropResourceManager;
+class RaylibMap;
+} // namespace MapMaster::Tanki
 
 
-namespace MapMaster::Utils {
 
-struct Tanki {
-	static std::map <std::string, std::vector <std::string>> FindPropLibraries (const std::string & libraryRootPath);
-	static std::vector <std::string> FindMapLibraries (const std::map <std::string, std::vector <std::string>> & propLibraries, const MapMaster::Tanki::Map & map);
-};
+namespace MapMaster::Utils::Tanki {
 
-}  // namespace MapMaster::Tanki
+
+
+using PropLibraryNameToPathVectorMap = std::map <
+	std::string,
+	std::vector <std::string>
+>;
+
+using PropLibraryNameToLibraryVectorMap = std::map <
+	std::string,
+	std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>
+>;
+
+using PropLibraryNameToResourceManagerVectorMap = std::map <
+	std::string,
+	std::vector <std::shared_ptr <MapMaster::Tanki::PropResourceManager>>
+>;
+
+
+
+namespace Window {
+void OpenRaylibWindow (int width, int height, const std::string & title = {}, int logLevel = LOG_NONE);
+void DrawRaylibMapInCurrentWindow (std::shared_ptr <MapMaster::Tanki::RaylibMap> rmap, float scale = 1.0, const std::string & msg1 = {}, const std::string & msg2 = {});
+void CloseRaylibWindow ();
+} // namespace Window
+
+
+
+std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
+
+
+PropLibraryNameToPathVectorMap FindPropLibraries (const std::string & libraryRootPath);
+PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPathVectorMap & nameToPathVectorMap);
+std::shared_ptr <MapMaster::Tanki::PropResourceManager> LoadPropLibraryResources (const MapMaster::Tanki::PropLibrary & library);
+
+std::vector <std::string> FindMapLibraries (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map);
+
+}  // namespace MapMaster::Utils::Tanki

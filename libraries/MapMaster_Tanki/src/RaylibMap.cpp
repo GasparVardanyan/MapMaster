@@ -7,12 +7,12 @@
 
 # include <raylib.h>
 # include <raymath.h>
-# include <rlgl.h>
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
+# include "MapMaster/Tanki/PropResourceManagerFrontend.hpp"
 
 using namespace MapMaster::Tanki;
 

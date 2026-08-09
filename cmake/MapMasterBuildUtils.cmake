@@ -12,7 +12,7 @@ function (enableReleaseBuildOptimizations target)
 endfunction ()
 
 function (enableDebugBuildDebugInfos target)
-	target_compile_options(${target} PRIVATE
+	target_compile_options (${target} PRIVATE
 		$<$<CONFIG:Debug>:-g -fno-omit-frame-pointer>
 	)
 endfunction ()
