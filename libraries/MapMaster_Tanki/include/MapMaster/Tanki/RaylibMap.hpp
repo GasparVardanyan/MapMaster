@@ -10,6 +10,8 @@
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
+namespace MapMaster::Tanki {
+
 // cppcheck-suppress-begin unusedStructMember
 class RaylibMap {
 public:
@@ -94,3 +96,5 @@ private:
 	Color m_collisionGeometryEdgeColor = {.r = 0x00, .g = 0x00, .b = 0x00, .a = 0xFF};
 };
 // cppcheck-suppress-end unusedStructMember
+
+}  // namespace MapMaster::Tanki

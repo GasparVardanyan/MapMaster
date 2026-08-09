@@ -5,6 +5,8 @@ extern "C" {
     typedef struct Camera3D Camera3D;
 }
 
+namespace MapMaster::Scene3D {
+
 class CameraController {
 public:
 	void setMoveSpeed (float moveSpeed);
@@ -41,3 +43,5 @@ private:
 	float m_rotationSpeed = 0.75F;
 	Camera3D * m_camera = nullptr;
 };
+
+}  // namespace MapMaster::Tanki

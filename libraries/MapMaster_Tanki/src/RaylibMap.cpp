@@ -14,6 +14,8 @@
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
+using namespace MapMaster::Tanki;
+
 void RaylibMap::loadScene (float scale) {
 	m_sceneObjects = {};
 	m_indexMaps = {};

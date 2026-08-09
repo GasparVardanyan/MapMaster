@@ -6,6 +6,8 @@
 
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 
+namespace MapMaster::Tanki {
+
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManagerRaylibAdapter {
 public:
@@ -35,3 +37,5 @@ private:
 	static void unloadTextureResource (Texture2D * texture);
 };
 // cppcheck-suppress-end unusedStructMember
+
+}  // namespace MapMaster::Tanki

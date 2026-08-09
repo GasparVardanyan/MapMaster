@@ -9,6 +9,8 @@ namespace pugi {
 class xml_document; class xml_node;
 }  // namespace pugi
 
+namespace MapMaster::Tanki {
+
 namespace PropLibrary_detail {
 struct PropSprite {
 	template <std::floating_point> struct OriginXDefault;
@@ -105,3 +107,5 @@ private:
 	std::string m_path;
 };
 // cppcheck-suppress-end unusedStructMember
+
+}  // namespace MapMaster::Tanki

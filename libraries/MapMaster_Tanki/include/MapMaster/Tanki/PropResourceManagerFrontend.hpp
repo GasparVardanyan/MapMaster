@@ -9,6 +9,8 @@
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 # include "MapMaster/Tanki/PropResourceManagerRaylibAdapter.hpp"
 
+namespace MapMaster::Tanki {
+
 class Map;
 
 // cppcheck-suppress-begin unusedStructMember
@@ -55,3 +57,5 @@ private:
 	std::map <std::string, std::map <std::string, SpriteInfo>> m_spriteInfos;
 };
 // cppcheck-suppress-end unusedStructMember
+
+}  // namespace MapMaster::Tanki

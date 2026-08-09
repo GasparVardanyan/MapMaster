@@ -11,6 +11,8 @@
 
 # include <pugixml.hpp>
 
+using namespace MapMaster::Tanki;
+
 // cppcheck-suppress shadowFunction
 void PropLibrary::loadDirectory (const std::string & path) {
 	m_path = path;

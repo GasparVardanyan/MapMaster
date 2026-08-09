@@ -12,6 +12,10 @@
 
 
 
+using namespace MapMaster::Tanki;
+
+
+
 static constexpr float scale = 0.01F;
 
 int main (int argc, char ** argv)

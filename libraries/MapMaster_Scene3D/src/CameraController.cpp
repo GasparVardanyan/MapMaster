@@ -3,6 +3,8 @@
 # include <raylib.h>
 # include <rcamera.h>
 
+using namespace MapMaster::Scene3D;
+
 void CameraController::setMoveSpeed (float moveSpeed) {
 	m_moveSpeed = moveSpeed;
 }

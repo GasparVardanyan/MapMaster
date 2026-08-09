@@ -34,6 +34,8 @@
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 
+using namespace MapMaster::Tanki;
+
 
 
 PropResourceManager::PropResourceManager (bool parseCollisionPrimitives)

@@ -7,6 +7,8 @@
 
 namespace pugi { class xml_node; }  // namespace pugi
 
+namespace MapMaster::Tanki {
+
 // cppcheck-suppress-begin unusedStructMember
 class Map {
 public:
@@ -50,3 +52,5 @@ private:
 	MapObjectCollection m_mapObjects;
 };
 // cppcheck-suppress-end unusedStructMember
+
+}  // namespace MapMaster::Tanki

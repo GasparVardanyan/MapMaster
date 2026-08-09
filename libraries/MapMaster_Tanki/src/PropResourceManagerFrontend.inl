@@ -19,6 +19,8 @@
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 
+namespace MapMaster::Tanki {
+
 
 
 template <class PropResourceManagerAdapter>
@@ -381,3 +383,5 @@ template <class PropResourceManagerAdapter>
 const std::map <std::string, std::map <std::string, typename PropResourceManagerFrontend <PropResourceManagerAdapter>::SpriteInfo>> & PropResourceManagerFrontend <PropResourceManagerAdapter>::spriteInfos () const {
 	return m_spriteInfos;
 }
+
+}  // namespace MapMaster::Tanki

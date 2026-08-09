@@ -9,6 +9,8 @@
 # include <utility>
 # include <vector>
 
+namespace MapMaster::Tanki {
+
 class Map;
 class PropLibrary;
 
@@ -145,3 +147,5 @@ private:
 	const bool m_parseCollisionPrimitives;
 };
 // cppcheck-suppress-end unusedStructMember
+
+}  // namespace MapMaster::Tanki

@@ -7,6 +7,8 @@
 
 # include <pugixml.hpp>
 
+using namespace MapMaster::Tanki;
+
 void Map::loadFile (const std::string & path) {
 	pugi::xml_document mapXml;
 	pugi::xml_parse_result parseResult = mapXml.load_file (path.c_str ());

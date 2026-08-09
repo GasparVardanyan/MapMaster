@@ -6,6 +6,9 @@
 
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 
+using namespace MapMaster::Tanki;
+
+
 
 PropResourceManagerRaylibAdapter::MeshResource PropResourceManagerRaylibAdapter::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};
