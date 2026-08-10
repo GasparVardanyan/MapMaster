@@ -1,6 +1,7 @@
 # include "MapMaster/Utils/Tanki.hpp"
 
 # include <algorithm>
+# include <exception>
 # include <filesystem>
 # include <iostream>
 # include <iterator>
@@ -134,9 +135,9 @@ std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string &
 		rmap->setResourceManager (std::make_shared <MapMaster::Tanki::RaylibPropResourceManager> (true));
 		rmap->map ()->loadFile (mapFile);
 
-		PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraries (libraryRootPath);
+		PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraryPaths (libraryRootPath);
 
-		std::vector <std::string> mapLibrarySources = FindMapLibraries (libraryInfo, * rmap->map ());
+		std::vector <std::string> mapLibrarySources = FindMapLibraryPaths (libraryInfo, * rmap->map ());
 
 		for (const std::string & source : mapLibrarySources) {
 			rmap->resourceManager ()->loadLibrary (source);
@@ -150,7 +151,7 @@ std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string &
 	return rmap;
 }
 
-PropLibraryNameToPathVectorMap FindPropLibraries (const std::string & libraryRootPath) {
+PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath) {
 	PropLibraryNameToPathVectorMap libraries;
 	for (const std::filesystem::directory_entry & diEnt : std::filesystem::recursive_directory_iterator (libraryRootPath)) {
 		if (true == diEnt.is_regular_file ()) {
@@ -161,7 +162,7 @@ PropLibraryNameToPathVectorMap FindPropLibraries (const std::string & libraryRoo
 				pugi::xml_document libXml;
 				pugi::xml_parse_result pr = libXml.load_file (diEntPath.c_str ());
 
-				if (true || pugi::xml_parse_status::status_ok == pr) {
+				if (pugi::xml_parse_status::status_ok == pr.status) {
 					std::string libraryName = libXml.child ("library").attribute ("name").value ();
 
 					libraries [libraryName].push_back (diEntPath.parent_path ().string ());
@@ -204,32 +205,61 @@ PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPath
 	return libraries;
 }
 
-std::shared_ptr <MapMaster::Tanki::PropResourceManager> LoadPropLibraryResources (const MapMaster::Tanki::PropLibrary & library) {
+PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources(const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap) {
+	PropLibraryNameToResourceManagerVectorMap libraries;
+
+	std::ranges::transform (
+		nameToLibraryVectorMap,
+		std::inserter (libraries, libraries.end ()),
+		[] (const std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>> & entry)
+			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropResourceManager>>>
+		{
+			std::vector <std::shared_ptr <MapMaster::Tanki::PropResourceManager>> resources;
+
+			std::ranges::transform (
+				entry.second,
+				std::back_inserter (resources),
+				static_cast <
+					std::shared_ptr <MapMaster::Tanki::PropResourceManager> (*) (std::shared_ptr <MapMaster::Tanki::PropLibrary>)
+				> (& LoadPropLibraryResources)
+			);
+
+			return {entry.first, std::move (resources)};
+		}
+	);
+
+	return libraries;
+}
+
+std::shared_ptr <MapMaster::Tanki::PropResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library) {
 	std::shared_ptr <MapMaster::Tanki::PropResourceManager> resourceManager = std::make_shared <MapMaster::Tanki::PropResourceManager> ();
 
-	resourceManager->addPropLibrary (std::make_shared <PropLibrary> (library));
+	resourceManager->addPropLibrary (std::move (library));
 
 	throw std::runtime_error ("this function must load all library resources");
 
 	return resourceManager;
 }
 
-std::vector <std::string> FindMapLibraries (const PropLibraryNameToPathVectorMap & propLibraries, const Map & map) {
-	std::vector <std::string> mapLibraries;
+std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map) {
+	std::vector <std::string> mapLibraryPaths;
 
-	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
+	const MapMaster::Tanki::Map::MapObjectCollection & mapObjects = map.mapObjects ();
+	mapLibraryPaths.reserve (mapObjects.size ());
+
+	for (const auto & [libraryName, groupData] : mapObjects) {
 		if (true == propLibraries.contains (libraryName)) {
 			const std::vector <std::string> & librarySources = propLibraries.at (libraryName);
 
 			if (1 == librarySources.size ()) {
-				mapLibraries.push_back (librarySources.back ());
+				mapLibraryPaths.push_back (librarySources.back ());
 			}
-			if (1 < librarySources.size ()) {
-				std::cerr << "WARN: " << librarySources.size () << " sources found for " << libraryName << '\n';
+			else {
+				std::cerr << "ERROR: " << librarySources.size () << " sources found for " << libraryName << '\n';
 				for (const auto & x : librarySources) {
 					std::cout << "\tsource: " << x << '\n';
 				}
-				// std::terminate ();
+				std::terminate ();
 			}
 		}
 		else {
@@ -237,7 +267,20 @@ std::vector <std::string> FindMapLibraries (const PropLibraryNameToPathVectorMap
 		}
 	}
 
-	return mapLibraries;
+	return mapLibraryPaths;
+}
+
+std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map) {
+	std::vector <std::string> mapLibraryNames;
+
+	const MapMaster::Tanki::Map::MapObjectCollection & mapObjects = map.mapObjects ();
+	mapLibraryNames.resize (mapObjects.size ());
+
+	std::ranges::transform (mapObjects, mapLibraryNames.begin (), [] (const auto & mapObject) -> std::string {
+		return mapObject.first;
+	});
+
+	return mapLibraryNames;
 }
 
 }  // namespace MapMaster::Utils::Tanki

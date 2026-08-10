@@ -2,15 +2,9 @@
 # include <iostream>
 # include <memory>
 # include <string>
-# include <vector>
-
-# include <raylib.h>
 
 # include "MapMaster/Tanki/RaylibMap.hpp"
-# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 # include "MapMaster/Utils/Tanki.hpp"
-# include "MapMaster/Tanki/Map.hpp"
-# include "MapMaster/Tanki/PropResourceManagerFrontend.hpp"
 
 
 
@@ -42,6 +36,8 @@ int main (int argc, char ** argv) {
 		<< " s\n";
 
 	MapMaster::Utils::Tanki::Window::DrawRaylibMapInCurrentWindow (rmap, scale, propLibsRoot, mapFile);
+
 	rmap.reset ();
+
 	MapMaster::Utils::Tanki::Window::CloseRaylibWindow ();
 }

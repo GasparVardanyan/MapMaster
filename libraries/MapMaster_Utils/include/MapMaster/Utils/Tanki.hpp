@@ -48,10 +48,14 @@ void CloseRaylibWindow ();
 std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
 
 
-PropLibraryNameToPathVectorMap FindPropLibraries (const std::string & libraryRootPath);
+PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath);
 PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPathVectorMap & nameToPathVectorMap);
-std::shared_ptr <MapMaster::Tanki::PropResourceManager> LoadPropLibraryResources (const MapMaster::Tanki::PropLibrary & library);
+PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources (const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap);
+std::shared_ptr <MapMaster::Tanki::PropResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library);
 
-std::vector <std::string> FindMapLibraries (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map);
+std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map);
+std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map);
+
+
 
 }  // namespace MapMaster::Utils::Tanki
