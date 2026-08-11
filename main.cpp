@@ -3,20 +3,27 @@
 # include <memory>
 # include <string>
 
-# include "MapMaster/Tanki/RaylibMap.hpp"
+# include <raylib.h>
+
 # include "MapMaster/Utils/Tanki.hpp"
+
+namespace MapMaster::Tanki {
+class RaylibMap;
+} // namespace MapMaster::Tanki
 
 
 
 static constexpr float scale = 0.01F;
 
 int main (int argc, char ** argv) {
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 	MapMaster::Utils::Tanki::Window::OpenRaylibWindow (1680, 1050, "MapMaster", LOG_NONE);
 
 	std::string propLibsRoot, mapFile;
 
 	if (argc >= 3) {
-		propLibsRoot = argv [1];
+		propLibsRoot = argv [1];// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		mapFile = argv [2];
 	}
 	else {

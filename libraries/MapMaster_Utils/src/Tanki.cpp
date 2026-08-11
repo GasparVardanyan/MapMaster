@@ -23,8 +23,6 @@
 # include "MapMaster/Tanki/RaylibMap.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
-using namespace MapMaster::Tanki;
-
 namespace MapMaster::Utils::Tanki {
 
 namespace Window {

@@ -1,4 +1,8 @@
 - [ ] fix the smart ptr vs reference mess
 - [ ] resource overlap behaviour
-- [ ] better camera controller
+- [x] better camera controller
 - [ ] parse occluders
+- [ ] R3D adapter for PropResourceManagerFrontend
+- [ ] R3D map rendering
+- [ ] imgui docking
+- [ ] rlImgui

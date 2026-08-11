@@ -11,7 +11,7 @@ using namespace MapMaster::Tanki;
 
 
 
-PropResourceManagerRaylibAdapter::MeshResource PropResourceManagerRaylibAdapter::loadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
+PropResourceManagerRaylibAdapter::MeshResource PropResourceManagerRaylibAdapter::LoadMeshResource (PropResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};
 	m.mesh = std::shared_ptr <Mesh> (new Mesh {}, unloadMeshResource);
 
@@ -34,7 +34,7 @@ PropResourceManagerRaylibAdapter::MeshResource PropResourceManagerRaylibAdapter:
 }
 
 // cppcheck-suppress functionStatic
-PropResourceManagerRaylibAdapter::TextureResource PropResourceManagerRaylibAdapter::loadTextureResource (const PropResourceManager::PropTextureResource & textureResource) {
+PropResourceManagerRaylibAdapter::TextureResource PropResourceManagerRaylibAdapter::LoadTextureResource (const PropResourceManager::PropTextureResource & textureResource) {
 	TextureResource t = {};
 
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
@@ -76,4 +76,19 @@ void PropResourceManagerRaylibAdapter::unloadTextureResource (Texture2D * textur
 	UnloadTexture (* texture);
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
+}
+
+PropResourceManagerRaylibAdapter::SpriteInfo PropResourceManagerRaylibAdapter::MakeSpriteInfo (const PropLibrary::PropSprite & sprite, const PropResourceManager::PropTextureResource & textureResource) {
+	const Vector2 size = {
+		.x = static_cast <float> (textureResource.width * sprite.scale),
+		.y = static_cast <float> (textureResource.height * sprite.scale),
+	};
+
+	return {
+		.origin = {
+			.x = static_cast <float> (sprite.originX * size.x),
+			.y = static_cast <float> ((1 - sprite.originY) * size.y),
+		},
+		.size = size,
+	};
 }

@@ -4,10 +4,12 @@
 
 # include <raylib.h>
 
+# include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropResourceManager.hpp"
 
 namespace MapMaster::Tanki {
 
+// TODO: make an interface trait
 // cppcheck-suppress-begin unusedStructMember
 class PropResourceManagerRaylibAdapter {
 public:
@@ -29,8 +31,9 @@ public:
 		Vector2 size;
 	};
 
-	static MeshResource loadMeshResource (PropResourceManager::PropMeshResource & meshResource);
-	static TextureResource loadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
+	static MeshResource LoadMeshResource (PropResourceManager::PropMeshResource & meshResource);
+	static TextureResource LoadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
+	static SpriteInfo MakeSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const PropResourceManager::PropTextureResource & textureResource);
 
 private:
 	static void unloadMeshResource (Mesh * mesh);

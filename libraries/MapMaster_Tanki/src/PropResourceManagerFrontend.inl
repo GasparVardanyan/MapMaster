@@ -129,7 +129,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 		while (false == meshesToProcess.empty ()) {
 			const auto & [libraryName, meshFile, meshRes] = meshesToProcess.top ();
 
-			m_meshResources [libraryName] [meshFile] = PropResourceManagerAdapter::loadMeshResource (const_cast <PropResourceManager::PropMeshResource &> (
+			m_meshResources [libraryName] [meshFile] = PropResourceManagerAdapter::LoadMeshResource (const_cast <PropResourceManager::PropMeshResource &> (
 				* meshRes.get ()
 			));
 
@@ -162,7 +162,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 		while (false == texturesToProcess.empty ()) {
 			const auto & [libraryName, textureFile, textureRes] = texturesToProcess.top ();
 
-			m_textureResources [libraryName] [textureFile] = PropResourceManagerAdapter::loadTextureResource (* textureRes.get ());
+			m_textureResources [libraryName] [textureFile] = PropResourceManagerAdapter::LoadTextureResource (* textureRes.get ());
 
 			texturesToProcess.pop ();
 		}
@@ -179,8 +179,6 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 	// cppcheck-suppress shadowFunction
 	const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
 
-	std::vector <std::pair <std::string, std::string>> spriteDescriptors;
-
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * libraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
@@ -188,24 +186,14 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 			const PropLibrary::Group & group = libraryGroups.at (groupName);
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.sprites.contains (propName)) {
-					const auto & sprite = group.sprites.at (propName);
+					const PropLibrary::PropSprite & sprite = group.sprites.at (propName);
 					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
-					spriteDescriptors.emplace_back (libraryName, textureFile);
 
 					const PropResourceManager::PropTextureResource & textureResource = * textureResources.at (libraryName).at (textureFile);
-					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
-						const Vector2 size = {
-							.x = static_cast <float> (textureResource.width * sprite.scale),
-							.y = static_cast <float> (textureResource.height * sprite.scale),
-						};
 
-						m_spriteInfos [libraryName] [textureFile] = {
-							.origin = {
-								.x = static_cast <float> (sprite.originX * size.x),
-								.y = static_cast <float> ((1 - sprite.originY) * size.y),
-							},
-							.size = size,
-						};
+					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
+					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
+						m_spriteInfos [libraryName] [textureFile] = PropResourceManagerAdapter::MakeSpriteInfo (sprite, textureResource);
 					}
 				}
 			}
@@ -260,19 +248,10 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources_
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
 					const PropResourceManager::PropTextureResource & textureResource = * libraryTextureResources.at (textureFile);
-					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) { // FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
-						const Vector2 size = {
-							.x = static_cast <float> (textureResource.width * sprite.scale),
-							.y = static_cast <float> (textureResource.height * sprite.scale),
-						};
 
-						m_spriteInfos [libraryName] [textureFile] = {
-							.origin = {
-								.x = static_cast <float> (sprite.originX * size.x),
-								.y = static_cast <float> ((1 - sprite.originY) * size.y),
-							},
-							.size = size,
-						};
+					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
+					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
+						m_spriteInfos [libraryName] [textureFile] = PropResourceManagerAdapter::MakeSpriteInfo (sprite, textureResource);
 					}
 				}
 			}
@@ -314,7 +293,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMeshResources
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
 			// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto)
-			return PropResourceManagerAdapter::loadMeshResource (
+			return PropResourceManagerAdapter::LoadMeshResource (
 				const_cast <PropResourceManager::PropMeshResource &> (
 					* m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second)
 				)
@@ -342,7 +321,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadTextureResour
 		textureDescriptors.cend (),
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
-			return PropResourceManagerAdapter::loadTextureResource (* m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second));
+			return PropResourceManagerAdapter::LoadTextureResource (* m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second));
 		}
 	);
 
