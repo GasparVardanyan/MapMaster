@@ -118,7 +118,6 @@ std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string &
 		// be named like their names specified in library.xml files
 		//
 		// otherwise manually load the directories with the loadLibrary method
-		// rmap->resourceManager ()->loadMapLibraries (* rmap->map (), DATA_DIR "PLVK");
 		rmap->resourceManager ()->loadMapLibraries (* rmap->map (), libraryRootPath);
 
 		// this loads all the necessary mesh and texture resources to the gpu and

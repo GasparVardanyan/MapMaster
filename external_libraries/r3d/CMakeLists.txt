@@ -1,5 +1,7 @@
 add_library (MapMaster_External_R3D INTERFACE)
 
+set (BUILD_SHARED_LIBS true)
+
 add_subdirectory (
 	${CMAKE_CURRENT_SOURCE_DIR}/../../external/r3d
 	${CMAKE_BINARY_DIR}/external/r3d

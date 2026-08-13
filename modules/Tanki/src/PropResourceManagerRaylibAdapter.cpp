@@ -69,6 +69,7 @@ void PropResourceManagerRaylibAdapter::unloadMeshResource (Mesh * mesh) {
 	mesh->indices = nullptr;
 
 	UnloadMesh (* mesh);
+	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete mesh;
 }
 
