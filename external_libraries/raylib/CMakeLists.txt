@@ -1,3 +1,5 @@
+add_library (MapMaster_External_Raylib INTERFACE)
+
 set (BUILD_EXAMPLES OFF)
 set (BUILD_SHARED_LIBS ON)
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -w")
@@ -16,5 +18,7 @@ set_target_properties (raylib PROPERTIES
 
 include (MapMasterBuildUtils)
 
-enableReleaseBuildOptimizations (raylib)
-enableDebugBuildDebugInfos (raylib)
+MapMaster_Build_EnableReleaseBuildOptimizations (raylib)
+MapMaster_Build_EnableDebugBuildDebugInfos (raylib)
+
+target_link_libraries (MapMaster_External_Raylib INTERFACE raylib)

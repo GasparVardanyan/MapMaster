@@ -25,7 +25,7 @@ GUI here yet. For GUI use [raygui](https://github.com/raysan5/raygui).
 
 ## Current status
 Currently only map and proplib parsing and rendering is implemented in the
-MapMaster_Tanki library. I'm working on polishing the implementation. After
+MapMaster_Module_Tanki library. I'm working on polishing the implementation. After
 finishing it I'll squash the master branch to a single commit. Before
 contributing to this library please open a discussion thread and introduce
 your ides.

@@ -1,7 +1,4 @@
-find_package (TBB REQUIRED)
-find_package (assimp REQUIRED)
-
-add_library (MapMaster_Tanki SHARED
+add_library (MapMaster_Module_Tanki SHARED
 	include/MapMaster/Tanki/PropLibrary.hpp
 	include/MapMaster/Tanki/PropResourceManager.hpp
 	include/MapMaster/Tanki/PropResourceManagerFrontend.hpp
@@ -20,11 +17,13 @@ add_library (MapMaster_Tanki SHARED
 
 include (MapMasterBuildUtils)
 
-enableReleaseBuildOptimizations (MapMaster_Tanki)
-enableDebugBuildDebugInfos (MapMaster_Tanki)
+MapMaster_Build_ModuleConfig (MapMaster_Module_Tanki)
 
-target_link_libraries (MapMaster_Tanki PUBLIC
-	TBB::tbb assimp raylib stb
+target_link_libraries (MapMaster_Module_Tanki PUBLIC
+	MapMaster_External_TBB
+	MapMaster_External_Assimp
+	MapMaster_External_Raylib
+	MapMaster_External_STB
 )
 
-target_include_directories (MapMaster_Tanki PUBLIC include)
+target_include_directories (MapMaster_Module_Tanki PUBLIC include)

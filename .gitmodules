@@ -4,3 +4,6 @@
 [submodule "external/raylib"]
 	path = external/raylib
 	url = https://github.com/raysan5/raylib.git
+[submodule "external/r3d"]
+	path = external/r3d
+	url = https://github.com/Bigfoot71/r3d.git
