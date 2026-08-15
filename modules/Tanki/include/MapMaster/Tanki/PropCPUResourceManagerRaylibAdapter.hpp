@@ -1,5 +1,6 @@
 # pragma once
 
+# include <cstdio>
 # include <memory>
 
 # include <raylib.h>
@@ -9,6 +10,9 @@
 
 # include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
+
+struct aiScene;
+struct aiNode;
 
 namespace MapMaster::Tanki {
 
@@ -43,6 +47,9 @@ public:
 		// TODO: replace with big five
 		PropTextureResource clone ();
 	};
+
+	static PropMeshResource ParseMeshResource (const aiScene * scene, const aiNode * visualNode);
+	static PropTextureResource ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle);
 };
 // cppcheck-suppress-end unusedStructMember
 

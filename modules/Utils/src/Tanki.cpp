@@ -22,6 +22,7 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibMap.hpp"
 # include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 
 namespace MapMaster::Utils::Tanki {
 

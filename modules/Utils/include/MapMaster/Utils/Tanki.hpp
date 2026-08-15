@@ -1,16 +1,14 @@
 # pragma once
 
+# include <raylib.h>
 # include <map>
 # include <memory>
 # include <string>
 # include <vector>
 
-# include <raylib.h>
-
 namespace MapMaster::Tanki {
 class Map;
 class PropLibrary;
-// class PropCPUResourceManager;
 class RaylibMap;
 } // namespace MapMaster::Tanki
 

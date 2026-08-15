@@ -5,14 +5,13 @@
 
 # include <raylib.h>
 
-# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-
 using namespace MapMaster::Tanki;
 
 template PropGPUResourceManagerRaylibAdapter::MeshResource
 PropGPUResourceManagerRaylibAdapter::CreateMeshResource <true> (
 	CPUResourceManager::PropMeshResource &
 );
+
 template PropGPUResourceManagerRaylibAdapter::MeshResource
 PropGPUResourceManagerRaylibAdapter::CreateMeshResource <false> (
 	CPUResourceManager::PropMeshResource &
