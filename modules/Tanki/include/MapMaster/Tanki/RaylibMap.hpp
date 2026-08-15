@@ -8,7 +8,7 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
+# include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -48,8 +48,8 @@ public:
 		Vector3 size = {};
 	};
 
-	[[nodiscard]] std::shared_ptr <RaylibPropResourceManager> resourceManager () const;
-	void setResourceManager (std::shared_ptr <RaylibPropResourceManager> resourceManager);
+	[[nodiscard]] std::shared_ptr <RaylibPropGPUResourceManager> resourceManager () const;
+	void setResourceManager (std::shared_ptr <RaylibPropGPUResourceManager> resourceManager);
 
 	[[nodiscard]] std::shared_ptr <Map> map () const;
 	void setMap (std::shared_ptr <Map> map);
@@ -65,7 +65,7 @@ public:
 	Color collisionGeometryEdgeColor ();
 
 private:
-	std::shared_ptr <RaylibPropResourceManager> m_raylibResourceManager = std::make_shared <RaylibPropResourceManager> (false);
+	std::shared_ptr <RaylibPropGPUResourceManager> m_raylibResourceManager = std::make_shared <RaylibPropGPUResourceManager> (false);
 	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
 
 	struct {

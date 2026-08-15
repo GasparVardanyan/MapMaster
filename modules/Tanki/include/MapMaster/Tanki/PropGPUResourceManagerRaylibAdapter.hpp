@@ -11,7 +11,7 @@ namespace MapMaster::Tanki {
 
 // TODO: make an interface trait
 // cppcheck-suppress-begin unusedStructMember
-class PropResourceManagerRaylibAdapter {
+class PropGPUResourceManagerRaylibAdapter {
 public:
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;

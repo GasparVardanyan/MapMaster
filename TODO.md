@@ -2,7 +2,7 @@
 - [ ] resource overlap behaviour
 - [x] better camera controller
 - [ ] parse occluders
-- [ ] R3D adapter for PropResourceManagerFrontend
+- [ ] R3D adapter for PropGPUResourceManager
 - [ ] R3D map rendering
 - [ ] imgui docking
 - [ ] rlImgui

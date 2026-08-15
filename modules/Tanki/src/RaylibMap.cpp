@@ -11,8 +11,8 @@
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
-# include "MapMaster/Tanki/PropResourceManagerFrontend.hpp"
+# include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 
 using namespace MapMaster::Tanki;
 
@@ -57,8 +57,8 @@ void RaylibMap::loadScene (float scale) {
 
 						textureFile = library.getActualTextureFileName (textureFile);
 
-						const RaylibPropResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
-						const RaylibPropResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+						const RaylibPropGPUResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
+						const RaylibPropGPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
 
 						const Matrix transform = MatrixMultiply (
 							MatrixMultiply (
@@ -144,8 +144,8 @@ void RaylibMap::loadScene (float scale) {
 				}
 				else if (true == group.sprites.contains (propName)) {
 					std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
-					const RaylibPropResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
-					const RaylibPropResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
+					const RaylibPropGPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+					const RaylibPropGPUResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
 
 					for (const Map::MapObject & prop : propInfo) {
 						m_sceneObjects.sprites.push_back ({
@@ -234,11 +234,11 @@ void RaylibMap::renderCollisionGeometry (bool wireframe) {
 }
 
 // cppcheck-suppress shadowFunction
-void RaylibMap::setResourceManager (std::shared_ptr <RaylibPropResourceManager> resourceManager) {
+void RaylibMap::setResourceManager (std::shared_ptr <RaylibPropGPUResourceManager> resourceManager) {
 	m_raylibResourceManager = std::move (resourceManager);
 }
 
-std::shared_ptr <RaylibPropResourceManager> RaylibMap::resourceManager () const {
+std::shared_ptr <RaylibPropGPUResourceManager> RaylibMap::resourceManager () const {
 	return m_raylibResourceManager;
 }
 

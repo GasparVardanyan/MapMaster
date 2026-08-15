@@ -1,4 +1,4 @@
-# include "MapMaster/Tanki/PropResourceManagerFrontend.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 
 # include <algorithm>
 # include <condition_variable>
@@ -24,20 +24,20 @@ namespace MapMaster::Tanki {
 
 
 template <class PropResourceManagerAdapter>
-PropResourceManagerFrontend <PropResourceManagerAdapter>::PropResourceManagerFrontend (bool parseCollisionPrimitives)
+PropGPUResourceManager <PropResourceManagerAdapter>::PropGPUResourceManager (bool parseCollisionPrimitives)
 	: m_resourceManager (parseCollisionPrimitives)
 {
 }
 
 template <class PropResourceManagerAdapter>
-void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadLibrary (const std::string & path) {
+void PropGPUResourceManager <PropResourceManagerAdapter>::loadLibrary (const std::string & path) {
 	std::shared_ptr <PropLibrary> library = std::make_shared <PropLibrary> ();
 	library->loadDirectory (path);
 	m_resourceManager.addPropLibrary (std::move (library));
 }
 
 template <class PropResourceManagerAdapter>
-void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapLibraries (const Map & map, const std::string & libraryRootDir) {
+void PropGPUResourceManager <PropResourceManagerAdapter>::loadMapLibraries (const Map & map, const std::string & libraryRootDir) {
 	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
 		loadLibrary (libraryRootDir + "/" + libraryName);
 	}
@@ -55,7 +55,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapLibraries 
 //
 
 template <class PropResourceManagerAdapter>
-void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources (const Map & map) {
+void PropGPUResourceManager <PropResourceManagerAdapter>::loadMapResources (const Map & map) {
 	// TODO: use tuple
 	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropCPUResourceManager::PropMeshResource>>> meshQueue;
 	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>>> textureQueue;
@@ -202,7 +202,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 }
 
 template <class PropResourceManagerAdapter>
-void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources_OLD (const Map & map) {
+void PropGPUResourceManager <PropResourceManagerAdapter>::loadMapResources_OLD (const Map & map) {
 	m_resourceManager.loadMapResources (map);
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
@@ -282,7 +282,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources_
 }
 
 template <class PropResourceManagerAdapter>
-void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
+void PropGPUResourceManager <PropResourceManagerAdapter>::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
 	std::vector <MeshResource> resources;
 	resources.resize (meshDescriptors.size ());
 
@@ -311,7 +311,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMeshResources
 }
 
 template <class PropResourceManagerAdapter>
-void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors) {
+void PropGPUResourceManager <PropResourceManagerAdapter>::loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors) {
 	std::vector <TextureResource> resources;
 	resources.resize (textureDescriptors.size ());
 
@@ -344,22 +344,22 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadTextureResour
 //
 
 template <class PropResourceManagerAdapter>
-const PropCPUResourceManager & PropResourceManagerFrontend <PropResourceManagerAdapter>::resourceManager () {
+const PropCPUResourceManager & PropGPUResourceManager <PropResourceManagerAdapter>::resourceManager () {
 	return m_resourceManager;
 }
 
 template <class PropResourceManagerAdapter>
-const std::map <std::string, std::map <std::string, typename PropResourceManagerFrontend <PropResourceManagerAdapter>::MeshResource>> & PropResourceManagerFrontend <PropResourceManagerAdapter>::meshResources () const {
+const std::map <std::string, std::map <std::string, typename PropGPUResourceManager <PropResourceManagerAdapter>::MeshResource>> & PropGPUResourceManager <PropResourceManagerAdapter>::meshResources () const {
 	return m_meshResources;
 
 }
 template <class PropResourceManagerAdapter>
-const std::map <std::string, std::map <std::string, typename PropResourceManagerFrontend <PropResourceManagerAdapter>::TextureResource>> & PropResourceManagerFrontend <PropResourceManagerAdapter>::textureResources () const {
+const std::map <std::string, std::map <std::string, typename PropGPUResourceManager <PropResourceManagerAdapter>::TextureResource>> & PropGPUResourceManager <PropResourceManagerAdapter>::textureResources () const {
 	return m_textureResources;
 }
 
 template <class PropResourceManagerAdapter>
-const std::map <std::string, std::map <std::string, typename PropResourceManagerFrontend <PropResourceManagerAdapter>::SpriteInfo>> & PropResourceManagerFrontend <PropResourceManagerAdapter>::spriteInfos () const {
+const std::map <std::string, std::map <std::string, typename PropGPUResourceManager <PropResourceManagerAdapter>::SpriteInfo>> & PropGPUResourceManager <PropResourceManagerAdapter>::spriteInfos () const {
 	return m_spriteInfos;
 }
 

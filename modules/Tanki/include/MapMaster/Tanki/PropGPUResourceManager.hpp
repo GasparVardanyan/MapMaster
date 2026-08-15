@@ -7,7 +7,7 @@
 # include <vector>
 
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManagerRaylibAdapter.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -15,14 +15,14 @@ class Map;
 
 // cppcheck-suppress-begin unusedStructMember
 template <class PropResourceManagerAdapter>
-class PropResourceManagerFrontend {
+class PropGPUResourceManager {
 public:
 	using MeshResource = PropResourceManagerAdapter::MeshResource;
 	using TextureResource = PropResourceManagerAdapter::TextureResource;
 	using SpriteInfo = PropResourceManagerAdapter::SpriteInfo;
 
 public:
-	explicit PropResourceManagerFrontend (bool parseCollisionPrimitives = false);
+	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false);
 
 	void loadLibrary (const std::string & path);
 	void loadMapLibraries (const Map & map, const std::string & libraryRootDir);
