@@ -17,7 +17,7 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -57,8 +57,8 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapLibraries 
 template <class PropResourceManagerAdapter>
 void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources (const Map & map) {
 	// TODO: use tuple
-	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropMeshResource>>> meshQueue;
-	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> textureQueue;
+	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropCPUResourceManager::PropMeshResource>>> meshQueue;
+	std::queue <std::tuple <std::string, std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>>> textureQueue;
 
 	bool meshesFinished = false;
 	bool texturesFinished = false;
@@ -68,7 +68,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 	std::mutex textureResourceMutex;
 	std::condition_variable textureResourceNotifier;
 
-	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile, std::shared_ptr <PropResourceManager::PropMeshResource> meshResource, std::shared_ptr <PropResourceManager::Collider>) -> void {
+	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile, std::shared_ptr <PropCPUResourceManager::PropMeshResource> meshResource, std::shared_ptr <PropCPUResourceManager::Collider>) -> void {
 		{
 			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);;
 			meshQueue.emplace (libraryName, meshFile, std::move (meshResource));
@@ -77,7 +77,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 		meshResourceNotifier.notify_one ();
 	});
 
-	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile, std::shared_ptr <PropResourceManager::PropTextureResource> textureResource) -> void {
+	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile, std::shared_ptr <PropCPUResourceManager::PropTextureResource> textureResource) -> void {
 		{
 			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
 			textureQueue.emplace  (libraryName, textureFile, std::move (textureResource));
@@ -109,7 +109,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 	});
 
 	while (true) {
-		std::stack <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropMeshResource>>> meshesToProcess;
+		std::stack <std::tuple <std::string, std::string, std::shared_ptr <PropCPUResourceManager::PropMeshResource>>> meshesToProcess;
 		bool finished = false;
 
 		{
@@ -129,7 +129,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 		while (false == meshesToProcess.empty ()) {
 			const auto & [libraryName, meshFile, meshRes] = meshesToProcess.top ();
 
-			m_meshResources [libraryName] [meshFile] = PropResourceManagerAdapter::LoadMeshResource (const_cast <PropResourceManager::PropMeshResource &> (
+			m_meshResources [libraryName] [meshFile] = PropResourceManagerAdapter::LoadMeshResource (const_cast <PropCPUResourceManager::PropMeshResource &> (
 				* meshRes.get ()
 			));
 
@@ -142,7 +142,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 	}
 
 	while (true) {
-		std::stack <std::tuple <std::string, std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> texturesToProcess;
+		std::stack <std::tuple <std::string, std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>>> texturesToProcess;
 		bool finished = false;
 
 		{
@@ -177,7 +177,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	// cppcheck-suppress shadowFunction
-	const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
+	const std::map <std::string, std::map <std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * libraries.at (libraryName);
@@ -189,7 +189,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources 
 					const PropLibrary::PropSprite & sprite = group.sprites.at (propName);
 					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
 
-					const PropResourceManager::PropTextureResource & textureResource = * textureResources.at (libraryName).at (textureFile);
+					const PropCPUResourceManager::PropTextureResource & textureResource = * textureResources.at (libraryName).at (textureFile);
 
 					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
@@ -207,7 +207,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources_
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	// cppcheck-suppress shadowFunction
-	const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
+	const std::map <std::string, std::map <std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
 
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
 	std::vector <std::pair <std::string, std::string>> textureDescriptors;
@@ -215,14 +215,14 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources_
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * libraries.at (libraryName);
-		const std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>> & libraryTextureResources = textureResources.at (libraryName);
+		const std::map <std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>> & libraryTextureResources = textureResources.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
 		for (const auto & [groupName, props] : groups) {
 			const PropLibrary::Group & group = libraryGroups.at (groupName);
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 					std::string meshFile = group.meshes.at (propName).file;
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (* m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
+					const PropCPUResourceManager::PropMeshResource & meshResource = const_cast <PropCPUResourceManager::PropMeshResource &> (* m_resourceManager.propMeshResources ().at (libraryName).at (meshFile));
 
 					meshDescriptors.emplace_back (libraryName, meshFile);
 
@@ -247,7 +247,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMapResources_
 					textureDescriptors.emplace_back (libraryName, textureFile);
 					spriteDescriptors.emplace_back (libraryName, textureFile);
 
-					const PropResourceManager::PropTextureResource & textureResource = * libraryTextureResources.at (textureFile);
+					const PropCPUResourceManager::PropTextureResource & textureResource = * libraryTextureResources.at (textureFile);
 
 					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
@@ -294,7 +294,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadMeshResources
 		[this] (const std::pair <std::string, std::string> & descriptor) {
 			// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto)
 			return PropResourceManagerAdapter::LoadMeshResource (
-				const_cast <PropResourceManager::PropMeshResource &> (
+				const_cast <PropCPUResourceManager::PropMeshResource &> (
 					* m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second)
 				)
 			);
@@ -344,7 +344,7 @@ void PropResourceManagerFrontend <PropResourceManagerAdapter>::loadTextureResour
 //
 
 template <class PropResourceManagerAdapter>
-const PropResourceManager & PropResourceManagerFrontend <PropResourceManagerAdapter>::resourceManager () {
+const PropCPUResourceManager & PropResourceManagerFrontend <PropResourceManagerAdapter>::resourceManager () {
 	return m_resourceManager;
 }
 

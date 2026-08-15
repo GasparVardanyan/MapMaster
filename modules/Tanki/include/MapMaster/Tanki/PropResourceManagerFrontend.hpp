@@ -6,7 +6,7 @@
 # include <utility>
 # include <vector>
 
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropResourceManagerRaylibAdapter.hpp"
 
 namespace MapMaster::Tanki {
@@ -43,13 +43,13 @@ public:
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors);
 
-	[[nodiscard]] const PropResourceManager & resourceManager ();
+	[[nodiscard]] const PropCPUResourceManager & resourceManager ();
 	[[nodiscard]] const std::map <std::string, std::map <std::string, MeshResource>> & meshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, TextureResource>> & textureResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, SpriteInfo>> & spriteInfos () const;
 
 private:
-	PropResourceManager m_resourceManager;
+	PropCPUResourceManager m_resourceManager;
 	std::string m_libraryRootDir;
 
 	std::map <std::string, std::map <std::string, MeshResource>> m_meshResources;

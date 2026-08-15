@@ -7,7 +7,7 @@
 # include <raylib.h>
 
 # include "MapMaster/Tanki/Map.hpp"
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
 namespace MapMaster::Tanki {

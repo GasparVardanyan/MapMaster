@@ -10,7 +10,7 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 # include "MapMaster/Tanki/PropResourceManagerFrontend.hpp"
 
@@ -24,7 +24,7 @@ void RaylibMap::loadScene (float scale) {
 	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
 	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
 
-	const PropResourceManager & resourceManager = m_raylibResourceManager->resourceManager ();
+	const PropCPUResourceManager & resourceManager = m_raylibResourceManager->resourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
 
 	for (const auto & [libraryName, groups] : m_map->mapObjects ()) {
@@ -37,13 +37,13 @@ void RaylibMap::loadScene (float scale) {
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
 
-					const PropResourceManager::PropMeshResource & meshResource = const_cast <PropResourceManager::PropMeshResource &> (
+					const PropCPUResourceManager::PropMeshResource & meshResource = const_cast <PropCPUResourceManager::PropMeshResource &> (
 						resourceManager.getMeshResource (libraryName, groupName, propName)
 					);
 					const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
 					const std::string meshFile = propMesh.file;
 
-					const PropResourceManager::Collider & collider = * resourceManager.colliders ().at (libraryName).at (meshFile);
+					const PropCPUResourceManager::Collider & collider = * resourceManager.colliders ().at (libraryName).at (meshFile);
 
 					for (const Map::MapObject & mapObject : propInfo) {
 						std::string textureName = mapObject.textureName;
@@ -85,7 +85,7 @@ void RaylibMap::loadScene (float scale) {
 
 						m_sceneObjects.meshes.push_back (std::move (sceneMesh));
 
-						for (const PropResourceManager::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
+						for (const PropCPUResourceManager::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
 							m_sceneObjects.triangleColliders.push_back ({
 								.v1 = Vector3Transform (Vector3 { .x = triangleCollider.v1.x, .y = triangleCollider.v1.y, .z = triangleCollider.v1.z}, transform),
 								.v2 = Vector3Transform (Vector3 { .x = triangleCollider.v2.x, .y = triangleCollider.v2.y, .z = triangleCollider.v2.z}, transform),
@@ -93,7 +93,7 @@ void RaylibMap::loadScene (float scale) {
 							});
 						}
 
-						for (const PropResourceManager::Collider::RectCollider & rectCollider : collider.rectColliders) {
+						for (const PropCPUResourceManager::Collider::RectCollider & rectCollider : collider.rectColliders) {
 							m_sceneObjects.rectColliders.push_back ({
 								.v1 = Vector3Transform (Vector3 { .x = rectCollider.v1.x, .y = rectCollider.v1.y, .z = rectCollider.v1.z}, transform),
 								.v2 = Vector3Transform (Vector3 { .x = rectCollider.v2.x, .y = rectCollider.v2.y, .z = rectCollider.v2.z}, transform),
@@ -102,7 +102,7 @@ void RaylibMap::loadScene (float scale) {
 							});
 						}
 
-						for (const PropResourceManager::Collider::BoxCollider & boxCollider : collider.boxColliders) {
+						for (const PropCPUResourceManager::Collider::BoxCollider & boxCollider : collider.boxColliders) {
 							Vector3 v1 = Vector3Transform (Vector3 { .x = boxCollider.vMin.x, .y = boxCollider.vMin.y, .z = boxCollider.vMin.z}, transform);
 							Vector3 v2 = Vector3Transform (Vector3 { .x = boxCollider.vMax.x, .y = boxCollider.vMax.y, .z = boxCollider.vMax.z}, transform);
 							Vector3 vMin, vMax;

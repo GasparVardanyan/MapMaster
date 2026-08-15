@@ -15,7 +15,7 @@ class Map;
 class PropLibrary;
 
 // cppcheck-suppress-begin unusedStructMember
-class PropResourceManager {
+class PropCPUResourceManager {
 public:
 	struct PropMeshResource {
 		using VertexType = float;
@@ -86,7 +86,7 @@ private:
 	};
 
 public:
-	explicit PropResourceManager (bool parseCollisionPrimitives = false);
+	explicit PropCPUResourceManager (bool parseCollisionPrimitives = false);
 
 	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();

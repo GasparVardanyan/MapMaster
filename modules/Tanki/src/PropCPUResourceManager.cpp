@@ -1,4 +1,4 @@
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
 # include <algorithm>
 # include <array>
@@ -38,13 +38,13 @@ using namespace MapMaster::Tanki;
 
 
 
-PropResourceManager::PropResourceManager (bool parseCollisionPrimitives)
+PropCPUResourceManager::PropCPUResourceManager (bool parseCollisionPrimitives)
 	: m_parseCollisionPrimitives (parseCollisionPrimitives)
 {
 }
 
 // NOLINTNEXTLINE(performance-unnecessary-value-param)
-void PropResourceManager::addPropLibrary (std::shared_ptr <PropLibrary> propLibrary) {
+void PropCPUResourceManager::addPropLibrary (std::shared_ptr <PropLibrary> propLibrary) {
 	const std::string & libraryName = propLibrary->name ();
 	m_propLibraries.try_emplace (
 		libraryName,
@@ -52,25 +52,25 @@ void PropResourceManager::addPropLibrary (std::shared_ptr <PropLibrary> propLibr
 	);
 }
 
-void PropResourceManager::dropResources () {
+void PropCPUResourceManager::dropResources () {
 	m_propMeshResources.clear ();
 	m_propTextureResources.clear ();
 }
 
-void PropResourceManager::removePropLibrary (const std::string & name) {
+void PropCPUResourceManager::removePropLibrary (const std::string & name) {
 	m_propLibraries.erase (name);
 }
 
-void PropResourceManager::clearPropLibraries () {
+void PropCPUResourceManager::clearPropLibraries () {
 	m_propLibraries = {};
 }
 
-void PropResourceManager::setOverlapBehaviour (OverlapBehaviour overlapBehaviour) {
-	throw std::runtime_error ("PropResourceManager::OverlapBehaviour is not in effect");
+void PropCPUResourceManager::setOverlapBehaviour (OverlapBehaviour overlapBehaviour) {
+	throw std::runtime_error ("PropCPUResourceManager::OverlapBehaviour is not in effect");
 	m_overlapBehaviour = overlapBehaviour; // cppcheck-suppress unreachableCode
 }
 
-PropResourceManager::PropTextureResource PropResourceManager::PropTextureResource::clone () {
+PropCPUResourceManager::PropTextureResource PropCPUResourceManager::PropTextureResource::clone () {
 	if (width < 0 || height < 0 || channels < 0) {
 		return {};
 	}
@@ -99,7 +99,7 @@ PropResourceManager::PropTextureResource PropResourceManager::PropTextureResourc
 // |______\____/_/    \_\_____/|______|_|  \_\_____/
 //
 
-void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
+void PropCPUResourceManager::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
 	std::vector <std::pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>>> resources;
 	resources.resize (meshDescriptors.size ());
 
@@ -203,7 +203,7 @@ void PropResourceManager::loadMeshResources (const std::vector <std::pair <std::
 	}
 }
 
-void PropResourceManager::loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors) {
+void PropCPUResourceManager::loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors) {
 	std::vector <std::shared_ptr <PropTextureResource>> resources;
 	resources.resize (textureDescriptors.size ());
 
@@ -231,7 +231,7 @@ void PropResourceManager::loadTextureResources (const std::vector <std::tuple <s
 	}
 }
 
-void PropResourceManager::loadMapResources (const Map & map) {
+void PropCPUResourceManager::loadMapResources (const Map & map) {
 	std::vector <std::pair <std::string, std::string>> meshDescriptors;
 	std::vector <std::tuple <std::string, std::string, std::string>> textureDescriptors;
 
@@ -340,7 +340,7 @@ void PropResourceManager::loadMapResources (const Map & map) {
 // |______\____/_/    \_\_____/|______|_|  \_\ |_|  |_|______|______|_|    |______|_|  \_\_____/
 //
 
-PropResourceManager::ParsedMeshInfo PropResourceManager::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
+PropCPUResourceManager::ParsedMeshInfo PropCPUResourceManager::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
 	const std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
 
 	Assimp::Importer importer;
@@ -535,7 +535,7 @@ PropResourceManager::ParsedMeshInfo PropResourceManager::loadMeshResource (const
 	return info;
 }
 
-PropResourceManager::PropTextureResource PropResourceManager::loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) {
+PropCPUResourceManager::PropTextureResource PropCPUResourceManager::loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) {
 	const std::string diffusePath = m_propLibraries.at (libraryName)->path () + "/" + diffuseFile;
 
 	int width = 0;
@@ -595,28 +595,28 @@ PropResourceManager::PropTextureResource PropResourceManager::loadTextureResourc
 //  \_____|______|  |_|     |_|  |______|_|  \_\_____/
 //
 
-const std::map <std::string, std::shared_ptr <PropLibrary>> & PropResourceManager::propLibraries () const {
+const std::map <std::string, std::shared_ptr <PropLibrary>> & PropCPUResourceManager::propLibraries () const {
 	return m_propLibraries;
 }
 
-const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropMeshResource>>> & PropResourceManager::propMeshResources () const {
+const std::map <std::string, std::map <std::string, std::shared_ptr <PropCPUResourceManager::PropMeshResource>>> & PropCPUResourceManager::propMeshResources () const {
 	return m_propMeshResources;
 }
 
-const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::PropTextureResource>>> & PropResourceManager::propTextureResources () const {
+const std::map <std::string, std::map <std::string, std::shared_ptr <PropCPUResourceManager::PropTextureResource>>> & PropCPUResourceManager::propTextureResources () const {
 	return m_propTextureResources;
 }
 
-const std::map <std::string, std::map <std::string, std::shared_ptr <PropResourceManager::Collider>>> & PropResourceManager::colliders () const {
+const std::map <std::string, std::map <std::string, std::shared_ptr <PropCPUResourceManager::Collider>>> & PropCPUResourceManager::colliders () const {
 	return m_colliders;
 }
 
-const PropResourceManager::PropMeshResource & PropResourceManager::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
+const PropCPUResourceManager::PropMeshResource & PropCPUResourceManager::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
 	const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propName).file;
 	return * m_propMeshResources.at (libraryName).at (meshFile);
 }
 
-const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const {
+const PropCPUResourceManager::PropTextureResource & PropCPUResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const {
 	const PropLibrary & library = * m_propLibraries.at (libraryName);
 
 	if (false == textureName.empty ()) {
@@ -629,7 +629,7 @@ const PropResourceManager::PropTextureResource & PropResourceManager::getTexture
 	}
 }
 
-const PropResourceManager::PropTextureResource & PropResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const {
+const PropCPUResourceManager::PropTextureResource & PropCPUResourceManager::getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const {
 	const PropLibrary & library = * m_propLibraries.at (libraryName);
 
 	return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
@@ -646,21 +646,21 @@ const PropResourceManager::PropTextureResource & PropResourceManager::getTexture
 //  \_____/_/    \_\______|______|____/_/    \_\_____|_|\_\_____/
 //
 
-void PropResourceManager::setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback) {
+void PropCPUResourceManager::setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback) {
 	m_callbacks.meshResourceLoad = callback;
 }
-void PropResourceManager::setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback) {
+void PropCPUResourceManager::setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback) {
 	m_callbacks.textureResourceLoad = callback;
 }
 
-void PropResourceManager::setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
+void PropCPUResourceManager::setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
 	m_callbacks.mapMeshResourcesLoad = callback;
 }
 
-void PropResourceManager::setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
+void PropCPUResourceManager::setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
 	m_callbacks.mapTextureResourcesLoad = callback;
 }
 
-void PropResourceManager::clearCallbacks () {
+void PropCPUResourceManager::clearCallbacks () {
 	m_callbacks = {};
 }

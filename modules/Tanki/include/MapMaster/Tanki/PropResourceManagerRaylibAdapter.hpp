@@ -5,7 +5,7 @@
 # include <raylib.h>
 
 # include "MapMaster/Tanki/PropLibrary.hpp"
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -31,9 +31,9 @@ public:
 		Vector2 size;
 	};
 
-	static MeshResource LoadMeshResource (PropResourceManager::PropMeshResource & meshResource);
-	static TextureResource LoadTextureResource (const PropResourceManager::PropTextureResource & textureResource);
-	static SpriteInfo MakeSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const PropResourceManager::PropTextureResource & textureResource);
+	static MeshResource LoadMeshResource (PropCPUResourceManager::PropMeshResource & meshResource);
+	static TextureResource LoadTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource);
+	static SpriteInfo MakeSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const PropCPUResourceManager::PropTextureResource & textureResource);
 
 private:
 	static void unloadMeshResource (Mesh * mesh);

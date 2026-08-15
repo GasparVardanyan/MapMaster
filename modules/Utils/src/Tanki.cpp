@@ -19,7 +19,7 @@
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
-# include "MapMaster/Tanki/PropResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/RaylibMap.hpp"
 # include "MapMaster/Tanki/RaylibPropResourceManager.hpp"
 
@@ -209,15 +209,15 @@ PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources(const PropLib
 		nameToLibraryVectorMap,
 		std::inserter (libraries, libraries.end ()),
 		[] (const std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>> & entry)
-			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropResourceManager>>>
+			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager>>>
 		{
-			std::vector <std::shared_ptr <MapMaster::Tanki::PropResourceManager>> resources;
+			std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager>> resources;
 
 			std::ranges::transform (
 				entry.second,
 				std::back_inserter (resources),
 				static_cast <
-					std::shared_ptr <MapMaster::Tanki::PropResourceManager> (*) (std::shared_ptr <MapMaster::Tanki::PropLibrary>)
+					std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> (*) (std::shared_ptr <MapMaster::Tanki::PropLibrary>)
 				> (& LoadPropLibraryResources)
 			);
 
@@ -228,8 +228,8 @@ PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources(const PropLib
 	return libraries;
 }
 
-std::shared_ptr <MapMaster::Tanki::PropResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library) {
-	std::shared_ptr <MapMaster::Tanki::PropResourceManager> resourceManager = std::make_shared <MapMaster::Tanki::PropResourceManager> ();
+std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library) {
+	std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> resourceManager = std::make_shared <MapMaster::Tanki::PropCPUResourceManager> ();
 
 	resourceManager->addPropLibrary (std::move (library));
 
