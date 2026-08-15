@@ -1,6 +1,7 @@
 # pragma once
 
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManagerRaylibAdapter.hpp"
 
 namespace MapMaster::Tanki {
 

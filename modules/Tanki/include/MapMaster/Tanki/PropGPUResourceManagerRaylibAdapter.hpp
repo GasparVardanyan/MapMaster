@@ -31,9 +31,16 @@ public:
 		Vector2 size;
 	};
 
-	static MeshResource LoadMeshResource (PropCPUResourceManager::PropMeshResource & meshResource);
-	static TextureResource LoadTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource);
-	static SpriteInfo MakeSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const PropCPUResourceManager::PropTextureResource & textureResource);
+	template <bool Upload = true>
+	static MeshResource CreateMeshResource (PropCPUResourceManager::PropMeshResource & meshResource);
+
+	template <bool Upload = true>
+	static TextureResource CreateTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource);
+
+	static void UploadMeshResource (MeshResource & meshResource);
+	static void UploadTextureResource (TextureResource & meshResource);
+
+	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const PropCPUResourceManager::PropTextureResource & textureResource);
 
 private:
 	static void unloadMeshResource (Mesh * mesh);

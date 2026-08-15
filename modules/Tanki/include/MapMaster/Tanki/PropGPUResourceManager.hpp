@@ -7,19 +7,18 @@
 # include <vector>
 
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropGPUResourceManagerRaylibAdapter.hpp"
 
 namespace MapMaster::Tanki {
 
 class Map;
 
 // cppcheck-suppress-begin unusedStructMember
-template <class PropResourceManagerAdapter>
+template <class PropGPUResourceManagerAdapter>
 class PropGPUResourceManager {
 public:
-	using MeshResource = PropResourceManagerAdapter::MeshResource;
-	using TextureResource = PropResourceManagerAdapter::TextureResource;
-	using SpriteInfo = PropResourceManagerAdapter::SpriteInfo;
+	using MeshResource = PropGPUResourceManagerAdapter::MeshResource;
+	using TextureResource = PropGPUResourceManagerAdapter::TextureResource;
+	using SpriteInfo = PropGPUResourceManagerAdapter::SpriteInfo;
 
 public:
 	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false);

@@ -9,9 +9,27 @@
 
 using namespace MapMaster::Tanki;
 
+template PropGPUResourceManagerRaylibAdapter::MeshResource
+PropGPUResourceManagerRaylibAdapter::CreateMeshResource <true> (
+	PropCPUResourceManager::PropMeshResource &
+);
+template PropGPUResourceManagerRaylibAdapter::MeshResource
+PropGPUResourceManagerRaylibAdapter::CreateMeshResource <false> (
+	PropCPUResourceManager::PropMeshResource &
+);
 
+template PropGPUResourceManagerRaylibAdapter::TextureResource
+PropGPUResourceManagerRaylibAdapter::CreateTextureResource <true> (
+	const PropCPUResourceManager::PropTextureResource &
+);
 
-PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAdapter::LoadMeshResource (PropCPUResourceManager::PropMeshResource & meshResource) {
+template PropGPUResourceManagerRaylibAdapter::TextureResource
+PropGPUResourceManagerRaylibAdapter::CreateTextureResource <false> (
+	const PropCPUResourceManager::PropTextureResource &
+);
+
+template <bool Upload>
+PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAdapter::CreateMeshResource (PropCPUResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};
 	m.mesh = std::shared_ptr <Mesh> (new Mesh {}, unloadMeshResource);
 
@@ -28,13 +46,16 @@ PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAd
 
 	m.mesh->indices = meshResource.indexBuffer.data ();
 
-	UploadMesh (m.mesh.get (), false);
+	if constexpr (true == Upload) {
+		UploadMesh (m.mesh.get (), false);
+	}
 
 	return m;
 }
 
+template <bool Upload>
 // cppcheck-suppress functionStatic
-PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRaylibAdapter::LoadTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource) {
+PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRaylibAdapter::CreateTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource) {
 	TextureResource t = {};
 
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
@@ -50,12 +71,26 @@ PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRayli
 		.mipmaps = 1,
 		.format = pixelFormat
 	};
-	t.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (t.image)), unloadTextureResource);
 
-	GenTextureMipmaps (t.texture.get ());
-	SetTextureFilter (* t.texture, TEXTURE_FILTER_TRILINEAR);
+	if constexpr (true == Upload) {
+		t.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (t.image)), unloadTextureResource);
+
+		GenTextureMipmaps (t.texture.get ());
+		SetTextureFilter (* t.texture, TEXTURE_FILTER_TRILINEAR);
+	}
 
 	return t;
+}
+
+void PropGPUResourceManagerRaylibAdapter::UploadMeshResource (MeshResource & meshResource) {
+	UploadMesh (meshResource.mesh.get (), false);
+}
+
+void PropGPUResourceManagerRaylibAdapter::UploadTextureResource (TextureResource & TextureResource) {
+	TextureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (TextureResource.image)), unloadTextureResource);
+
+	GenTextureMipmaps (TextureResource.texture.get ());
+	SetTextureFilter (* TextureResource.texture, TEXTURE_FILTER_TRILINEAR);
 }
 
 void PropGPUResourceManagerRaylibAdapter::unloadMeshResource (Mesh * mesh) {
@@ -79,7 +114,7 @@ void PropGPUResourceManagerRaylibAdapter::unloadTextureResource (Texture2D * tex
 	delete texture;
 }
 
-PropGPUResourceManagerRaylibAdapter::SpriteInfo PropGPUResourceManagerRaylibAdapter::MakeSpriteInfo (const PropLibrary::PropSprite & sprite, const PropCPUResourceManager::PropTextureResource & textureResource) {
+PropGPUResourceManagerRaylibAdapter::SpriteInfo PropGPUResourceManagerRaylibAdapter::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropCPUResourceManager::PropTextureResource & textureResource) {
 	const Vector2 size = {
 		.x = static_cast <float> (textureResource.width * sprite.scale),
 		.y = static_cast <float> (textureResource.height * sprite.scale),
