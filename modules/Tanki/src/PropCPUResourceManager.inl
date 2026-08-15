@@ -99,85 +99,19 @@ void PropCPUResourceManager <PropCPUResourceManagerAdapter>::loadMeshResources (
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) -> std::pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> {
 			ParsedMeshInfo meshInfo = loadMeshResource (descriptor.first, descriptor.second);
+
 			std::shared_ptr <Collider> collider = std::make_shared <Collider> (std::move (meshInfo.collider));
+			std::shared_ptr <PropMeshResource> meshResource = std::make_shared <PropMeshResource> (std::move (meshInfo.meshResource));
 
-			if (1 == meshInfo.meshResources.size ()) {
-				std::shared_ptr <PropMeshResource> meshResource = std::make_shared <PropMeshResource> (std::move (meshInfo.meshResources [0]));
-
-				if (nullptr != m_callbacks.meshResourceLoad) {
-					m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, meshResource, collider);
-				}
-
-				// NOLINTNEXTLINE(google-build-explicit-make-pair)
-				return std::make_pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> (
-					std::move (meshResource),
-					std::move (collider)
-				);
+			if (nullptr != m_callbacks.meshResourceLoad) {
+				m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, meshResource, collider);
 			}
-			else {
-				PropMeshResource meshResource {};
-				meshResource.textureFile = meshInfo.meshResources [0].textureFile;
 
-				std::size_t vertexBufferSize = 0;
-				std::size_t indexBufferSize = 0;
-				std::size_t indexBufferOffset = 0;
-				std::size_t uvBufferSize = 0;
-				std::size_t normalBufferSize = 0;
-
-				for (const PropMeshResource & res : meshInfo.meshResources) {
-					vertexBufferSize += res.vertexBuffer.size ();
-					indexBufferSize += res.indexBuffer.size ();
-					uvBufferSize += res.uvBuffer.size ();
-					normalBufferSize += res.normalBuffer.size ();
-				}
-
-				meshResource.vertexBuffer.reserve (vertexBufferSize);
-				meshResource.indexBuffer.resize (indexBufferSize);
-				meshResource.uvBuffer.reserve (uvBufferSize);
-				meshResource.normalBuffer.reserve (normalBufferSize);
-
-				for (PropMeshResource & res : meshInfo.meshResources) {
-					std::size_t vertexBufferOffset = meshResource.vertexBuffer.size () / 3;
-
-					meshResource.vertexBuffer.insert (
-						meshResource.vertexBuffer.end (),
-						std::make_move_iterator (res.vertexBuffer.begin ()),
-						std::make_move_iterator (res.vertexBuffer.end ())
-					);
-
-					std::transform (
-						res.indexBuffer.cbegin (),
-						res.indexBuffer.cend (),
-						meshResource.indexBuffer.begin () + indexBufferOffset,
-						[&vertexBufferOffset] (PropMeshResource::IndexType i) -> PropMeshResource::IndexType { return vertexBufferOffset + i; }
-					);
-					indexBufferOffset += res.indexBuffer.size ();
-
-					meshResource.uvBuffer.insert (
-						meshResource.uvBuffer.end (),
-						std::make_move_iterator (res.uvBuffer.begin ()),
-						std::make_move_iterator (res.uvBuffer.end ())
-					);
-
-					meshResource.normalBuffer.insert (
-						meshResource.normalBuffer.end (),
-						std::make_move_iterator (res.normalBuffer.begin ()),
-						std::make_move_iterator (res.normalBuffer.end ())
-					);
-				}
-
-				std::shared_ptr <PropMeshResource> res = std::make_shared <PropMeshResource> (std::move (meshResource));
-
-				if (nullptr != m_callbacks.meshResourceLoad) {
-					m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, res, collider);
-				}
-
-				// NOLINTNEXTLINE(google-build-explicit-make-pair)
-				return std::make_pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> (
-					std::move (res),
-					std::move (collider)
-				);
-			}
+			// NOLINTNEXTLINE(google-build-explicit-make-pair)
+			return std::make_pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> (
+				std::move (meshResource),
+				std::move (collider)
+			);
 		}
 	);
 
@@ -206,9 +140,9 @@ void PropCPUResourceManager <PropCPUResourceManagerAdapter>::loadTextureResource
 			std::shared_ptr <PropTextureResource> textureResource = std::make_shared <PropTextureResource> (loadTextureResource (std::get <0> (descriptor), std::get <1> (descriptor), std::get <2> (descriptor)));
 
 			if (nullptr != m_callbacks.textureResourceLoad) {
-
 				m_callbacks.textureResourceLoad (std::get <0> (descriptor), std::get <1> (descriptor), textureResource);
 			}
+
 			return textureResource;
 		}
 	);
@@ -467,10 +401,9 @@ PropCPUResourceManager <PropCPUResourceManagerAdapter>::ParsedMeshInfo PropCPURe
 		}
 	}
 
-
-	for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
-		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
-		PropMeshResource resource {};
+	if (1 == visualNode->mNumMeshes) {
+		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
+		PropMeshResource & meshResource = info.meshResource;
 
 		aiString diffuseMapUrl;
 		scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
@@ -481,45 +414,136 @@ PropCPUResourceManager <PropCPUResourceManagerAdapter>::ParsedMeshInfo PropCPURe
 				return static_cast <char> (std::tolower (c));
 			});
 
-			resource.textureFile = matName;
+			meshResource.textureFile = matName;
 		}
 
-		resource.vertexBuffer.resize (mesh->mNumVertices * 3UL);
+		meshResource.vertexBuffer.resize (mesh->mNumVertices * 3UL);
 
 		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-			resource.vertexBuffer [3 * i + 0] = mesh->mVertices [i].x;
-			resource.vertexBuffer [3 * i + 1] = mesh->mVertices [i].y;
-			resource.vertexBuffer [3 * i + 2] = mesh->mVertices [i].z;
+			meshResource.vertexBuffer [3 * i + 0] = mesh->mVertices [i].x;
+			meshResource.vertexBuffer [3 * i + 1] = mesh->mVertices [i].y;
+			meshResource.vertexBuffer [3 * i + 2] = mesh->mVertices [i].z;
 		}
 
-		resource.indexBuffer.resize (mesh->mNumFaces * 3UL);
+		meshResource.indexBuffer.resize (mesh->mNumFaces * 3UL);
 
 		for (unsigned i = 0; i < mesh->mNumFaces; ++i) {
-			resource.indexBuffer [3 * i + 0] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [0]);
-			resource.indexBuffer [3 * i + 1] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [1]);
-			resource.indexBuffer [3 * i + 2] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [2]);
+			meshResource.indexBuffer [3 * i + 0] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [0]);
+			meshResource.indexBuffer [3 * i + 1] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [1]);
+			meshResource.indexBuffer [3 * i + 2] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [2]);
 		}
 
 		if (true == mesh->HasTextureCoords (0)) {
-			resource.uvBuffer.resize (mesh->mNumVertices * 2UL);
+			meshResource.uvBuffer.resize (mesh->mNumVertices * 2UL);
 
 			for (unsigned i = 0; i < mesh->mNumVertices; ++i) {
-				resource.uvBuffer [2 * i + 0] = mesh->mTextureCoords [0] [i].x;
-				resource.uvBuffer [2 * i + 1] = mesh->mTextureCoords [0] [i].y;
+				meshResource.uvBuffer [2 * i + 0] = mesh->mTextureCoords [0] [i].x;
+				meshResource.uvBuffer [2 * i + 1] = mesh->mTextureCoords [0] [i].y;
 			}
 		}
 
 		if (true == mesh->HasNormals ()) {
-			resource.normalBuffer.resize (mesh->mNumVertices * 3UL);
+			meshResource.normalBuffer.resize (mesh->mNumVertices * 3UL);
 
 			for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-				resource.normalBuffer [3 * i + 0] = mesh->mNormals [i].x;
-				resource.normalBuffer [3 * i + 1] = mesh->mNormals [i].y;
-				resource.normalBuffer [3 * i + 2] = mesh->mNormals [i].z;
+				meshResource.normalBuffer [3 * i + 0] = mesh->mNormals [i].x;
+				meshResource.normalBuffer [3 * i + 1] = mesh->mNormals [i].y;
+				meshResource.normalBuffer [3 * i + 2] = mesh->mNormals [i].z;
+			}
+		}
+	}
+	else {
+		PropMeshResource & meshResource = info.meshResource;
+		std::size_t vertexBufferSize = 0;
+		std::size_t vertexBufferOffset = 0;
+		std::size_t vertexIndexOffset = 0;
+		std::size_t indexBufferSize = 0;
+		std::size_t indexBufferOffset = 0;
+		std::size_t uvBufferSize = 0;
+		std::size_t uvBufferOffset = 0;
+		std::size_t normalBufferSize = 0;
+		std::size_t normalBufferOffset = 0;
+
+		{
+			const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
+			aiString diffuseMapUrl;
+			scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
+
+			if (false == diffuseMapUrl.Empty ()) {
+				std::string matName (diffuseMapUrl.C_Str ());
+				std::ranges::transform (matName, matName.begin (), [] (char c) -> char {
+					return static_cast <char> (std::tolower (c));
+				});
+
+				meshResource.textureFile = matName;
 			}
 		}
 
-		info.meshResources.push_back (std::move (resource));
+		for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
+			const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
+			vertexBufferSize += mesh->mNumVertices * 3UL;
+			indexBufferSize += mesh->mNumFaces * 3UL;
+			if (true == mesh->HasTextureCoords (0)) {
+				uvBufferSize += mesh->mNumVertices * 2UL;
+			}
+			if (true == mesh->HasNormals ()) {
+				normalBufferSize += mesh->mNumVertices * 3UL;
+			}
+		}
+
+		meshResource.vertexBuffer.resize (vertexBufferSize);
+		meshResource.indexBuffer.resize (indexBufferSize);
+		meshResource.uvBuffer.resize (uvBufferSize);
+		meshResource.normalBuffer.resize (normalBufferSize);
+
+		for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
+			const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
+
+			std::size_t currentVertexBufferSize = mesh->mNumVertices * 3UL;
+
+			for (unsigned mI = 0, rI = vertexBufferOffset; mI < mesh->mNumVertices; mI++) {
+				meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].x;
+				meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].y;
+				meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].z;
+			}
+
+			std::size_t currentIndexBufferSize = mesh->mNumFaces * 3UL;
+
+			for (unsigned mI = 0, rI = indexBufferOffset; mI < mesh->mNumFaces; mI++) {
+				meshResource.indexBuffer [rI++] = static_cast <PropMeshResource::IndexType> (vertexIndexOffset + mesh->mFaces [mI].mIndices [0]);
+				meshResource.indexBuffer [rI++] = static_cast <PropMeshResource::IndexType> (vertexIndexOffset + mesh->mFaces [mI].mIndices [1]);
+				meshResource.indexBuffer [rI++] = static_cast <PropMeshResource::IndexType> (vertexIndexOffset + mesh->mFaces [mI].mIndices [2]);
+			}
+
+			vertexBufferOffset += currentVertexBufferSize;
+			vertexIndexOffset += mesh->mNumVertices;
+			indexBufferOffset += currentIndexBufferSize;
+
+			// FIXME: what if first mesh doesn't have normals/textcoords and second have? This indexing will fail.
+
+			if (true == mesh->HasTextureCoords (0)) {
+				std::size_t currentUVBufferSize = mesh->mNumVertices * 2UL;
+
+				for (unsigned mI = 0, rI = uvBufferOffset; mI < mesh->mNumVertices; mI++) {
+					meshResource.uvBuffer [rI++] = mesh->mTextureCoords [0] [mI].x;
+					meshResource.uvBuffer [rI++] = mesh->mTextureCoords [0] [mI].y;
+				}
+
+				uvBufferOffset += currentUVBufferSize;
+			}
+
+			if (true == mesh->HasNormals ()) {
+				std::size_t currentNormalBufferSize = currentVertexBufferSize;
+
+				for (unsigned mI = 0, rI = normalBufferOffset; mI < mesh->mNumVertices; mI++) {
+					meshResource.normalBuffer [rI++] = mesh->mNormals [mI].x;
+					meshResource.normalBuffer [rI++] = mesh->mNormals [mI].y;
+					meshResource.normalBuffer [rI++] = mesh->mNormals [mI].z;
+				}
+
+				normalBufferOffset += currentNormalBufferSize;
+			}
+		}
 	}
 
 	// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)

@@ -65,6 +65,7 @@ public:
 private:
 	struct ParsedMeshInfo {
 		std::vector <PropMeshResource> meshResources;
+		PropMeshResource meshResource;
 		Collider collider;
 	};
 
