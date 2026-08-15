@@ -1,20 +1,22 @@
 add_library (MapMaster_Module_Tanki SHARED
-	include/MapMaster/Tanki/PropLibrary.hpp
+	include/MapMaster/Tanki/Map.hpp
 	include/MapMaster/Tanki/PropCPUResourceManager.hpp
 	include/MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp
 	include/MapMaster/Tanki/PropGPUResourceManager.hpp
 	include/MapMaster/Tanki/PropGPUResourceManagerRaylibAdapter.hpp
-	include/MapMaster/Tanki/RaylibPropGPUResourceManager.hpp
+	include/MapMaster/Tanki/PropLibrary.hpp
 	include/MapMaster/Tanki/RaylibMap.hpp
-	include/MapMaster/Tanki/Map.hpp
-	src/PropLibrary.cpp
+	include/MapMaster/Tanki/RaylibPropCPUResourceManager.hpp
+	include/MapMaster/Tanki/RaylibPropGPUResourceManager.hpp
+	src/Map.cpp
 	src/PropCPUResourceManager.cpp
 	src/PropCPUResourceManagerAdapters.cpp
+	src/PropCPUResourceManagerRaylibAdapter.cpp
 	src/PropGPUResourceManager.cpp
-	src/PropGPUResourceManagerRaylibAdapter.cpp
 	src/PropGPUResourceManagerAdapters.cpp
+	src/PropGPUResourceManagerRaylibAdapter.cpp
+	src/PropLibrary.cpp
 	src/RaylibMap.cpp
-	src/Map.cpp
 )
 
 include (MapMasterBuildUtils)

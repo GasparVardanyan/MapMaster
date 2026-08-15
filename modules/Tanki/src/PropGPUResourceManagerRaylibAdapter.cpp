@@ -11,25 +11,25 @@ using namespace MapMaster::Tanki;
 
 template PropGPUResourceManagerRaylibAdapter::MeshResource
 PropGPUResourceManagerRaylibAdapter::CreateMeshResource <true> (
-	PropCPUResourceManager::PropMeshResource &
+	CPUResourceManager::PropMeshResource &
 );
 template PropGPUResourceManagerRaylibAdapter::MeshResource
 PropGPUResourceManagerRaylibAdapter::CreateMeshResource <false> (
-	PropCPUResourceManager::PropMeshResource &
+	CPUResourceManager::PropMeshResource &
 );
 
 template PropGPUResourceManagerRaylibAdapter::TextureResource
 PropGPUResourceManagerRaylibAdapter::CreateTextureResource <true> (
-	const PropCPUResourceManager::PropTextureResource &
+	const CPUResourceManager::PropTextureResource &
 );
 
 template PropGPUResourceManagerRaylibAdapter::TextureResource
 PropGPUResourceManagerRaylibAdapter::CreateTextureResource <false> (
-	const PropCPUResourceManager::PropTextureResource &
+	const CPUResourceManager::PropTextureResource &
 );
 
 template <bool Upload>
-PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAdapter::CreateMeshResource (PropCPUResourceManager::PropMeshResource & meshResource) {
+PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAdapter::CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};
 	m.mesh = std::shared_ptr <Mesh> (new Mesh {}, unloadMeshResource);
 
@@ -55,7 +55,7 @@ PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAd
 
 template <bool Upload>
 // cppcheck-suppress functionStatic
-PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRaylibAdapter::CreateTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource) {
+PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRaylibAdapter::CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource) {
 	TextureResource t = {};
 
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
@@ -114,7 +114,7 @@ void PropGPUResourceManagerRaylibAdapter::unloadTextureResource (Texture2D * tex
 	delete texture;
 }
 
-PropGPUResourceManagerRaylibAdapter::SpriteInfo PropGPUResourceManagerRaylibAdapter::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropCPUResourceManager::PropTextureResource & textureResource) {
+PropGPUResourceManagerRaylibAdapter::SpriteInfo PropGPUResourceManagerRaylibAdapter::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const CPUResourceManager::PropTextureResource & textureResource) {
 	const Vector2 size = {
 		.x = static_cast <float> (textureResource.width * sprite.scale),
 		.y = static_cast <float> (textureResource.height * sprite.scale),

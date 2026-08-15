@@ -14,8 +14,8 @@ namespace MapMaster::Tanki {
 // cppcheck-suppress-begin unusedStructMember
 class PropGPUResourceManagerRaylibAdapter {
 public:
-	using PropCPUResourceManagerAdapter = PropCPUResourceManagerRaylibAdapter;
-	using PropCPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerAdapter>;
+	using CPUResourceManagerAdapter = PropCPUResourceManagerRaylibAdapter;
+	using CPUResourceManager = PropCPUResourceManager <CPUResourceManagerAdapter>;
 
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;
@@ -36,15 +36,15 @@ public:
 	};
 
 	template <bool Upload = true>
-	static MeshResource CreateMeshResource (PropCPUResourceManager::PropMeshResource & meshResource);
+	static MeshResource CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource);
 
 	template <bool Upload = true>
-	static TextureResource CreateTextureResource (const PropCPUResourceManager::PropTextureResource & textureResource);
+	static TextureResource CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource);
 
 	static void UploadMeshResource (MeshResource & meshResource);
 	static void UploadTextureResource (TextureResource & meshResource);
 
-	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const PropCPUResourceManager::PropTextureResource & textureResource);
+	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const CPUResourceManager::PropTextureResource & textureResource);
 
 private:
 	static void unloadMeshResource (Mesh * mesh);

@@ -17,36 +17,16 @@ class Map;
 class PropLibrary;
 
 // cppcheck-suppress-begin unusedStructMember
-template <class PropCPUResourceManagerAdapter = PropCPUResourceManagerRaylibAdapter>
+template <class PropCPUResourceManagerAdapter>
 class PropCPUResourceManager {
 public:
-	struct PropMeshResource {
-		using VertexType = float;
-		using NormalType = float;
-		using TexCoordType = float;
-		using IndexType = unsigned short; // NOLINT(google-runtime-int)
+	using PropMeshResource = PropCPUResourceManagerAdapter::PropMeshResource;
+	using PropTextureResource = PropCPUResourceManagerAdapter::PropTextureResource;
 
-		static_assert (std::is_floating_point_v <VertexType>);
-		static_assert (std::is_floating_point_v <NormalType>);
-		static_assert (std::is_floating_point_v <TexCoordType>);
-		static_assert (std::is_integral_v <IndexType>);
-
-		std::string textureFile;
-		std::vector <VertexType> vertexBuffer;
-		std::vector <NormalType> normalBuffer;
-		std::vector <TexCoordType> uvBuffer;
-		std::vector <IndexType> indexBuffer;
-	};
-
-	struct PropTextureResource {
-		std::shared_ptr <unsigned char> pixBuffer;
-		int width = -1;
-		int height = -1;
-		int channels = -1;
-
-		// TODO: replace with big five
-		PropTextureResource clone ();
-	};
+	static_assert (std::is_floating_point_v <typename PropMeshResource::VertexType>);
+	static_assert (std::is_floating_point_v <typename PropMeshResource::NormalType>);
+	static_assert (std::is_floating_point_v <typename PropMeshResource::TexCoordType>);
+	static_assert (std::is_integral_v <typename PropMeshResource::IndexType>);
 
 	enum class OverlapBehaviour : unsigned char {
 		Ignore, Override

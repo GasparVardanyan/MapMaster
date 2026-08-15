@@ -16,8 +16,8 @@
 # include <vector>
 
 # include "MapMaster/Tanki/Map.hpp"
-# include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropLibrary.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -340,7 +340,7 @@ void PropGPUResourceManager <PropGPUResourceManagerAdapter>::loadTextureResource
 //
 
 template <class PropGPUResourceManagerAdapter>
-const PropGPUResourceManager <PropGPUResourceManagerAdapter>::CPUResourceManager & PropGPUResourceManager <PropGPUResourceManagerAdapter>::resourceManager () {
+const PropGPUResourceManager <PropGPUResourceManagerAdapter>::CPUResourceManager & PropGPUResourceManager <PropGPUResourceManagerAdapter>::cpuResourceManager () {
 	return m_resourceManager;
 }
 
