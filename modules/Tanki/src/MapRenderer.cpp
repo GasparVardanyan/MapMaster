@@ -1,4 +1,4 @@
-# include "MapMaster/Tanki/RaylibMap.hpp"
+# include "MapMaster/Tanki/MapRenderer.hpp"
 
 # include <map>
 # include <memory>
@@ -15,7 +15,7 @@
 
 using namespace MapMaster::Tanki;
 
-void RaylibMap::loadScene (float scale) {
+void MapRenderer::loadScene (float scale) {
 	m_sceneObjects = {};
 
 	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
@@ -55,8 +55,8 @@ void RaylibMap::loadScene (float scale) {
 
 						textureFile = library.getActualTextureFileName (textureFile);
 
-						const RaylibPropGPUResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
-						const RaylibPropGPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+						const GPUResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
+						const GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
 
 						const Matrix transform = MatrixMultiply (
 							MatrixMultiply (
@@ -142,8 +142,8 @@ void RaylibMap::loadScene (float scale) {
 				}
 				else if (true == group.sprites.contains (propName)) {
 					std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
-					const RaylibPropGPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
-					const RaylibPropGPUResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
+					const GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+					const GPUResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
 
 					for (const Map::MapObject & prop : propInfo) {
 						m_sceneObjects.sprites.push_back ({
@@ -175,7 +175,7 @@ void RaylibMap::loadScene (float scale) {
 	}
 }
 
-void RaylibMap::render (Camera & camera) {
+void MapRenderer::render (Camera & camera) {
 	for (const SceneMesh & mesh : m_sceneObjects.meshes) {
 		DrawMesh (* mesh.mesh, mesh.material, mesh.transform);
 	}
@@ -195,7 +195,7 @@ void RaylibMap::render (Camera & camera) {
 	}
 }
 
-void RaylibMap::renderCollisionGeometry (bool wireframe) {
+void MapRenderer::renderCollisionGeometry (bool wireframe) {
 	for (const SceneTriangleCollider & collider : m_sceneObjects.triangleColliders) {
 		DrawTriangle3D (collider.v1, collider.v2, collider.v3, m_collisionGeometryFaceColor);
 		DrawTriangle3D (collider.v1, collider.v3, collider.v2, m_collisionGeometryFaceColor);
@@ -232,35 +232,35 @@ void RaylibMap::renderCollisionGeometry (bool wireframe) {
 }
 
 // cppcheck-suppress shadowFunction
-void RaylibMap::setResourceManager (std::shared_ptr <RaylibPropGPUResourceManager> resourceManager) {
+void MapRenderer::setResourceManager (std::shared_ptr <GPUResourceManager> resourceManager) {
 	m_raylibResourceManager = std::move (resourceManager);
 }
 
-std::shared_ptr <RaylibPropGPUResourceManager> RaylibMap::resourceManager () const {
+std::shared_ptr <MapRenderer::GPUResourceManager> MapRenderer::resourceManager () const {
 	return m_raylibResourceManager;
 }
 
 // cppcheck-suppress shadowFunction
-void RaylibMap::setMap (std::shared_ptr <Map> map) {
+void MapRenderer::setMap (std::shared_ptr <Map> map) {
 	m_map = std::move (map);
 }
 
-std::shared_ptr <Map> RaylibMap::map () const {
+std::shared_ptr <Map> MapRenderer::map () const {
 	return m_map;
 }
 
-void RaylibMap::setCollisionGeometryFaceColor (Color color) {
+void MapRenderer::setCollisionGeometryFaceColor (Color color) {
 	m_collisionGeometryFaceColor = color;
 }
 
-void RaylibMap::setCollisionGeometryEdgeColor (Color color) {
+void MapRenderer::setCollisionGeometryEdgeColor (Color color) {
 	m_collisionGeometryEdgeColor = color;
 }
 
-Color RaylibMap::collisionGeometryFaceColor () {
+Color MapRenderer::collisionGeometryFaceColor () {
 	return m_collisionGeometryFaceColor;
 }
 
-Color RaylibMap::collisionGeometryEdgeColor () {
+Color MapRenderer::collisionGeometryEdgeColor () {
 	return m_collisionGeometryEdgeColor;
 }

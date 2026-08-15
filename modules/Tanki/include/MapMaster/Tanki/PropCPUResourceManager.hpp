@@ -9,8 +9,6 @@
 # include <utility>
 # include <vector>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
-
 namespace MapMaster::Tanki {
 
 class Map;

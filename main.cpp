@@ -9,7 +9,7 @@
 # include "MapMaster/Utils/Tanki.hpp"
 
 namespace MapMaster::Tanki {
-class RaylibMap;
+class MapRenderer;
 } // namespace MapMaster::Tanki
 
 
@@ -35,7 +35,7 @@ int main (int argc, char ** argv) {
 
 	std::chrono::time_point start = std::chrono::steady_clock::now ();
 
-	std::shared_ptr <MapMaster::Tanki::RaylibMap> rmap = MapMaster::Utils::Tanki::LoadRaylibMap (propLibsRoot, mapFile, scale, false);
+	std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap = MapMaster::Utils::Tanki::LoadMapRenderer (propLibsRoot, mapFile, scale, false);
 
 	std::chrono::time_point end = std::chrono::steady_clock::now ();
 
@@ -43,7 +43,7 @@ int main (int argc, char ** argv) {
 		<< std::chrono::duration <double> (end - start).count ()
 		<< " s\n";
 
-	MapMaster::Utils::Tanki::Window::DrawRaylibMapInCurrentWindow (rmap, scale, propLibsRoot, mapFile);
+	MapMaster::Utils::Tanki::Window::DrawMapRendererInCurrentWindow (rmap, scale, propLibsRoot, mapFile);
 
 	rmap.reset ();
 

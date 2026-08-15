@@ -9,7 +9,7 @@
 namespace MapMaster::Tanki {
 class Map;
 class PropLibrary;
-class RaylibMap;
+class MapRenderer;
 } // namespace MapMaster::Tanki
 
 
@@ -37,13 +37,13 @@ namespace MapMaster::Utils::Tanki {
 
 namespace Window {
 void OpenRaylibWindow (int width, int height, const std::string & title = {}, int logLevel = LOG_NONE);
-void DrawRaylibMapInCurrentWindow (std::shared_ptr <MapMaster::Tanki::RaylibMap> rmap, float scale = 1.0, const std::string & msg1 = {}, const std::string & msg2 = {});
+void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap, float scale = 1.0, const std::string & msg1 = {}, const std::string & msg2 = {});
 void CloseRaylibWindow ();
 } // namespace Window
 
 
 
-std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
+std::shared_ptr <MapMaster::Tanki::MapRenderer> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
 
 
 // PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath);

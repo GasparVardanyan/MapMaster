@@ -20,7 +20,7 @@
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/RaylibMap.hpp"
+# include "MapMaster/Tanki/MapRenderer.hpp"
 # include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 
@@ -33,7 +33,7 @@ void OpenRaylibWindow (int width, int height, const std::string & title, int log
 	InitWindow (width, height, title.c_str ());
 }
 
-void DrawRaylibMapInCurrentWindow (std::shared_ptr <MapMaster::Tanki::RaylibMap> rmap, float scale, const std::string & msg1, const std::string & msg2) {
+void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap, float scale, const std::string & msg1, const std::string & msg2) {
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 	Camera camera = {
 		.position = {
@@ -104,8 +104,8 @@ void CloseRaylibWindow () {
 }
 }  // namespace Window
 
-std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure) {
-	std::shared_ptr <MapMaster::Tanki::RaylibMap> rmap = std::make_shared <MapMaster::Tanki::RaylibMap> ();
+std::shared_ptr <MapMaster::Tanki::MapRenderer> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure) {
+	std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap = std::make_shared <MapMaster::Tanki::MapRenderer> ();
 
 	if (true || true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
