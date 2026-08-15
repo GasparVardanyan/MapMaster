@@ -4,6 +4,7 @@
 
 # include <raylib.h>
 
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
@@ -13,6 +14,9 @@ namespace MapMaster::Tanki {
 // cppcheck-suppress-begin unusedStructMember
 class PropGPUResourceManagerRaylibAdapter {
 public:
+	using PropCPUResourceManagerAdapter = PropCPUResourceManagerRaylibAdapter;
+	using PropCPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerAdapter>;
+
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;
 

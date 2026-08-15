@@ -10,7 +10,7 @@
 namespace MapMaster::Tanki {
 class Map;
 class PropLibrary;
-class PropCPUResourceManager;
+// class PropCPUResourceManager;
 class RaylibMap;
 } // namespace MapMaster::Tanki
 
@@ -20,20 +20,20 @@ namespace MapMaster::Utils::Tanki {
 
 
 
-using PropLibraryNameToPathVectorMap = std::map <
-	std::string,
-	std::vector <std::string>
->;
-
-using PropLibraryNameToLibraryVectorMap = std::map <
-	std::string,
-	std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>
->;
-
-using PropLibraryNameToResourceManagerVectorMap = std::map <
-	std::string,
-	std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager>>
->;
+// using PropLibraryNameToPathVectorMap = std::map <
+// 	std::string,
+// 	std::vector <std::string>
+// >;
+//
+// using PropLibraryNameToLibraryVectorMap = std::map <
+// 	std::string,
+// 	std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>
+// >;
+//
+// using PropLibraryNameToResourceManagerVectorMap = std::map <
+// 	std::string,
+// 	std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager>>
+// >;
 
 
 
@@ -48,13 +48,13 @@ void CloseRaylibWindow ();
 std::shared_ptr <MapMaster::Tanki::RaylibMap> LoadRaylibMap (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
 
 
-PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath);
-PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPathVectorMap & nameToPathVectorMap);
-PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources (const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap);
-std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library);
-
-std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map);
-std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map);
+// PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath);
+// PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPathVectorMap & nameToPathVectorMap);
+// PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources (const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap);
+// std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library);
+//
+// std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map);
+// std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map);
 
 
 

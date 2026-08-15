@@ -9,12 +9,15 @@
 # include <utility>
 # include <vector>
 
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
+
 namespace MapMaster::Tanki {
 
 class Map;
 class PropLibrary;
 
 // cppcheck-suppress-begin unusedStructMember
+template <class PropCPUResourceManagerAdapter = PropCPUResourceManagerRaylibAdapter>
 class PropCPUResourceManager {
 public:
 	struct PropMeshResource {

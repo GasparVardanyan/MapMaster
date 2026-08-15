@@ -8,6 +8,7 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
 # include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
 
 namespace MapMaster::Tanki {
@@ -15,6 +16,7 @@ namespace MapMaster::Tanki {
 // cppcheck-suppress-begin unusedStructMember
 class RaylibMap {
 public:
+	using PropCPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerRaylibAdapter>;
 	struct SceneMesh {
 		Matrix transform = {};
 		std::shared_ptr <Mesh> mesh = nullptr;

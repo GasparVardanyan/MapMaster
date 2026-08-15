@@ -16,6 +16,7 @@ class Map;
 template <class PropGPUResourceManagerAdapter>
 class PropGPUResourceManager {
 public:
+	using CPUResourceManager = PropGPUResourceManagerAdapter::PropCPUResourceManager;
 	using MeshResource = PropGPUResourceManagerAdapter::MeshResource;
 	using TextureResource = PropGPUResourceManagerAdapter::TextureResource;
 	using SpriteInfo = PropGPUResourceManagerAdapter::SpriteInfo;
@@ -42,13 +43,13 @@ public:
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors);
 
-	[[nodiscard]] const PropCPUResourceManager & resourceManager ();
+	[[nodiscard]] const CPUResourceManager & resourceManager ();
 	[[nodiscard]] const std::map <std::string, std::map <std::string, MeshResource>> & meshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, TextureResource>> & textureResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, SpriteInfo>> & spriteInfos () const;
 
 private:
-	PropCPUResourceManager m_resourceManager;
+	CPUResourceManager m_resourceManager;
 	std::string m_libraryRootDir;
 
 	std::map <std::string, std::map <std::string, MeshResource>> m_meshResources;
