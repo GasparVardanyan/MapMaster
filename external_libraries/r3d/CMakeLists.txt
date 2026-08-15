@@ -1,5 +1,10 @@
 add_library (MapMaster_External_R3D INTERFACE)
 
+target_link_libraries (MapMaster_External_R3D INTERFACE
+	MapMaster_External_Raylib
+	MapMaster_External_Assimp
+)
+
 set (BUILD_SHARED_LIBS true)
 
 add_subdirectory (
