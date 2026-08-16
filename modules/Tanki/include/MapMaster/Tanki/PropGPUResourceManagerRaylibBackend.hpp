@@ -4,7 +4,7 @@
 
 # include <raylib.h>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
@@ -12,10 +12,10 @@ namespace MapMaster::Tanki {
 
 // TODO: make an interface trait
 // cppcheck-suppress-begin unusedStructMember
-class PropGPUResourceManagerRaylibAdapter {
+class PropGPUResourceManagerRaylibBackend {
 public:
-	using CPUResourceManagerAdapter = PropCPUResourceManagerRaylibAdapter;
-	using CPUResourceManager = PropCPUResourceManager <CPUResourceManagerAdapter>;
+	using CPUResourceManagerBackend = PropCPUResourceManagerRaylibBackend;
+	using CPUResourceManager = PropCPUResourceManager <CPUResourceManagerBackend>;
 
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;

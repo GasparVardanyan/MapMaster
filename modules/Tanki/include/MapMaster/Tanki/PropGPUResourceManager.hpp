@@ -13,13 +13,13 @@ namespace MapMaster::Tanki {
 class Map;
 
 // cppcheck-suppress-begin unusedStructMember
-template <class PropGPUResourceManagerAdapter>
+template <class PropGPUResourceManagerBackend>
 class PropGPUResourceManager {
 public:
-	using CPUResourceManager = PropGPUResourceManagerAdapter::CPUResourceManager;
-	using MeshResource = PropGPUResourceManagerAdapter::MeshResource;
-	using TextureResource = PropGPUResourceManagerAdapter::TextureResource;
-	using SpriteInfo = PropGPUResourceManagerAdapter::SpriteInfo;
+	using CPUResourceManager = PropGPUResourceManagerBackend::CPUResourceManager;
+	using MeshResource = PropGPUResourceManagerBackend::MeshResource;
+	using TextureResource = PropGPUResourceManagerBackend::TextureResource;
+	using SpriteInfo = PropGPUResourceManagerBackend::SpriteInfo;
 
 public:
 	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false);

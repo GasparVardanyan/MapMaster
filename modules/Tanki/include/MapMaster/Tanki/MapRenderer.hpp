@@ -8,17 +8,17 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropGPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
 
 namespace MapMaster::Tanki {
 
 // cppcheck-suppress-begin unusedStructMember
 class MapRenderer {
 public:
-	using CPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerRaylibAdapter>;
-	using GPUResourceManager = PropGPUResourceManager <PropGPUResourceManagerRaylibAdapter>;
+	using CPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;
+	using GPUResourceManager = PropGPUResourceManager <PropGPUResourceManagerRaylibBackend>;
 
 	struct SceneMesh {
 		Matrix transform = {};

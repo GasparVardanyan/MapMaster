@@ -15,11 +15,11 @@ class Map;
 class PropLibrary;
 
 // cppcheck-suppress-begin unusedStructMember
-template <class PropCPUResourceManagerAdapter>
+template <class PropCPUResourceManagerBackend>
 class PropCPUResourceManager {
 public:
-	using PropMeshResource = PropCPUResourceManagerAdapter::PropMeshResource;
-	using PropTextureResource = PropCPUResourceManagerAdapter::PropTextureResource;
+	using PropMeshResource = PropCPUResourceManagerBackend::PropMeshResource;
+	using PropTextureResource = PropCPUResourceManagerBackend::PropTextureResource;
 
 	static_assert (std::is_floating_point_v <typename PropMeshResource::VertexType>);
 	static_assert (std::is_floating_point_v <typename PropMeshResource::NormalType>);

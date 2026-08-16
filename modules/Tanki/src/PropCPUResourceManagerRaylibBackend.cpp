@@ -13,13 +13,13 @@
 # include <assimp/types.h>
 # include <stb_image.h>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 
 using namespace MapMaster::Tanki;
 
 
 
-PropCPUResourceManagerRaylibAdapter::PropMeshResource PropCPUResourceManagerRaylibAdapter::ParseMeshResource (const aiScene * scene, const aiNode * visualNode) {
+PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRaylibBackend::ParseMeshResource (const aiScene * scene, const aiNode * visualNode) {
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 
 	PropMeshResource meshResource;
@@ -172,7 +172,7 @@ PropCPUResourceManagerRaylibAdapter::PropMeshResource PropCPUResourceManagerRayl
 	// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 }
 
-PropCPUResourceManagerRaylibAdapter::PropTextureResource PropCPUResourceManagerRaylibAdapter::ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle) {
+PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerRaylibBackend::ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle) {
 	int width = 0;
 	int height = 0;
 	int channels = 0;
@@ -221,7 +221,7 @@ PropCPUResourceManagerRaylibAdapter::PropTextureResource PropCPUResourceManagerR
 
 
 
-PropCPUResourceManagerRaylibAdapter::PropTextureResource PropCPUResourceManagerRaylibAdapter::PropTextureResource::clone () {
+PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerRaylibBackend::PropTextureResource::clone () {
 	if (width < 0 || height < 0 || channels < 0) {
 		return {};
 	}

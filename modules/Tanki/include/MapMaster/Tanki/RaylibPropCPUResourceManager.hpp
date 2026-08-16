@@ -1,10 +1,10 @@
 # pragma once
 
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 
 namespace MapMaster::Tanki {
 
-using RaylibPropCPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerRaylibAdapter>;
+using RaylibPropCPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;
 
 }  // namespace MapMaster::Tanki

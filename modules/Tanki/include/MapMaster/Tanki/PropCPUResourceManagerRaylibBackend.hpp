@@ -8,7 +8,7 @@
 # include <type_traits>
 # include <vector>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 
 struct aiScene;
@@ -18,7 +18,7 @@ namespace MapMaster::Tanki {
 
 // TODO: make an interface trait
 // cppcheck-suppress-begin unusedStructMember
-class PropCPUResourceManagerRaylibAdapter {
+class PropCPUResourceManagerRaylibBackend {
 public:
 	struct PropMeshResource {
 		using VertexType = float;

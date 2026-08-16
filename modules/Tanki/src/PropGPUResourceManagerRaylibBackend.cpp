@@ -1,4 +1,4 @@
-# include "MapMaster/Tanki/PropGPUResourceManagerRaylibAdapter.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
 
 # include <memory>
 # include <vector>
@@ -7,28 +7,28 @@
 
 using namespace MapMaster::Tanki;
 
-template PropGPUResourceManagerRaylibAdapter::MeshResource
-PropGPUResourceManagerRaylibAdapter::CreateMeshResource <true> (
+template PropGPUResourceManagerRaylibBackend::MeshResource
+PropGPUResourceManagerRaylibBackend::CreateMeshResource <true> (
 	CPUResourceManager::PropMeshResource &
 );
 
-template PropGPUResourceManagerRaylibAdapter::MeshResource
-PropGPUResourceManagerRaylibAdapter::CreateMeshResource <false> (
+template PropGPUResourceManagerRaylibBackend::MeshResource
+PropGPUResourceManagerRaylibBackend::CreateMeshResource <false> (
 	CPUResourceManager::PropMeshResource &
 );
 
-template PropGPUResourceManagerRaylibAdapter::TextureResource
-PropGPUResourceManagerRaylibAdapter::CreateTextureResource <true> (
+template PropGPUResourceManagerRaylibBackend::TextureResource
+PropGPUResourceManagerRaylibBackend::CreateTextureResource <true> (
 	const CPUResourceManager::PropTextureResource &
 );
 
-template PropGPUResourceManagerRaylibAdapter::TextureResource
-PropGPUResourceManagerRaylibAdapter::CreateTextureResource <false> (
+template PropGPUResourceManagerRaylibBackend::TextureResource
+PropGPUResourceManagerRaylibBackend::CreateTextureResource <false> (
 	const CPUResourceManager::PropTextureResource &
 );
 
 template <bool Upload>
-PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAdapter::CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource) {
+PropGPUResourceManagerRaylibBackend::MeshResource PropGPUResourceManagerRaylibBackend::CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};
 	m.mesh = std::shared_ptr <Mesh> (new Mesh {}, unloadMeshResource);
 
@@ -54,7 +54,7 @@ PropGPUResourceManagerRaylibAdapter::MeshResource PropGPUResourceManagerRaylibAd
 
 template <bool Upload>
 // cppcheck-suppress functionStatic
-PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRaylibAdapter::CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource) {
+PropGPUResourceManagerRaylibBackend::TextureResource PropGPUResourceManagerRaylibBackend::CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource) {
 	TextureResource t = {};
 
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
@@ -81,18 +81,18 @@ PropGPUResourceManagerRaylibAdapter::TextureResource PropGPUResourceManagerRayli
 	return t;
 }
 
-void PropGPUResourceManagerRaylibAdapter::UploadMeshResource (MeshResource & meshResource) {
+void PropGPUResourceManagerRaylibBackend::UploadMeshResource (MeshResource & meshResource) {
 	UploadMesh (meshResource.mesh.get (), false);
 }
 
-void PropGPUResourceManagerRaylibAdapter::UploadTextureResource (TextureResource & TextureResource) {
+void PropGPUResourceManagerRaylibBackend::UploadTextureResource (TextureResource & TextureResource) {
 	TextureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (TextureResource.image)), unloadTextureResource);
 
 	GenTextureMipmaps (TextureResource.texture.get ());
 	SetTextureFilter (* TextureResource.texture, TEXTURE_FILTER_TRILINEAR);
 }
 
-void PropGPUResourceManagerRaylibAdapter::unloadMeshResource (Mesh * mesh) {
+void PropGPUResourceManagerRaylibBackend::unloadMeshResource (Mesh * mesh) {
 	mesh->vertices = nullptr;
 	mesh->vertexCount = 0;
 	mesh->texcoords = nullptr;
@@ -107,13 +107,13 @@ void PropGPUResourceManagerRaylibAdapter::unloadMeshResource (Mesh * mesh) {
 	delete mesh;
 }
 
-void PropGPUResourceManagerRaylibAdapter::unloadTextureResource (Texture2D * texture) {
+void PropGPUResourceManagerRaylibBackend::unloadTextureResource (Texture2D * texture) {
 	UnloadTexture (* texture);
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
 }
 
-PropGPUResourceManagerRaylibAdapter::SpriteInfo PropGPUResourceManagerRaylibAdapter::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const CPUResourceManager::PropTextureResource & textureResource) {
+PropGPUResourceManagerRaylibBackend::SpriteInfo PropGPUResourceManagerRaylibBackend::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const CPUResourceManager::PropTextureResource & textureResource) {
 	const Vector2 size = {
 		.x = static_cast <float> (textureResource.width * sprite.scale),
 		.y = static_cast <float> (textureResource.height * sprite.scale),
