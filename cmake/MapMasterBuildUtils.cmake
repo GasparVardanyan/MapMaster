@@ -9,7 +9,7 @@ function (MapMaster_Build_SetCompilerOptions target)
 	)
 
 	target_compile_options (${target} PRIVATE
-		-pedantic-errors -Werror=pedantic
+		-pedantic-errors -Werror=pedantic -Wno-c99-extensions
 	)
 endfunction ()
 

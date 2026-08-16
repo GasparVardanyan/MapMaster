@@ -21,11 +21,6 @@ public:
 	using PropMeshResource = PropCPUResourceManagerBackend::PropMeshResource;
 	using PropTextureResource = PropCPUResourceManagerBackend::PropTextureResource;
 
-	static_assert (std::is_floating_point_v <typename PropMeshResource::VertexType>);
-	static_assert (std::is_floating_point_v <typename PropMeshResource::NormalType>);
-	static_assert (std::is_floating_point_v <typename PropMeshResource::TexCoordType>);
-	static_assert (std::is_integral_v <typename PropMeshResource::IndexType>);
-
 	enum class OverlapBehaviour : unsigned char {
 		Ignore, Override
 	};

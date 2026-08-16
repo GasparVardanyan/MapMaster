@@ -8,9 +8,6 @@
 # include <type_traits>
 # include <vector>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
-# include "MapMaster/Tanki/PropLibrary.hpp"
-
 struct aiScene;
 struct aiNode;
 

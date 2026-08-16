@@ -3,9 +3,6 @@
 # include <memory>
 # include <string>
 
-# include <raylib.h>
-# include <r3d/r3d.h>
-
 # include "MapMaster/Utils/Tanki.hpp"
 
 namespace MapMaster::Tanki {
@@ -46,39 +43,6 @@ int main (int argc, char ** argv) {
 	MapMaster::Utils::Tanki::Window::DrawMapRendererInCurrentWindow (rmap, scale, propLibsRoot, mapFile);
 
 	rmap.reset ();
-
-
-	// R3D_Init( 1680, 1050 );
-	//
-	// // Create scene objects
-	// R3D_Mesh mesh = R3D_GenMeshSphere(1.0f, 16, 32);
-	// R3D_Material material = R3D_GetDefaultMaterial();
-	//
-	// // Setup lighting
-	// R3D_Light light = R3D_CreateDirLight((Vector3) {-1, -1, -1}, WHITE, 1.0f);
-	//
-	// // Camera setup
-	// Camera3D camera = {
-	// 	.position = {3, 3, 3},
-	// 	.target = {0, 0, 0},
-	// 	.up = {0, 1, 0},
-	// 	.fovy = 60.0f,
-	// 	.projection = CAMERA_PERSPECTIVE
-	// };
-	//
-	// // Main loop
-	// while (!WindowShouldClose()) {
-	// 	UpdateCamera(&camera, CAMERA_ORBITAL);
-	// 	BeginDrawing();
-	// 	R3D_Begin(camera);
-	// 	R3D_PushLight(light);
-	// 	R3D_DrawMesh(mesh, material, Vector3Zero(), 1.0f);
-	// 	R3D_End();
-	// 	EndDrawing();
-	// }
-	//
-	// R3D_UnloadMesh(mesh);
-	// R3D_Close();
 
 	MapMaster::Utils::Tanki::Window::CloseRaylibWindow ();
 }
