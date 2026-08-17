@@ -1,35 +1,31 @@
-# include <assimp/Importer.hpp>
-# include <assimp/postprocess.h>
-# include <assimp/scene.h>
+# include <chrono>
 # include <cstdio>
+# include <iostream>
+# include <memory>
 # include <string>
 
+# include <assimp/Importer.hpp>
+# include <assimp/config.h>
+# include <assimp/postprocess.h>
+# include <assimp/scene.h>
 # include <raylib.h>
-# include <rlgl.h>
 # include <raymath.h>
-# include <r3d/r3d.h>
 # include <r3d/r3d_core.h>
 # include <r3d/r3d_draw.h>
 # include <r3d/r3d_lighting.h>
 # include <r3d/r3d_material.h>
-# include <r3d/r3d_mesh.h>
+# include <r3d/r3d_environment.h>
 
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
-# include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManagerR3DBackend.hpp"
 # include "MapMaster/Utils/Tanki.hpp"
-# include "r3d/r3d_mesh_data.h"
-# include "r3d/r3d_model.h"
-# include "r3d/r3d_texture.h"
 
 using RenderingCPUBackend = MapMaster::Tanki::PropCPUResourceManagerRaylibBackend;
-
-namespace MapMaster::Tanki {
-class MapRenderer;
-}
 
 template <typename PropCPUResourceManagerBackend>
 static MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource cpuMesh (const std::string & meshPath) {
@@ -68,7 +64,7 @@ static MapMaster::Tanki::PropCPUResourceManager<PropCPUResourceManagerBackend>::
 
 
 
-static constexpr float scale = 0.01F;
+static constexpr float scale = 0.005F;
 
 int main (int argc, char ** argv) {
 	// NOLINTBEGIN(*)
@@ -153,47 +149,84 @@ int main (int argc, char ** argv) {
 
 	R3D_Init( 1680, 1050 );
 
-
-	R3D_Mesh mesh = R3D_GenMeshSphere(1.0f / scale, 16, 32);
-	R3D_Material material = R3D_GetDefaultMaterial();
-
+	if (0)
 	{
-		MapMaster::Tanki::PropCPUResourceManagerR3DBackend::PropMeshResource meshRes = cpuMesh <MapMaster::Tanki::PropCPUResourceManagerR3DBackend> ("/src/data/MapMaster/fahwerk1.3ds");
-		R3D_Mesh m = R3D_LoadMesh (R3D_PrimitiveType::R3D_PRIMITIVE_TRIANGLES, * meshRes.mesh, & meshRes.aabb);
-		// R3D_UnloadMesh (m);
-		R3D_UnloadMesh (mesh);
-		mesh = m;
+		std::chrono::time_point start = std::chrono::steady_clock::now ();
+		MapMaster::Tanki::Map map;
+		map.loadFile ("/src/data/MapMaster/finalboss.xml");
+		MapMaster::Tanki::PropGPUResourceManager <MapMaster::Tanki::PropGPUResourceManagerR3DBackend> resMan (true);
+		resMan.loadMapLibraries (map, "/src/data/MapMaster/PLVK/");
+		resMan.loadMapResources_OLD (map);
+		std::chrono::time_point end = std::chrono::steady_clock::now ();
+
+		std::cout << "Elapsed: "
+			<< std::chrono::duration <double> (end - start).count ()
+			<< " s\n";
 	}
 
-	R3D_Model model = R3D_LoadModel("/src/data/MapMaster/fahwerk1.3ds");
-	Texture2D texture = R3D_LoadTexture ("/src/data/MapMaster/fahwerk1.jpg", false);
-	model.materials [0].albedo.texture = texture;
+
+	R3D_GetEnvironment ()->ambient.color = WHITE;
+	R3D_GetEnvironment ()->ambient.energy = 0.2f;
 
 
-	R3D_Light light = R3D_CreateDirLight((Vector3) {-1, -1, -1}, WHITE, 1.0f);
+
+	MapMaster::Tanki::PropCPUResourceManagerR3DBackend::PropMeshResource cpuMeshRes
+		= cpuMesh <MapMaster::Tanki::PropCPUResourceManagerR3DBackend> ("/src/data/MapMaster/fahwerk1.3ds")
+	;
+
+	MapMaster::Tanki::PropCPUResourceManagerR3DBackend::PropTextureResource cpuTextureRes
+		= cpuTexture <MapMaster::Tanki::PropCPUResourceManagerR3DBackend> ("/src/data/MapMaster/fahwerk1.png")
+	;
+
+
+	MapMaster::Tanki::PropGPUResourceManagerR3DBackend::MeshResource gpuMeshRes
+		= MapMaster::Tanki::PropGPUResourceManagerR3DBackend::CreateMeshResource <true> (cpuMeshRes)
+	;
+
+	MapMaster::Tanki::PropGPUResourceManagerR3DBackend::TextureResource gpuTextureRes
+		= MapMaster::Tanki::PropGPUResourceManagerR3DBackend::CreateTextureResource <true> (cpuTextureRes)
+	;
+
+	R3D_Material material = R3D_GetDefaultMaterial ();
+	material.albedo.texture = * gpuTextureRes.texture;
+
+
+	// R3D_Light light = R3D_CreateDirLight((Vector3) {-1, -1, -1}, WHITE, 1.0f);
+	R3D_Light light = R3D_CreateOmniLight (
+		(Vector3) {.x = 0, .y = 200, .z = 1000},
+		100,
+		WHITE, 0.8f
+	);
 
 
 	Camera camera = { 0 };
-	camera.position = (Vector3){ 50.0f, 50.0f, 50.0f };
-	camera.target = (Vector3){ 0.0f, 12.0f, 0.0f };
+	camera.position = (Vector3){0, -10, 5};
+	camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
 	camera.up = (Vector3){ 0.0f, 0.0f, 1.0f };
 	camera.fovy = 45.0f;
 	camera.projection = CAMERA_PERSPECTIVE;
 
+	MapMaster::Scene3D::CameraController camCtrl;
+	camCtrl.setCamera (& camera);
+	camCtrl.setMoveSpeed (camCtrl.moveSpeed () * scale);
+
 
 	while (!WindowShouldClose()) {
-		UpdateCamera(&camera, CAMERA_ORBITAL);
+		// UpdateCamera(&camera, CAMERA_ORBITAL);
+		camCtrl.updateCamera ();
 		BeginDrawing();
 		R3D_Begin(camera);
 		R3D_PushLight(light);
-		// R3D_DrawModel(model, Vector3Zero(), scale);
-		R3D_DrawMesh(mesh, material, Vector3Zero(), scale);
+		R3D_DrawMesh (* gpuMeshRes.mesh, material, Vector3Zero(), scale);
 		R3D_End();
 		EndDrawing();
 	}
 
-	R3D_UnloadModel (model, true);
-	R3D_UnloadMesh(mesh);
+	gpuMeshRes = {};
+	gpuTextureRes = {};
+	cpuMeshRes = {};
+	cpuTextureRes = {};
+
 	R3D_Close();
 
 # endif

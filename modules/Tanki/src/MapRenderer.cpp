@@ -10,7 +10,6 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
-# include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 
 using namespace MapMaster::Tanki;

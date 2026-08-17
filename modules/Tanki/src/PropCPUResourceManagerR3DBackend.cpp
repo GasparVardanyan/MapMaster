@@ -4,26 +4,21 @@
 # include <cstdio>
 # include <cstdlib>
 # include <cstring>
-# include <iostream>
 # include <limits>
 # include <memory>
 # include <string>
-# include <vector>
 
 # include <assimp/material.h>
 # include <assimp/mesh.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
 # include <stb_image.h>
-
 # include <raylib.h>
 # include <raymath.h>
-
-# include <r3d/r3d.h>
 # include <r3d/r3d_mesh_data.h>
+# include <r3d/r3d_vertex.h>
 
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
-# include "r3d/r3d_vertex.h"
 
 using namespace MapMaster::Tanki;
 
@@ -35,7 +30,8 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 	PropMeshResource meshResource;
 	std::shared_ptr <R3D_MeshData> & meshData = meshResource.mesh;
 
-	if (1 == visualNode->mNumMeshes) {
+	// FIXME: add support for multi mesh nodes
+	if (true || 1 == visualNode->mNumMeshes) {
 		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
 
 		aiString diffuseMapUrl;

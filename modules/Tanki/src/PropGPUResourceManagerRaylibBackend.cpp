@@ -85,11 +85,11 @@ void PropGPUResourceManagerRaylibBackend::UploadMeshResource (MeshResource & mes
 	UploadMesh (meshResource.mesh.get (), false);
 }
 
-void PropGPUResourceManagerRaylibBackend::UploadTextureResource (TextureResource & TextureResource) {
-	TextureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (TextureResource.image)), unloadTextureResource);
+void PropGPUResourceManagerRaylibBackend::UploadTextureResource (TextureResource & textureResource) {
+	textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (textureResource.image)), unloadTextureResource);
 
-	GenTextureMipmaps (TextureResource.texture.get ());
-	SetTextureFilter (* TextureResource.texture, TEXTURE_FILTER_TRILINEAR);
+	GenTextureMipmaps (textureResource.texture.get ());
+	SetTextureFilter (* textureResource.texture, TEXTURE_FILTER_TRILINEAR);
 }
 
 void PropGPUResourceManagerRaylibBackend::unloadMeshResource (Mesh * mesh) {

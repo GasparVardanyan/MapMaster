@@ -2,10 +2,11 @@ add_library (MapMaster_External_R3D INTERFACE)
 
 target_link_libraries (MapMaster_External_R3D INTERFACE
 	MapMaster_External_Raylib
-	MapMaster_External_Assimp
+	# MapMaster_External_Assimp
 )
 
 set (BUILD_SHARED_LIBS true)
+set (DR3D_SUPPORT_ASSIMP OFF)
 
 add_subdirectory (
 	${CMAKE_CURRENT_SOURCE_DIR}/../../external/r3d

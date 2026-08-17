@@ -3,8 +3,10 @@
 # include <memory>
 
 # include <raylib.h>
+# include <r3d/r3d_mesh.h>
+# include <r3d/r3d_mesh_data.h>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
@@ -12,13 +14,15 @@ namespace MapMaster::Tanki {
 
 // TODO: make an interface trait
 // cppcheck-suppress-begin unusedStructMember
-class PropGPUResourceManagerRaylibBackend {
+class PropGPUResourceManagerR3DBackend {
 public:
-	using CPUResourceManagerBackend = PropCPUResourceManagerRaylibBackend;
+	using CPUResourceManagerBackend = PropCPUResourceManagerR3DBackend;
 	using CPUResourceManager = PropCPUResourceManager <CPUResourceManagerBackend>;
 
 	struct MeshResource {
-		std::shared_ptr <Mesh> mesh;
+		std::shared_ptr <R3D_MeshData> meshData;
+		std::shared_ptr <R3D_Mesh> mesh;
+		BoundingBox aabb;
 
 		// TODO: clone()
 	};
@@ -42,12 +46,12 @@ public:
 	static TextureResource CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource);
 
 	static void UploadMeshResource (MeshResource & meshResource);
-	static void UploadTextureResource (TextureResource & textureResource);
+	static void UploadTextureResource (TextureResource & meshResource);
 
 	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const CPUResourceManager::PropTextureResource & textureResource);
 
 private:
-	static void unloadMeshResource (Mesh * mesh);
+	static void unloadMeshResource (R3D_Mesh * mesh);
 	static void unloadTextureResource (Texture2D * texture);
 };
 // cppcheck-suppress-end unusedStructMember
