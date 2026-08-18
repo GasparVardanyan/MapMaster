@@ -33,16 +33,3 @@ target_link_libraries (${PROJECT_NAME}
 )
 
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)
-
-add_executable (hello_r3d
-	hello_r3d.cpp
-)
-
-MapMaster_Build_ModuleConfig (hello_r3d)
-
-target_link_libraries (hello_r3d
-	${MAP_MASTER_MODULES}
-	${MAP_MASTER_EXTERNAL_LIBRARIES}
-)
-
-target_compile_options (hello_r3d PRIVATE -Wno-c99-extensions)

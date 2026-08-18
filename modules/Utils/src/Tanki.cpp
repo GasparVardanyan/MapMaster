@@ -12,12 +12,23 @@
 # include <utility>
 # include <vector>
 # include <functional>
+# include <type_traits>
 
 # include <pugixml.hpp>
+
 # include <raylib.h>
+# include <raymath.h>
+
+# include <r3d/r3d_core.h>
+# include <r3d/r3d_draw.h>
+# include <r3d/r3d_lighting.h>
+# include <r3d/r3d_material.h>
+# include <r3d/r3d_environment.h>
 
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
+# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/MapRenderer.hpp"
@@ -27,13 +38,23 @@
 namespace MapMaster::Utils::Tanki {
 
 namespace Window {
-void OpenRaylibWindow (int width, int height, const std::string & title, int logLevel) {
-	SetTraceLogLevel (logLevel);
-	SetConfigFlags (FLAG_MSAA_4X_HINT);
-	InitWindow (width, height, title.c_str ());
+template <class MapRendererBackend>
+void OpenMapWindow (int width, int height, const std::string & title, int logLevel) {
+	if constexpr (
+		   std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererRaylibBackend>
+		|| std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>
+	) {
+		SetTraceLogLevel (logLevel);
+		SetConfigFlags (FLAG_MSAA_4X_HINT);
+		InitWindow (width, height, title.c_str ());
+		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+			R3D_Init (width, height);
+		}
+	}
 }
 
-void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap, float scale, const std::string & msg1, const std::string & msg2) {
+template <class MapRendererBackend>
+void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap, float scale, const std::string & msg1, const std::string & msg2) {
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 	Camera camera = {
 		.position = {
@@ -61,6 +82,17 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 	cameraController.setCamera (& camera);
 	cameraController.setMoveSpeed (cameraController.moveSpeed () * scale);
 
+	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+		R3D_GetEnvironment ()->ambient.color = WHITE;
+		R3D_GetEnvironment ()->ambient.energy = 0.2f;
+	}
+
+	R3D_Light * map_r3d_light = nullptr;
+	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+		map_r3d_light = new R3D_Light;
+		 * map_r3d_light = R3D_CreateDirLight((Vector3) {-1, -1, -1}, WHITE, 1.0f);
+	}
+
 	while (false == WindowShouldClose ()) {
 		// UpdateCamera (& camera, CAMERA_THIRD_PERSON);
 		cameraController.updateCamera ();
@@ -70,10 +102,14 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		}
 
 		BeginDrawing ();
-
-		ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
-
-		BeginMode3D (camera);
+		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+			R3D_Begin(camera);
+			R3D_PushLight(* map_r3d_light);
+		}
+		else {
+			ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
+			BeginMode3D (camera);
+		}
 
 		if (true == drawCollisionGeometry) {
 			rmap->renderCollisionGeometry ();
@@ -87,7 +123,12 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 			// rlPopMatrix ();
 		}
 
-		EndMode3D ();
+		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+			R3D_End();
+		}
+		else {
+			EndMode3D ();
+		}
 
 		DrawFPS (10, 10);
 		DrawText (msg1.c_str (), 10, 40, 20, GREEN);
@@ -96,20 +137,34 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		EndDrawing ();
 	}
 
+	delete map_r3d_light;
+
 	// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 }
 
-void CloseRaylibWindow () {
-	CloseWindow ();
+template <class MapRendererBackend>
+void CloseMapWindow () {
+	if constexpr (
+		   std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererRaylibBackend>
+		|| std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>
+	) {
+		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+			R3D_Close();
+		}
+
+		CloseWindow ();
+	}
 }
+
 }  // namespace Window
 
-std::shared_ptr <MapMaster::Tanki::MapRenderer> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure) {
-	std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap = std::make_shared <MapMaster::Tanki::MapRenderer> ();
+template <class MapRendererBackend>
+std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure) {
+	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = std::make_shared <MapMaster::Tanki::MapRenderer <MapRendererBackend>> ();
 
 	if (true || true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
-		rmap->setResourceManager (std::make_shared <MapMaster::Tanki::RaylibPropGPUResourceManager> (true));
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true));
 
 		// this loads the map xml data
 		rmap->map ()->loadFile (mapFile);
@@ -280,5 +335,23 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer> LoadMapRenderer (const std::stri
 //
 // 	return mapLibraryNames;
 // }
+
+namespace Window {
+
+template void OpenMapWindow <MapMaster::Tanki::MapRendererRaylibBackend> (int width, int height, const std::string & title, int logLevel);
+template void OpenMapWindow <MapMaster::Tanki::MapRendererR3DBackend> (int width, int height, const std::string & title, int logLevel);
+
+
+template void CloseMapWindow <MapMaster::Tanki::MapRendererRaylibBackend> ();
+template void CloseMapWindow <MapMaster::Tanki::MapRendererR3DBackend> ();
+
+template void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer <MapMaster::Tanki::MapRendererRaylibBackend>> rmap, float scale, const std::string & msg1, const std::string & msg2);
+template void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer <MapMaster::Tanki::MapRendererR3DBackend>> rmap, float scale, const std::string & msg1, const std::string & msg2);
+
+} // end namespace Window
+
+template std::shared_ptr <MapMaster::Tanki::MapRenderer <MapMaster::Tanki::MapRendererRaylibBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure);
+template std::shared_ptr <MapMaster::Tanki::MapRenderer <MapMaster::Tanki::MapRendererR3DBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure);
+
 
 }  // namespace MapMaster::Utils::Tanki

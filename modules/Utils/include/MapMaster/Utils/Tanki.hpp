@@ -9,6 +9,7 @@
 namespace MapMaster::Tanki {
 class Map;
 class PropLibrary;
+template <class>
 class MapRenderer;
 } // namespace MapMaster::Tanki
 
@@ -36,14 +37,18 @@ namespace MapMaster::Utils::Tanki {
 
 
 namespace Window {
-void OpenRaylibWindow (int width, int height, const std::string & title = {}, int logLevel = LOG_NONE);
-void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap, float scale = 1.0, const std::string & msg1 = {}, const std::string & msg2 = {});
-void CloseRaylibWindow ();
+template <class MapRendererBackend>
+void OpenMapWindow (int width, int height, const std::string & title = {}, int logLevel = LOG_NONE);
+template <class MapRendererBackend>
+void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap, float scale = 1.0, const std::string & msg1 = {}, const std::string & msg2 = {});
+template <class MapRendererBackend>
+void CloseMapWindow ();
 } // namespace Window
 
 
 
-std::shared_ptr <MapMaster::Tanki::MapRenderer> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
+template <class MapRendererBackend>
+std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure = false);
 
 
 // PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath);
@@ -53,7 +58,5 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer> LoadMapRenderer (const std::stri
 //
 // std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map);
 // std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map);
-
-
 
 }  // namespace MapMaster::Utils::Tanki

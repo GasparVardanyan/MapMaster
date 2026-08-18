@@ -1,6 +1,8 @@
 add_library (MapMaster_Module_Tanki SHARED
 	include/MapMaster/Tanki/Map.hpp
 	include/MapMaster/Tanki/MapRenderer.hpp
+	include/MapMaster/Tanki/MapRendererRaylibBackend.hpp
+	include/MapMaster/Tanki/MapRendererR3DBackend.hpp
 	include/MapMaster/Tanki/PropCPUResourceManager.hpp
 	include/MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp
 	include/MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp
@@ -13,7 +15,9 @@ add_library (MapMaster_Module_Tanki SHARED
 	include/MapMaster/Tanki/RaylibPropCPUResourceManager.hpp
 	include/MapMaster/Tanki/RaylibPropGPUResourceManager.hpp
 	src/Map.cpp
-	src/MapRenderer.cpp
+	src/MapRendererRaylibBackend.cpp
+	src/MapRendererR3DBackend.cpp
+	src/PropCPUResourceManager.cpp
 	src/PropCPUResourceManager.cpp
 	src/PropCPUResourceManagerBackends.cpp
 	src/PropCPUResourceManagerR3DBackend.cpp

@@ -4,18 +4,23 @@
 # include <string>
 
 # include "MapMaster/Utils/Tanki.hpp"
+# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp"
+# include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
 
 namespace MapMaster::Tanki {
+template <class MapRendererBackend>
 class MapRenderer;
 } // namespace MapMaster::Tanki
 
+// using MapRendererBackend = MapMaster::Tanki::MapRendererRaylibBackend;
+using MapRendererBackend = MapMaster::Tanki::MapRendererR3DBackend;
 
 
 static constexpr float scale = 0.01F;
 
 int main (int argc, char ** argv) {
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
-	MapMaster::Utils::Tanki::Window::OpenRaylibWindow (1680, 1050, "MapMaster", LOG_NONE);
+	MapMaster::Utils::Tanki::Window::OpenMapWindow <MapRendererBackend> (1680, 1050, "MapMaster", LOG_NONE);
 
 	std::string propLibsRoot, mapFile;
 
@@ -32,7 +37,7 @@ int main (int argc, char ** argv) {
 
 	std::chrono::time_point start = std::chrono::steady_clock::now ();
 
-	std::shared_ptr <MapMaster::Tanki::MapRenderer> rmap = MapMaster::Utils::Tanki::LoadMapRenderer (propLibsRoot, mapFile, scale, false);
+	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = MapMaster::Utils::Tanki::LoadMapRenderer <MapRendererBackend> (propLibsRoot, mapFile, scale, false);
 
 	std::chrono::time_point end = std::chrono::steady_clock::now ();
 
@@ -40,9 +45,9 @@ int main (int argc, char ** argv) {
 		<< std::chrono::duration <double> (end - start).count ()
 		<< " s\n";
 
-	MapMaster::Utils::Tanki::Window::DrawMapRendererInCurrentWindow (rmap, scale, propLibsRoot, mapFile);
+	MapMaster::Utils::Tanki::Window::DrawMapRendererInCurrentWindow <MapRendererBackend> (rmap, scale, propLibsRoot, mapFile);
 
 	rmap.reset ();
 
-	MapMaster::Utils::Tanki::Window::CloseRaylibWindow ();
+	MapMaster::Utils::Tanki::Window::CloseMapWindow <MapRendererBackend> ();
 }
