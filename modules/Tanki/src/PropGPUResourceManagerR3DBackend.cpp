@@ -66,7 +66,7 @@ PropGPUResourceManagerR3DBackend::TextureResource PropGPUResourceManagerR3DBacke
 	};
 
 	if constexpr (true == Upload) {
-		t.texture = std::shared_ptr <Texture2D> (new Texture2D (R3D_LoadTextureFromImage (t.image, false)), unloadTextureResource);
+		t.texture = std::shared_ptr <Texture2D> (new Texture2D (R3D_LoadTextureFromImage (t.image, true)), unloadTextureResource);
 
 		GenTextureMipmaps (t.texture.get ());
 		SetTextureFilter (* t.texture, TEXTURE_FILTER_TRILINEAR);
@@ -83,7 +83,7 @@ void PropGPUResourceManagerR3DBackend::UploadMeshResource (MeshResource & meshRe
 }
 
 void PropGPUResourceManagerR3DBackend::UploadTextureResource (TextureResource & textureResource) {
-	textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (R3D_LoadTextureFromImage (textureResource.image, false)), unloadTextureResource);
+	textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (R3D_LoadTextureFromImage (textureResource.image, true)), unloadTextureResource);
 
 	GenTextureMipmaps (textureResource.texture.get ());
 	SetTextureFilter (* textureResource.texture, TEXTURE_FILTER_TRILINEAR);
