@@ -16,7 +16,7 @@ class MapRenderer;
 using MapRendererBackend = MapMaster::Tanki::MapRendererR3DBackend;
 
 
-static constexpr float scale = 0.01F;
+static constexpr float scale = 0.005F;
 
 int main (int argc, char ** argv) {
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
@@ -25,7 +25,8 @@ int main (int argc, char ** argv) {
 	std::string propLibsRoot, mapFile;
 
 	if (argc >= 3) {
-		propLibsRoot = argv [1];// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		propLibsRoot = argv [1];
 		// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		mapFile = argv [2];
 	}

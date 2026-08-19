@@ -1,5 +1,6 @@
 # include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
 
+# include <iostream>
 # include <map>
 # include <memory>
 # include <string>
@@ -25,6 +26,18 @@ void MapRendererR3DBackend::loadScene (float scale) {
 
 	const CPUResourceManager & resourceManager = m_raylibResourceManager->cpuResourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
+	BoundingBox aabb = {
+		.min = {
+			.x = std::numeric_limits <float>::max (),
+			.y = std::numeric_limits <float>::max (),
+			.z = std::numeric_limits <float>::max (),
+		},
+		.max = {
+			.x = std::numeric_limits <float>::min (),
+			.y = std::numeric_limits <float>::min (),
+			.z = std::numeric_limits <float>::min (),
+		},
+	};
 
 	for (const auto & [libraryName, groups] : m_map->mapObjects ()) {
 		const PropLibrary & library = * propLibraries.at (libraryName);
@@ -73,6 +86,29 @@ void MapRendererR3DBackend::loadScene (float scale) {
 							),
 							MatrixScale (scale, scale, scale)
 						);
+						BoundingBox ab = raylibMeshResource.aabb;
+						aabb.min = Vector3Transform(aabb.min, transform);
+						aabb.max = Vector3Transform(aabb.max, transform);
+
+						if (ab.min.x < aabb.min.x) {
+							aabb.min.x = ab.min.x;
+						}
+						if (ab.min.y < aabb.min.y) {
+							aabb.min.y = ab.min.y;
+						}
+						if (ab.min.z < aabb.min.z) {
+							aabb.min.z = ab.min.z;
+						}
+						if (ab.max.x > aabb.max.x) {
+							aabb.max.x = ab.max.x;
+						}
+						if (ab.max.y > aabb.max.y) {
+							aabb.max.y = ab.max.y;
+						}
+						if (ab.max.z > aabb.max.z) {
+							aabb.max.z = ab.max.z;
+						}
+
 
 						SceneMesh sceneMesh = {
 							.transform = transform,
@@ -178,6 +214,9 @@ void MapRendererR3DBackend::loadScene (float scale) {
 			}
 		}
 	}
+
+	std::cout << "AABB MIN: " << aabb.min.x << ", " << aabb.min.y << ", " << aabb.min.z << '\n';
+	std::cout << "AABB MAX: " << aabb.max.x << ", " << aabb.max.y << ", " << aabb.max.z << '\n';
 }
 
 void MapRendererR3DBackend::render (Camera & camera) {
