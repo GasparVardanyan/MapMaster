@@ -85,8 +85,6 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 
 	R3D_ShadowMap map_r3d_shadow = {0};
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-		// Put this BEFORE you call R3D_LoadShadowMap()
-		R3D_SetHint(R3D_HINT_SHADOW_DIR_SIZE, 4096); // 4096 is huge enough for a 42-unit map
 		// 1. Create the shadow map. Because you use a directional light, use R3D_LIGHT_DIR.
 		map_r3d_shadow = R3D_LoadShadowMap(R3D_LIGHT_DIR);
 

@@ -84,25 +84,12 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 
 			aabb.min = Vector3Min (aabb.min, vertex.position);
 			aabb.max = Vector3Max (aabb.max, vertex.position);
-		}
-
-		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-			R3D_Vertex & vertex = meshData->vertices [i];
-
-			vertex.position = {
-				.x = mesh->mVertices [i].x,
-				.y = mesh->mVertices [i].y,
-				.z = mesh->mVertices [i].z,
-			};
-
-			aabb.min = Vector3Min (aabb.min, vertex.position);
-			aabb.max = Vector3Max (aabb.max, vertex.position);
 
 			// NOLINTNEXTLINE(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 			uint16_t (& texCoord) [2]  = vertex.texcoord;
 
 			if (nullptr != mesh->mTextureCoords [0] && mesh->mNumUVComponents [0] >= 2) {
-				R3D_PackTexCoord(texCoord, (Vector2) {
+				R3D_PackTexCoord (texCoord, (Vector2) {
 					.x = mesh->mTextureCoords [0] [i].x,
 					.y = mesh->mTextureCoords [0] [i].y,
 				});
