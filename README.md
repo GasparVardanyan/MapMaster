@@ -21,7 +21,7 @@ use it to understand how to implement the thing you're working on and implement
 it yourself.
 - Be minimalist introducing new libraries. If there's already a library used
 in this project supporting the feature you need, use that library. There's no
-GUI here yet. For GUI use [raygui](https://github.com/raysan5/raygui).
+GUI here yet. For GUI use rlImgui with the docking branch of imgui.
 
 ## Current status
 Currently only map and proplib parsing and rendering is implemented in the
