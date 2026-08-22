@@ -85,8 +85,6 @@ void MapRendererR3DBackend::loadScene (float scale) {
 						// sceneMesh.material.uvScale = { 1.002, 1.002 };
 						// sceneMesh.material.uvOffset = { -0.001, -0.001 };
 
-
-
 						for (const CPUResourceManager::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
 							sceneMesh.triangleColliders.push_back ({
 								.v1 = Vector3Transform (Vector3 { .x = triangleCollider.v1.x, .y = triangleCollider.v1.y, .z = triangleCollider.v1.z}, transform),

@@ -85,34 +85,31 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 
 	R3D_ShadowMap map_r3d_shadow = {0};
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-		// 1. Create the shadow map. Because you use a directional light, use R3D_LIGHT_DIR.
-		map_r3d_shadow = R3D_LoadShadowMap(R3D_LIGHT_DIR);
-
-		// 1. Force all layers so distance doesn't cull the shadow
-		map_r3d_shadow.cullMask = 0xFF; // 0xFF = All layers (R3D_LAYER_ALL)
-
-		// 2. Ensure shadows are 100% solid, not faded
+		map_r3d_shadow = R3D_LoadShadowMap (R3D_LIGHT_OMNI);
+		map_r3d_shadow.cullMask = 0xFF;
 		map_r3d_shadow.opacity = 1.0f;
-
-		// 2. Check if it loaded correctly
-		if (!R3D_IsShadowMapValid(map_r3d_shadow)) {
-			std::exit (-1);
-		}
 	}
 
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-		// 1. Ambient: Rock bottom energy, pure sky-blue color.
-		R3D_GetEnvironment()->ambient.color = (Color){ 100, 140, 200, 255 }; // Clear sky blue
-		R3D_GetEnvironment()->ambient.energy = 0.08f; // 8% brightness. Shadows are dark, not gray.
+		R3D_GetEnvironment ()->ambient.color = WHITE;
+		R3D_GetEnvironment ()->ambient.energy = 0.2;
+		R3D_GetEnvironment ()->background.color = {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF};
 	}
 
 	R3D_Light* map_r3d_light = nullptr;
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 		map_r3d_light = new R3D_Light;
-		// 2. Directional Sun: Pure warm afternoon sun, high energy.
-		Vector3 sunDir = { -1.0f, -1.0f, -1.0f };
-		Color sunColor = { 255, 230, 185, 255 }; // Warm Yellow/Orange
-		*map_r3d_light = R3D_CreateDirLight(sunDir, sunColor, 0.95f); // Almost 100%
+		// * map_r3d_light = R3D_CreateDirLight (
+		// 	{ -1.0f, -1.0f, -1.0f },
+		// 	WHITE,
+		// 	0.8
+		// );
+		* map_r3d_light = R3D_CreateOmniLight (
+			{ 3000 * scale, 9000 * scale, 9000 * scale },
+			10000,
+			WHITE,
+			2
+		);
 	}
 
 	while (false == WindowShouldClose ()) {
@@ -128,7 +125,8 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		if (false == drawCollisionGeometry) {
 			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 				R3D_Begin (camera);
-				R3D_PushLightEx (*map_r3d_light, map_r3d_shadow, true);
+				R3D_PushLightEx (* map_r3d_light, map_r3d_shadow, true);
+				// R3D_PushLight (* map_r3d_light);
 			}
 			else {
 				ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
@@ -143,6 +141,11 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 			else {
 				EndMode3D ();
 			}
+
+			// rlPushMatrix ();
+			// rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
+			// DrawGrid (50, 500.0F * scale);
+			// rlPopMatrix ();
 		}
 		else {
 			ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
@@ -151,17 +154,6 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 			rmap->renderCollisionGeometry ();
 
 			EndMode3D ();
-		}
-
-		if (true == drawCollisionGeometry) {
-		}
-		else {
-			// rmap->render (camera);
-
-			// rlPushMatrix ();
-			// rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
-			// DrawGrid (50, 500.0F * scale);
-			// rlPopMatrix ();
 		}
 
 		DrawFPS (10, 10);
