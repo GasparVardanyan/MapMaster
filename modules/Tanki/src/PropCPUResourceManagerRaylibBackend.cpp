@@ -7,8 +7,10 @@
 # include <string>
 # include <vector>
 
+# include <assimp/config.h>
 # include <assimp/material.h>
 # include <assimp/mesh.h>
+# include <assimp/postprocess.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
 # include <stb_image.h>
@@ -18,6 +20,25 @@
 using namespace MapMaster::Tanki;
 
 
+
+int PropCPUResourceManagerRaylibBackend::AssimpImporterRemoveComponentFlags =
+	// aiComponent_NORMALS |
+	aiComponent_TANGENTS_AND_BITANGENTS |
+	aiComponent_COLORS |
+	// aiComponent_TEXCOORDS |
+	aiComponent_BONEWEIGHTS |
+	aiComponent_ANIMATIONS |
+	aiComponent_TEXTURES |
+	aiComponent_LIGHTS |
+	aiComponent_CAMERAS
+	// aiComponent_MESHES |
+	// aiComponent_MATERIALS
+;
+
+unsigned int PropCPUResourceManagerRaylibBackend::AssimpPostProcessorSteps =
+	aiProcess_RemoveComponent |
+	aiProcess_FlipUVs
+;
 
 PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRaylibBackend::ParseMeshResource (const aiScene * scene, const aiNode * visualNode) {
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)

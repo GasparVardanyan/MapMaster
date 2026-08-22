@@ -17,6 +17,9 @@ namespace MapMaster::Tanki {
 // cppcheck-suppress-begin unusedStructMember
 class PropCPUResourceManagerRaylibBackend {
 public:
+	static int AssimpImporterRemoveComponentFlags;
+	static unsigned int AssimpPostProcessorSteps;
+
 	struct PropMeshResource {
 		using VertexType = float;
 		using NormalType = float;

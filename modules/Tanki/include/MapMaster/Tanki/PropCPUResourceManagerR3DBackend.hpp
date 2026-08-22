@@ -22,6 +22,9 @@ namespace MapMaster::Tanki {
 // cppcheck-suppress-begin unusedStructMember
 class PropCPUResourceManagerR3DBackend {
 public:
+	static int AssimpImporterRemoveComponentFlags;
+	static unsigned int AssimpPostProcessorSteps;
+
 	struct PropMeshResource {
 		std::shared_ptr <R3D_MeshData> mesh;
 		static_assert (std::is_same_v <decltype (R3D_Vertex::position), Vector3>);

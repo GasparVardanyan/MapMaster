@@ -1,9 +1,11 @@
 # include <algorithm>
 # include <cctype>
+# include <cmath>
 # include <cstdint>
 # include <cstdio>
 # include <cstdlib>
 # include <cstring>
+# include <iostream>
 # include <limits>
 # include <memory>
 # include <string>
@@ -13,18 +15,44 @@
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 
+# include <assimp/config.h>
 # include <assimp/material.h>
 # include <assimp/material.inl>
 # include <assimp/mesh.h>
+# include <assimp/postprocess.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
+# include <assimp/vector3.h>
 # include <stb_image.h>
+
+# include <assimp/Importer.hpp>
+# include <assimp/postprocess.h>
 
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 
 using namespace MapMaster::Tanki;
 
 
+
+int PropCPUResourceManagerR3DBackend::AssimpImporterRemoveComponentFlags =
+	// aiComponent_NORMALS |
+	aiComponent_TANGENTS_AND_BITANGENTS |
+	aiComponent_COLORS |
+	// aiComponent_TEXCOORDS |
+	aiComponent_BONEWEIGHTS |
+	aiComponent_ANIMATIONS |
+	aiComponent_TEXTURES |
+	aiComponent_LIGHTS |
+	aiComponent_CAMERAS
+	// aiComponent_MESHES |
+	// aiComponent_MATERIALS
+;
+
+unsigned int PropCPUResourceManagerR3DBackend::AssimpPostProcessorSteps =
+	aiProcess_RemoveComponent |
+	aiProcess_FlipUVs |
+	aiProcess_CalcTangentSpace
+;
 
 PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBackend::ParseMeshResource (const aiScene * scene, const aiNode * visualNode) {
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
@@ -83,41 +111,55 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 			meshResource.textureFile = matName;
 		}
 
+		// NOLINTBEGIN(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
+			const aiVector3D & assimpVertex = mesh->mVertices [i];
+			const aiVector3D & assimpTexCoord = mesh->mTextureCoords [0] [i];
+			const aiVector3D & assimpNormal = mesh->mNormals [i];
+			const aiVector3D & assimpTangent = mesh->mTangents [i];
+			const aiVector3D & assimpBiTangent = mesh->mBitangents [i];
+
 			vPtr->position = {
-				.x = mesh->mVertices [i].x,
-				.y = mesh->mVertices [i].y,
-				.z = mesh->mVertices [i].z,
+				.x = assimpVertex.x,
+				.y = assimpVertex.y,
+				.z = assimpVertex.z,
 			};
 
 			aabb.min = Vector3Min (aabb.min, vPtr->position);
 			aabb.max = Vector3Max (aabb.max, vPtr->position);
 
-			// NOLINTNEXTLINE(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 			uint16_t (& texCoord) [2]  = vPtr->texcoord;
 
-			if (nullptr != mesh->mTextureCoords [0] && mesh->mNumUVComponents [0] >= 2) {
-				R3D_PackTexCoord (texCoord, (Vector2) {
-					.x = mesh->mTextureCoords [0] [i].x,
-					.y = mesh->mTextureCoords [0] [i].y,
-				});
-			}
+			R3D_PackTexCoord (texCoord, (Vector2) {
+				.x = assimpTexCoord.x,
+				.y = assimpTexCoord.y,
+			});
 
-			// NOLINTNEXTLINE(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 			int8_t (& normal) [4] = vPtr->normal;
 
-			if (nullptr != mesh->mNormals) {
-				R3D_PackNormal (normal, (Vector3) {
-					.x = mesh->mNormals [i].x,
-					.y = mesh->mNormals [i].y,
-					.z = mesh->mNormals [i].z,
-				});
-			}
+			R3D_PackNormal (normal, (Vector3) {
+				.x = assimpNormal.x,
+				.y = assimpNormal.y,
+				.z = assimpNormal.z,
+			});
+
+			int8_t (& tangent) [4] = vPtr->tangent;
+
+			aiVector3D reconstructedBitangent = assimpNormal ^ assimpTangent;
+			float handedness = reconstructedBitangent * assimpBiTangent;
+
+			R3D_PackTangent (tangent, (Vector4) {
+				.x = assimpTangent.x,
+				.y = assimpTangent.y,
+				.z = assimpTangent.z,
+				.w = std::copysignf (1.0F, handedness)
+			});
 
 			vPtr->color = WHITE;
 
 			vPtr++;
 		}
+		// NOLINTEND(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 
 		for (unsigned i = 0; i < mesh->mNumFaces; i++) {
 			* iPtr = vertexOffset + mesh->mFaces [i].mIndices [0];
@@ -130,8 +172,6 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 
 		vertexOffset += mesh->mNumVertices;
 	}
-
-	R3D_GenMeshDataTangents (meshData.get (), R3D_PRIMITIVE_TRIANGLES);
 
 	return meshResource;
 
