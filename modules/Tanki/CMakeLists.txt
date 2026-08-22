@@ -20,12 +20,9 @@ add_library (MapMaster_Module_Tanki SHARED
 	src/MapRendererR3DBackend.cpp
 	src/MapRendererRaylibBackend.cpp
 	src/PropCPUResourceManager.cpp
-	src/PropCPUResourceManager.cpp
-	src/PropCPUResourceManagerBackends.cpp
 	src/PropCPUResourceManagerR3DBackend.cpp
 	src/PropCPUResourceManagerRaylibBackend.cpp
 	src/PropGPUResourceManager.cpp
-	src/PropGPUResourceManagerBackends.cpp
 	src/PropGPUResourceManagerR3DBackend.cpp
 	src/PropGPUResourceManagerRaylibBackend.cpp
 	src/PropLibrary.cpp
