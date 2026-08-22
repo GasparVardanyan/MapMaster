@@ -77,7 +77,7 @@ public:
 	Color collisionGeometryEdgeColor ();
 
 private:
-	std::shared_ptr <GPUResourceManager> m_raylibResourceManager = std::make_shared <GPUResourceManager> (false);
+	std::shared_ptr <GPUResourceManager> m_gpuResourceManager = std::make_shared <GPUResourceManager> (false);
 	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
 
 	struct {

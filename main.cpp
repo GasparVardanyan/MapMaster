@@ -15,7 +15,6 @@ class MapRenderer;
 // using MapRendererBackend = MapMaster::Tanki::MapRendererRaylibBackend;
 using MapRendererBackend = MapMaster::Tanki::MapRendererR3DBackend;
 
-
 static constexpr float scale = 0.005F;
 
 int main (int argc, char ** argv) {

@@ -17,11 +17,11 @@ using namespace MapMaster::Tanki;
 void MapRendererRaylibBackend::loadScene (float scale) {
 	m_sceneObjects = {};
 
-	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
-	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
-	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
+	const auto & raylibMeshResources = m_gpuResourceManager->meshResources ();
+	const auto & raylibTextureResources = m_gpuResourceManager->textureResources ();
+	const auto & raylibSpriteInfos = m_gpuResourceManager->spriteInfos ();
 
-	const CPUResourceManager & resourceManager = m_raylibResourceManager->cpuResourceManager ();
+	const CPUResourceManager & resourceManager = m_gpuResourceManager->cpuResourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
 
 	for (const auto & [libraryName, groups] : m_map->mapObjects ()) {
@@ -234,11 +234,11 @@ void MapRendererRaylibBackend::renderCollisionGeometry (bool wireframe) {
 
 // cppcheck-suppress shadowFunction
 void MapRendererRaylibBackend::setResourceManager (std::shared_ptr <GPUResourceManager> resourceManager) {
-	m_raylibResourceManager = std::move (resourceManager);
+	m_gpuResourceManager = std::move (resourceManager);
 }
 
 std::shared_ptr <MapRendererRaylibBackend::GPUResourceManager> MapRendererRaylibBackend::resourceManager () const {
-	return m_raylibResourceManager;
+	return m_gpuResourceManager;
 }
 
 // cppcheck-suppress shadowFunction

@@ -81,9 +81,6 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 			meshResource.textureFile = matName;
 		}
 
-		const int vertexCount = static_cast <int> (mesh->mNumVertices  * sizeof (* R3D_MeshData::vertices));
-		const int indexCount = static_cast <int> (mesh->mNumFaces * 3UL * sizeof (* R3D_MeshData::indices));
-
 		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
 			vPtr->position = {
 				.x = mesh->mVertices [i].x,
