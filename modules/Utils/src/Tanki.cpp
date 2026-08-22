@@ -14,26 +14,27 @@
 # include <functional>
 # include <type_traits>
 
-# include <pugixml.hpp>
-
 # include <raylib.h>
-# include <raymath.h>
-
 # include <r3d/r3d_core.h>
 # include <r3d/r3d_draw.h>
 # include <r3d/r3d_lighting.h>
-# include <r3d/r3d_material.h>
 # include <r3d/r3d_environment.h>
+
+# include <pugixml.hpp>
 
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/Map.hpp"
+# include "MapMaster/Tanki/MapRenderer.hpp"
 # include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
 # include "MapMaster/Tanki/MapRendererRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
-# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/MapRenderer.hpp"
-# include "MapMaster/Tanki/RaylibPropGPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
+
+namespace MapMaster {
+namespace Tanki {
+class MapRendererR3DBackend;
+class MapRendererRaylibBackend;
+}  // namespace Tanki
+}  // namespace MapMaster
 
 namespace MapMaster::Utils::Tanki {
 
@@ -82,15 +83,34 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 	cameraController.setCamera (& camera);
 	cameraController.setMoveSpeed (cameraController.moveSpeed () * scale);
 
+
+	R3D_ShadowMap map_r3d_shadow = {0};
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-		R3D_GetEnvironment ()->ambient.color = WHITE;
-		R3D_GetEnvironment ()->ambient.energy = 0.2f;
+		map_r3d_shadow = R3D_LoadShadowMap (R3D_LIGHT_OMNI);
+		map_r3d_shadow.cullMask = 0xFF;
+		map_r3d_shadow.opacity = 1.0f;
 	}
 
-	R3D_Light * map_r3d_light = nullptr;
+	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+		R3D_GetEnvironment ()->ambient.color = WHITE;
+		R3D_GetEnvironment ()->ambient.energy = 0.2;
+		R3D_GetEnvironment ()->background.color = {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF};
+	}
+
+	R3D_Light* map_r3d_light = nullptr;
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 		map_r3d_light = new R3D_Light;
-		 * map_r3d_light = R3D_CreateDirLight((Vector3) {-1, -1, -1}, WHITE, 1.0f);
+		// * map_r3d_light = R3D_CreateDirLight (
+		// 	{ -1.0f, -1.0f, -1.0f },
+		// 	WHITE,
+		// 	0.8
+		// );
+		* map_r3d_light = R3D_CreateOmniLight (
+			{ 3000 * scale, 9000 * scale, 9000 * scale },
+			10000,
+			WHITE,
+			2
+		);
 	}
 
 	while (false == WindowShouldClose ()) {
@@ -102,31 +122,38 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		}
 
 		BeginDrawing ();
-		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-			R3D_Begin(camera);
-			R3D_PushLight(* map_r3d_light);
-		}
-		else {
-			ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
-			BeginMode3D (camera);
-		}
 
-		if (true == drawCollisionGeometry) {
-			rmap->renderCollisionGeometry ();
-		}
-		else {
+		if (false == drawCollisionGeometry) {
+			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+				R3D_Begin (camera);
+				R3D_PushLightEx (* map_r3d_light, map_r3d_shadow, true);
+				// R3D_PushLight (* map_r3d_light);
+			}
+			else {
+				ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
+				BeginMode3D (camera);
+			}
+
 			rmap->render (camera);
+
+			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+				R3D_End ();
+			}
+			else {
+				EndMode3D ();
+			}
 
 			// rlPushMatrix ();
 			// rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
 			// DrawGrid (50, 500.0F * scale);
 			// rlPopMatrix ();
 		}
-
-		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-			R3D_End();
-		}
 		else {
+			ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
+			BeginMode3D (camera);
+
+			rmap->renderCollisionGeometry ();
+
 			EndMode3D ();
 		}
 
@@ -162,7 +189,7 @@ template <class MapRendererBackend>
 std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure) {
 	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = std::make_shared <MapMaster::Tanki::MapRenderer <MapRendererBackend>> ();
 
-	if (true || true == haveCanonicalLibraryStructure) {
+	if (true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
 		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true));
 
@@ -185,156 +212,158 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 	}
 	else
 	{
-		// rmap->setResourceManager (std::make_shared <MapMaster::Tanki::RaylibPropGPUResourceManager> (true));
-		// rmap->map ()->loadFile (mapFile);
-		//
-		// PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraryPaths (libraryRootPath);
-		//
-		// std::vector <std::string> mapLibrarySources = FindMapLibraryPaths (libraryInfo, * rmap->map ());
-		//
-		// for (const std::string & source : mapLibrarySources) {
-		// 	rmap->resourceManager ()->loadLibrary (source);
-		// }
-		//
-		// rmap->resourceManager ()->loadMapResources (* rmap->map ());
-		//
-		// rmap->loadScene (scale);
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true));
+		rmap->map ()->loadFile (mapFile);
+
+		PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraryPaths (libraryRootPath);
+
+		std::vector <std::string> mapLibrarySources = FindMapLibraryPaths (libraryInfo, * rmap->map ());
+
+		for (const std::string & source : mapLibrarySources) {
+			rmap->resourceManager ()->loadLibrary (source);
+		}
+
+		rmap->resourceManager ()->loadMapResources (* rmap->map ());
+
+		rmap->loadScene (scale);
 	}
 
 	return rmap;
 }
 
-// PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath) {
-// 	PropLibraryNameToPathVectorMap libraries;
-// 	for (const std::filesystem::directory_entry & diEnt : std::filesystem::recursive_directory_iterator (libraryRootPath)) {
-// 		if (true == diEnt.is_regular_file ()) {
-// 			const std::filesystem::path & diEntPath = diEnt.path ();
-// 			std::string diEntName = diEntPath.filename ().string ();
-//
-// 			if ("library.xml" == diEntName) {
-// 				pugi::xml_document libXml;
-// 				pugi::xml_parse_result pr = libXml.load_file (diEntPath.c_str ());
-//
-// 				if (pugi::xml_parse_status::status_ok == pr.status) {
-// 					std::string libraryName = libXml.child ("library").attribute ("name").value ();
-//
-// 					libraries [libraryName].push_back (diEntPath.parent_path ().string ());
-// 				}
-// 				else {
-// 					std::cerr << "Utils: PropLibrary failed to parse " << diEntPath << ". " << pr.description () << ".\n";
-// 				}
-// 			}
-// 		}
-// 	}
-//
-// 	return libraries;
-// }
-//
-// PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPathVectorMap & nameToPathVectorMap) {
-// 	PropLibraryNameToLibraryVectorMap libraries;
-//
-// 	std::ranges::transform (
-// 		nameToPathVectorMap,
-// 		std::inserter (libraries, libraries.end ()),
-// 		[] (const std::pair <std::string, std::vector <std::string>> & entry)
-// 			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>>
-// 		{
-// 			std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>> libraries;
-//
-// 			std::ranges::transform (
-// 				entry.second,
-// 				std::back_inserter (libraries),
-// 				[] (const std::string & path) -> std::shared_ptr <MapMaster::Tanki::PropLibrary> {
-// 					std::shared_ptr <MapMaster::Tanki::PropLibrary> propLibrary = std::make_shared <MapMaster::Tanki::PropLibrary> ();
-// 					propLibrary->loadDirectory (path);
-// 					return propLibrary;
-// 				}
-// 			);
-//
-// 			return {entry.first, std::move (libraries)};
-// 		}
-// 	);
-//
-// 	return libraries;
-// }
-//
-// PropLibraryNameToResourceManagerVectorMap LoadPropLibraryResources(const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap) {
-// 	PropLibraryNameToResourceManagerVectorMap libraries;
-//
-// 	std::ranges::transform (
-// 		nameToLibraryVectorMap,
-// 		std::inserter (libraries, libraries.end ()),
-// 		[] (const std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>> & entry)
-// 			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager>>>
-// 		{
-// 			std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager>> resources;
-//
-// 			std::ranges::transform (
-// 				entry.second,
-// 				std::back_inserter (resources),
-// 				static_cast <
-// 					std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> (*) (std::shared_ptr <MapMaster::Tanki::PropLibrary>)
-// 				> (& LoadPropLibraryResources)
-// 			);
-//
-// 			return {entry.first, std::move (resources)};
-// 		}
-// 	);
-//
-// 	return libraries;
-// }
-//
-// std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library) {
-// 	std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager> resourceManager = std::make_shared <MapMaster::Tanki::PropCPUResourceManager> ();
-//
-// 	resourceManager->addPropLibrary (std::move (library));
-//
-// 	throw std::runtime_error ("this function must load all library resources");
-//
-// 	return resourceManager;
-// }
-//
-// std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map) {
-// 	std::vector <std::string> mapLibraryPaths;
-//
-// 	const MapMaster::Tanki::Map::MapObjectCollection & mapObjects = map.mapObjects ();
-// 	mapLibraryPaths.reserve (mapObjects.size ());
-//
-// 	for (const auto & [libraryName, groupData] : mapObjects) {
-// 		if (true == propLibraries.contains (libraryName)) {
-// 			const std::vector <std::string> & librarySources = propLibraries.at (libraryName);
-//
-// 			if (1 == librarySources.size ()) {
-// 				mapLibraryPaths.push_back (librarySources.back ());
-// 			}
-// 			else {
-// 				std::cerr << "ERROR: " << librarySources.size () << " sources found for " << libraryName << '\n';
-// 				for (const auto & x : librarySources) {
-// 					std::cout << "\tsource: " << x << '\n';
-// 				}
-// 				std::terminate ();
-// 			}
-// 		}
-// 		else {
-// 			std::cerr << "FAIL: no sources found for " << libraryName << '\n';
-// 		}
-// 	}
-//
-// 	return mapLibraryPaths;
-// }
-//
-// std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map) {
-// 	std::vector <std::string> mapLibraryNames;
-//
-// 	const MapMaster::Tanki::Map::MapObjectCollection & mapObjects = map.mapObjects ();
-// 	mapLibraryNames.resize (mapObjects.size ());
-//
-// 	std::ranges::transform (mapObjects, mapLibraryNames.begin (), [] (const auto & mapObject) -> std::string {
-// 		return mapObject.first;
-// 	});
-//
-// 	return mapLibraryNames;
-// }
+PropLibraryNameToPathVectorMap FindPropLibraryPaths (const std::string & libraryRootPath) {
+	PropLibraryNameToPathVectorMap libraries;
+	for (const std::filesystem::directory_entry & diEnt : std::filesystem::recursive_directory_iterator (libraryRootPath)) {
+		if (true == diEnt.is_regular_file ()) {
+			const std::filesystem::path & diEntPath = diEnt.path ();
+			std::string diEntName = diEntPath.filename ().string ();
+
+			if ("library.xml" == diEntName) {
+				pugi::xml_document libXml;
+				pugi::xml_parse_result pr = libXml.load_file (diEntPath.c_str ());
+
+				if (pugi::xml_parse_status::status_ok == pr.status) {
+					std::string libraryName = libXml.child ("library").attribute ("name").value ();
+
+					libraries [libraryName].push_back (diEntPath.parent_path ().string ());
+				}
+				else {
+					std::cerr << "Utils: PropLibrary failed to parse " << diEntPath << ". " << pr.description () << ".\n";
+				}
+			}
+		}
+	}
+
+	return libraries;
+}
+
+PropLibraryNameToLibraryVectorMap LoadPropLibraries (const PropLibraryNameToPathVectorMap & nameToPathVectorMap) {
+	PropLibraryNameToLibraryVectorMap libraries;
+
+	std::ranges::transform (
+		nameToPathVectorMap,
+		std::inserter (libraries, libraries.end ()),
+		[] (const std::pair <std::string, std::vector <std::string>> & entry)
+			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>>
+		{
+			std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>> libraries;
+
+			std::ranges::transform (
+				entry.second,
+				std::back_inserter (libraries),
+				[] (const std::string & path) -> std::shared_ptr <MapMaster::Tanki::PropLibrary> {
+					std::shared_ptr <MapMaster::Tanki::PropLibrary> propLibrary = std::make_shared <MapMaster::Tanki::PropLibrary> ();
+					propLibrary->loadDirectory (path);
+					return propLibrary;
+				}
+			);
+
+			return {entry.first, std::move (libraries)};
+		}
+	);
+
+	return libraries;
+}
+
+template <class PropCPUResourceManagerBackend>
+PropLibraryNameToResourceManagerVectorMap <PropCPUResourceManagerBackend> LoadPropLibraryResources (const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap) {
+	PropLibraryNameToResourceManagerVectorMap <PropCPUResourceManagerBackend> libraries;
+
+	std::ranges::transform (
+		nameToLibraryVectorMap,
+		std::inserter (libraries, libraries.end ()),
+		[] (const std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropLibrary>>> & entry)
+			-> std::pair <std::string, std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>>>>
+		{
+			std::vector <std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>>> resources;
+
+			std::ranges::transform (
+				entry.second,
+				std::back_inserter (resources),
+				static_cast <
+					std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>> (*) (std::shared_ptr <MapMaster::Tanki::PropLibrary>)
+				> (& LoadPropLibraryResources)
+			);
+
+			return {entry.first, std::move (resources)};
+		}
+	);
+
+	return libraries;
+}
+
+template <class PropCPUResourceManagerBackend>
+std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library) {
+	std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>> resourceManager = std::make_shared <MapMaster::Tanki::PropCPUResourceManager <PropCPUResourceManagerBackend>> ();
+
+	resourceManager->addPropLibrary (std::move (library));
+
+	throw std::runtime_error ("this function must load all library resources");
+
+	return resourceManager;
+}
+
+std::vector <std::string> FindMapLibraryPaths (const PropLibraryNameToPathVectorMap & propLibraries, const MapMaster::Tanki::Map & map) {
+	std::vector <std::string> mapLibraryPaths;
+
+	const MapMaster::Tanki::Map::MapObjectCollection & mapObjects = map.mapObjects ();
+	mapLibraryPaths.reserve (mapObjects.size ());
+
+	for (const auto & [libraryName, groupData] : mapObjects) {
+		if (true == propLibraries.contains (libraryName)) {
+			const std::vector <std::string> & librarySources = propLibraries.at (libraryName);
+
+			if (1 == librarySources.size ()) {
+				mapLibraryPaths.push_back (librarySources.back ());
+			}
+			else {
+				std::cerr << "ERROR: " << librarySources.size () << " sources found for " << libraryName << '\n';
+				for (const auto & x : librarySources) {
+					std::cout << "\tsource: " << x << '\n';
+				}
+				std::terminate ();
+			}
+		}
+		else {
+			std::cerr << "FAIL: no sources found for " << libraryName << '\n';
+		}
+	}
+
+	return mapLibraryPaths;
+}
+
+std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map) {
+	std::vector <std::string> mapLibraryNames;
+
+	const MapMaster::Tanki::Map::MapObjectCollection & mapObjects = map.mapObjects ();
+	mapLibraryNames.resize (mapObjects.size ());
+
+	std::ranges::transform (mapObjects, mapLibraryNames.begin (), [] (const auto & mapObject) -> std::string {
+		return mapObject.first;
+	});
+
+	return mapLibraryNames;
+}
 
 namespace Window {
 
@@ -352,6 +381,11 @@ template void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki:
 
 template std::shared_ptr <MapMaster::Tanki::MapRenderer <MapMaster::Tanki::MapRendererRaylibBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure);
 template std::shared_ptr <MapMaster::Tanki::MapRenderer <MapMaster::Tanki::MapRendererR3DBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure);
+
+template PropLibraryNameToResourceManagerVectorMap <MapMaster::Tanki::PropCPUResourceManagerRaylibBackend> LoadPropLibraryResources (const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap);
+template PropLibraryNameToResourceManagerVectorMap <MapMaster::Tanki::PropCPUResourceManagerR3DBackend> LoadPropLibraryResources (const PropLibraryNameToLibraryVectorMap & nameToLibraryVectorMap);
+template std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <MapMaster::Tanki::PropCPUResourceManagerRaylibBackend>> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library);
+template std::shared_ptr <MapMaster::Tanki::PropCPUResourceManager <MapMaster::Tanki::PropCPUResourceManagerR3DBackend>> LoadPropLibraryResources (std::shared_ptr <MapMaster::Tanki::PropLibrary> library);
 
 
 }  // namespace MapMaster::Utils::Tanki

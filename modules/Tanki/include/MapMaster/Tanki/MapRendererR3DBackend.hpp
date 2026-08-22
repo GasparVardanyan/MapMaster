@@ -5,6 +5,8 @@
 # include <vector>
 
 # include <raylib.h>
+# include <r3d/r3d_material.h>
+# include <r3d/r3d_mesh.h>
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
@@ -13,8 +15,6 @@
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManagerR3DBackend.hpp"
-
-# include "r3d/r3d_material.h"
 
 namespace MapMaster::Tanki {
 
@@ -77,7 +77,7 @@ public:
 	Color collisionGeometryEdgeColor ();
 
 private:
-	std::shared_ptr <GPUResourceManager> m_raylibResourceManager = std::make_shared <GPUResourceManager> (false);
+	std::shared_ptr <GPUResourceManager> m_gpuResourceManager = std::make_shared <GPUResourceManager> (false);
 	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
 
 	struct {

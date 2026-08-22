@@ -7,23 +7,23 @@
 
 # include <raylib.h>
 # include <raymath.h>
+# include <r3d/r3d_draw.h>
+# include <r3d/r3d_material.h>
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
-# include "r3d/r3d_draw.h"
-# include "r3d/r3d_material.h"
 
 using namespace MapMaster::Tanki;
 
 void MapRendererR3DBackend::loadScene (float scale) {
 	m_sceneObjects = {};
 
-	const auto & raylibMeshResources = m_raylibResourceManager->meshResources ();
-	const auto & raylibTextureResources = m_raylibResourceManager->textureResources ();
-	const auto & raylibSpriteInfos = m_raylibResourceManager->spriteInfos ();
+	const auto & raylibMeshResources = m_gpuResourceManager->meshResources ();
+	const auto & raylibTextureResources = m_gpuResourceManager->textureResources ();
+	const auto & raylibSpriteInfos = m_gpuResourceManager->spriteInfos ();
 
-	const CPUResourceManager & resourceManager = m_raylibResourceManager->cpuResourceManager ();
+	const CPUResourceManager & resourceManager = m_gpuResourceManager->cpuResourceManager ();
 	const auto & propLibraries = resourceManager.propLibraries ();
 
 	for (const auto & [libraryName, groups] : m_map->mapObjects ()) {
@@ -81,31 +81,27 @@ void MapRendererR3DBackend::loadScene (float scale) {
 						};
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 						sceneMesh.material.albedo.texture = * raylibTextureResource.texture;
-						// sceneMesh.material.uvScale = { 1.002, 1.002 };
-						// sceneMesh.material.uvOffset = { -0.001, -0.001 };
-
-
 
 						for (const CPUResourceManager::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
 							sceneMesh.triangleColliders.push_back ({
-								.v1 = Vector3Transform (Vector3 { .x = triangleCollider.v1.x, .y = triangleCollider.v1.y, .z = triangleCollider.v1.z}, transform),
-								.v2 = Vector3Transform (Vector3 { .x = triangleCollider.v2.x, .y = triangleCollider.v2.y, .z = triangleCollider.v2.z}, transform),
-								.v3 = Vector3Transform (Vector3 { .x = triangleCollider.v3.x, .y = triangleCollider.v3.y, .z = triangleCollider.v3.z}, transform),
+								.v1 = Vector3Transform (Vector3 { .x = triangleCollider.v1.x, .y = triangleCollider.v1.y, .z = triangleCollider.v1.z }, transform),
+								.v2 = Vector3Transform (Vector3 { .x = triangleCollider.v2.x, .y = triangleCollider.v2.y, .z = triangleCollider.v2.z }, transform),
+								.v3 = Vector3Transform (Vector3 { .x = triangleCollider.v3.x, .y = triangleCollider.v3.y, .z = triangleCollider.v3.z }, transform),
 							});
 						}
 
 						for (const CPUResourceManager::Collider::RectCollider & rectCollider : collider.rectColliders) {
 							sceneMesh.rectColliders.push_back ({
-								.v1 = Vector3Transform (Vector3 { .x = rectCollider.v1.x, .y = rectCollider.v1.y, .z = rectCollider.v1.z}, transform),
-								.v2 = Vector3Transform (Vector3 { .x = rectCollider.v2.x, .y = rectCollider.v2.y, .z = rectCollider.v2.z}, transform),
-								.v3 = Vector3Transform (Vector3 { .x = rectCollider.v3.x, .y = rectCollider.v3.y, .z = rectCollider.v3.z}, transform),
-								.v4 = Vector3Transform (Vector3 { .x = rectCollider.v4.x, .y = rectCollider.v4.y, .z = rectCollider.v4.z}, transform),
+								.v1 = Vector3Transform (Vector3 { .x = rectCollider.v1.x, .y = rectCollider.v1.y, .z = rectCollider.v1.z }, transform),
+								.v2 = Vector3Transform (Vector3 { .x = rectCollider.v2.x, .y = rectCollider.v2.y, .z = rectCollider.v2.z }, transform),
+								.v3 = Vector3Transform (Vector3 { .x = rectCollider.v3.x, .y = rectCollider.v3.y, .z = rectCollider.v3.z }, transform),
+								.v4 = Vector3Transform (Vector3 { .x = rectCollider.v4.x, .y = rectCollider.v4.y, .z = rectCollider.v4.z }, transform),
 							});
 						}
 
 						for (const CPUResourceManager::Collider::BoxCollider & boxCollider : collider.boxColliders) {
-							Vector3 v1 = Vector3Transform (Vector3 { .x = boxCollider.vMin.x, .y = boxCollider.vMin.y, .z = boxCollider.vMin.z}, transform);
-							Vector3 v2 = Vector3Transform (Vector3 { .x = boxCollider.vMax.x, .y = boxCollider.vMax.y, .z = boxCollider.vMax.z}, transform);
+							Vector3 v1 = Vector3Transform (Vector3 { .x = boxCollider.vMin.x, .y = boxCollider.vMin.y, .z = boxCollider.vMin.z }, transform);
+							Vector3 v2 = Vector3Transform (Vector3 { .x = boxCollider.vMax.x, .y = boxCollider.vMax.y, .z = boxCollider.vMax.z }, transform);
 							Vector3 vMin, vMax;
 
 							if (v1.x < v2.x) {
@@ -240,11 +236,11 @@ void MapRendererR3DBackend::renderCollisionGeometry (bool wireframe) {
 
 // cppcheck-suppress shadowFunction
 void MapRendererR3DBackend::setResourceManager (std::shared_ptr <GPUResourceManager> resourceManager) {
-	m_raylibResourceManager = std::move (resourceManager);
+	m_gpuResourceManager = std::move (resourceManager);
 }
 
 std::shared_ptr <MapRendererR3DBackend::GPUResourceManager> MapRendererR3DBackend::resourceManager () const {
-	return m_raylibResourceManager;
+	return m_gpuResourceManager;
 }
 
 // cppcheck-suppress shadowFunction

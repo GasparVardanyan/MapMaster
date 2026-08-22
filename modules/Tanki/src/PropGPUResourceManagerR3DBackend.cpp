@@ -5,6 +5,7 @@
 # include <raylib.h>
 # include <r3d/r3d_mesh.h>
 # include <r3d/r3d_mesh_data.h>
+# include <r3d/r3d_texture.h>
 
 using namespace MapMaster::Tanki;
 
@@ -65,7 +66,7 @@ PropGPUResourceManagerR3DBackend::TextureResource PropGPUResourceManagerR3DBacke
 	};
 
 	if constexpr (true == Upload) {
-		t.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (t.image)), unloadTextureResource);
+		t.texture = std::shared_ptr <Texture2D> (new Texture2D (R3D_LoadTextureFromImage (t.image, true)), unloadTextureResource);
 
 		GenTextureMipmaps (t.texture.get ());
 		SetTextureFilter (* t.texture, TEXTURE_FILTER_TRILINEAR);
@@ -82,7 +83,7 @@ void PropGPUResourceManagerR3DBackend::UploadMeshResource (MeshResource & meshRe
 }
 
 void PropGPUResourceManagerR3DBackend::UploadTextureResource (TextureResource & textureResource) {
-	textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (LoadTextureFromImage (textureResource.image)), unloadTextureResource);
+	textureResource.texture = std::shared_ptr <Texture2D> (new Texture2D (R3D_LoadTextureFromImage (textureResource.image, true)), unloadTextureResource);
 
 	GenTextureMipmaps (textureResource.texture.get ());
 	SetTextureFilter (* textureResource.texture, TEXTURE_FILTER_TRILINEAR);
@@ -95,7 +96,7 @@ void PropGPUResourceManagerR3DBackend::unloadMeshResource (R3D_Mesh * mesh) {
 }
 
 void PropGPUResourceManagerR3DBackend::unloadTextureResource (Texture2D * texture) {
-	UnloadTexture (* texture);
+	R3D_UnloadTexture (* texture);
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
 }

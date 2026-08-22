@@ -8,15 +8,17 @@
 # include <memory>
 # include <string>
 
-# include <assimp/material.h>
-# include <assimp/mesh.h>
-# include <assimp/scene.h>
-# include <assimp/types.h>
-# include <stb_image.h>
 # include <raylib.h>
 # include <raymath.h>
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
+
+# include <assimp/material.h>
+# include <assimp/material.inl>
+# include <assimp/mesh.h>
+# include <assimp/scene.h>
+# include <assimp/types.h>
+# include <stb_image.h>
 
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 
@@ -28,11 +30,46 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 
 	PropMeshResource meshResource;
-	std::shared_ptr <R3D_MeshData> & meshData = meshResource.mesh;
+	int vertexCount = 0;
+	int indexCount = 0;
 
-	// FIXME: add support for multi mesh nodes
-	if (true || 1 == visualNode->mNumMeshes) {
-		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
+	for (std::size_t i = 0; i < visualNode->mNumMeshes; i++) {
+		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [i]];
+		vertexCount += static_cast <int> (mesh->mNumVertices);
+		indexCount += static_cast <int> (mesh->mNumFaces * 3UL);
+	}
+
+	std::shared_ptr <R3D_MeshData> & meshData = meshResource.mesh;
+	meshData = std::shared_ptr <R3D_MeshData> (new R3D_MeshData (R3D_LoadMeshData (
+		vertexCount,
+		indexCount
+	)), [] (R3D_MeshData * meshData) -> void {
+		R3D_UnloadMeshData (* meshData);
+	});
+
+	meshData->vertexCount = vertexCount;
+	meshData->indexCount = indexCount;
+
+	BoundingBox & aabb = meshResource.aabb;
+	aabb = {
+		.min = {
+			.x = std::numeric_limits <float>::max (),
+			.y = std::numeric_limits <float>::max (),
+			.z = std::numeric_limits <float>::max (),
+		},
+		.max = {
+			.x = std::numeric_limits <float>::min (),
+			.y = std::numeric_limits <float>::min (),
+			.z = std::numeric_limits <float>::min (),
+		},
+	};
+
+	R3D_Vertex * vPtr = meshData->vertices;
+	uint32_t * iPtr = meshData->indices;
+	std::size_t vertexOffset = 0;
+
+	for (std::size_t mI = 0; mI < visualNode->mNumMeshes; mI++) {
+		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [mI]];
 
 		aiString diffuseMapUrl;
 		scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
@@ -46,70 +83,28 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 			meshResource.textureFile = matName;
 		}
 
-		const int vertexCount = static_cast <int> (mesh->mNumVertices  * sizeof (* R3D_MeshData::vertices));
-		const int indexCount = static_cast <int> (mesh->mNumFaces * 3UL * sizeof (* R3D_MeshData::indices));
-
-		meshData = std::shared_ptr <R3D_MeshData> (new R3D_MeshData (R3D_LoadMeshData (
-			vertexCount,
-			indexCount
-		)), [] (R3D_MeshData * meshData) -> void {
-			R3D_UnloadMeshData (* meshData);
-		});
-
-		meshData->vertexCount = vertexCount;
-		meshData->indexCount = indexCount;
-
-		BoundingBox & aabb = meshResource.aabb;
-		aabb = {
-			.min = {
-				.x = std::numeric_limits <float>::max (),
-				.y = std::numeric_limits <float>::max (),
-				.z = std::numeric_limits <float>::max (),
-			},
-			.max = {
-				.x = std::numeric_limits <float>::min (),
-				.y = std::numeric_limits <float>::min (),
-				.z = std::numeric_limits <float>::min (),
-			},
-		};
-
 		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-			R3D_Vertex & vertex = meshData->vertices [i];
-
-			vertex.position = {
+			vPtr->position = {
 				.x = mesh->mVertices [i].x,
 				.y = mesh->mVertices [i].y,
 				.z = mesh->mVertices [i].z,
 			};
 
-			aabb.min = Vector3Min (aabb.min, vertex.position);
-			aabb.max = Vector3Max (aabb.max, vertex.position);
-		}
-
-		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-			R3D_Vertex & vertex = meshData->vertices [i];
-
-			vertex.position = {
-				.x = mesh->mVertices [i].x,
-				.y = mesh->mVertices [i].y,
-				.z = mesh->mVertices [i].z,
-			};
-
-			aabb.min = Vector3Min (aabb.min, vertex.position);
-			aabb.max = Vector3Max (aabb.max, vertex.position);
+			aabb.min = Vector3Min (aabb.min, vPtr->position);
+			aabb.max = Vector3Max (aabb.max, vPtr->position);
 
 			// NOLINTNEXTLINE(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-			uint16_t (& texCoord) [2]  = vertex.texcoord;
+			uint16_t (& texCoord) [2]  = vPtr->texcoord;
 
 			if (nullptr != mesh->mTextureCoords [0] && mesh->mNumUVComponents [0] >= 2) {
-				R3D_PackTexCoord(texCoord, (Vector2) {
+				R3D_PackTexCoord (texCoord, (Vector2) {
 					.x = mesh->mTextureCoords [0] [i].x,
 					.y = mesh->mTextureCoords [0] [i].y,
 				});
 			}
 
 			// NOLINTNEXTLINE(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-			int8_t (& normal) [4] = vertex.normal;
+			int8_t (& normal) [4] = vPtr->normal;
 
 			if (nullptr != mesh->mNormals) {
 				R3D_PackNormal (normal, (Vector3) {
@@ -119,165 +114,24 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 				});
 			}
 
-			R3D_PackTangent (vertex.tangent, (Vector4) { .x = 1, .y = 0, .z = 0, .w = 1});
+			vPtr->color = WHITE;
 
-			vertex.color = WHITE;
+			vPtr++;
 		}
-
-		uint32_t * indexPtr = meshData->indices;
 
 		for (unsigned i = 0; i < mesh->mNumFaces; i++) {
-			* indexPtr = mesh->mFaces [i].mIndices [0];
-			indexPtr++;
-			* indexPtr = mesh->mFaces [i].mIndices [1];
-			indexPtr++;
-			* indexPtr = mesh->mFaces [i].mIndices [2];
-			indexPtr++;
+			* iPtr = vertexOffset + mesh->mFaces [i].mIndices [0];
+			iPtr++;
+			* iPtr = vertexOffset + mesh->mFaces [i].mIndices [1];
+			iPtr++;
+			* iPtr = vertexOffset + mesh->mFaces [i].mIndices [2];
+			iPtr++;
 		}
+
+		vertexOffset += mesh->mNumVertices;
 	}
 
-	// if (1 == visualNode->mNumMeshes) {
-	// 	const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
-	//
-	// 	aiString diffuseMapUrl;
-	// 	scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
-	//
-	// 	if (false == diffuseMapUrl.Empty ()) {
-	// 		std::string matName (diffuseMapUrl.C_Str ());
-	// 		std::ranges::transform (matName, matName.begin (), [] (char c) -> char {
-	// 			return static_cast <char> (std::tolower (c));
-	// 		});
-	//
-	// 		meshResource.textureFile = matName;
-	// 	}
-	//
-	// 	meshResource.vertexBuffer.resize (mesh->mNumVertices * 3UL);
-	//
-	// 	for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-	// 		meshResource.vertexBuffer [3 * i + 0] = mesh->mVertices [i].x;
-	// 		meshResource.vertexBuffer [3 * i + 1] = mesh->mVertices [i].y;
-	// 		meshResource.vertexBuffer [3 * i + 2] = mesh->mVertices [i].z;
-	// 	}
-	//
-	// 	meshResource.indexBuffer.resize (mesh->mNumFaces * 3UL);
-	//
-	// 	for (unsigned i = 0; i < mesh->mNumFaces; ++i) {
-	// 		meshResource.indexBuffer [3 * i + 0] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [0]);
-	// 		meshResource.indexBuffer [3 * i + 1] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [1]);
-	// 		meshResource.indexBuffer [3 * i + 2] = static_cast <PropMeshResource::IndexType> (mesh->mFaces [i].mIndices [2]);
-	// 	}
-	//
-	// 	if (true == mesh->HasTextureCoords (0)) {
-	// 		meshResource.uvBuffer.resize (mesh->mNumVertices * 2UL);
-	//
-	// 		for (unsigned i = 0; i < mesh->mNumVertices; ++i) {
-	// 			meshResource.uvBuffer [2 * i + 0] = mesh->mTextureCoords [0] [i].x;
-	// 			meshResource.uvBuffer [2 * i + 1] = mesh->mTextureCoords [0] [i].y;
-	// 		}
-	// 	}
-	//
-	// 	if (true == mesh->HasNormals ()) {
-	// 		meshResource.normalBuffer.resize (mesh->mNumVertices * 3UL);
-	//
-	// 		for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-	// 			meshResource.normalBuffer [3 * i + 0] = mesh->mNormals [i].x;
-	// 			meshResource.normalBuffer [3 * i + 1] = mesh->mNormals [i].y;
-	// 			meshResource.normalBuffer [3 * i + 2] = mesh->mNormals [i].z;
-	// 		}
-	// 	}
-	// }
-	// else {
-	// 	std::size_t vertexBufferSize = 0;
-	// 	std::size_t vertexBufferOffset = 0;
-	// 	std::size_t vertexIndexOffset = 0;
-	// 	std::size_t indexBufferSize = 0;
-	// 	std::size_t indexBufferOffset = 0;
-	// 	std::size_t uvBufferSize = 0;
-	// 	std::size_t uvBufferOffset = 0;
-	// 	std::size_t normalBufferSize = 0;
-	// 	std::size_t normalBufferOffset = 0;
-	//
-	// 	{
-	// 		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
-	// 		aiString diffuseMapUrl;
-	// 		scene->mMaterials [mesh->mMaterialIndex]->GetTexture (aiTextureType_DIFFUSE, 0, & diffuseMapUrl);
-	//
-	// 		if (false == diffuseMapUrl.Empty ()) {
-	// 			std::string matName (diffuseMapUrl.C_Str ());
-	// 			std::ranges::transform (matName, matName.begin (), [] (char c) -> char {
-	// 				return static_cast <char> (std::tolower (c));
-	// 			});
-	//
-	// 			meshResource.textureFile = matName;
-	// 		}
-	// 	}
-	//
-	// 	for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
-	// 		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
-	// 		vertexBufferSize += mesh->mNumVertices * 3UL;
-	// 		indexBufferSize += mesh->mNumFaces * 3UL;
-	// 		if (true == mesh->HasTextureCoords (0)) {
-	// 			uvBufferSize += mesh->mNumVertices * 2UL;
-	// 		}
-	// 		if (true == mesh->HasNormals ()) {
-	// 			normalBufferSize += mesh->mNumVertices * 3UL;
-	// 		}
-	// 	}
-	//
-	// 	meshResource.vertexBuffer.resize (vertexBufferSize);
-	// 	meshResource.indexBuffer.resize (indexBufferSize);
-	// 	meshResource.uvBuffer.resize (uvBufferSize);
-	// 	meshResource.normalBuffer.resize (normalBufferSize);
-	//
-	// 	for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
-	// 		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
-	//
-	// 		std::size_t currentVertexBufferSize = mesh->mNumVertices * 3UL;
-	//
-	// 		for (unsigned mI = 0, rI = vertexBufferOffset; mI < mesh->mNumVertices; mI++) {
-	// 			meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].x;
-	// 			meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].y;
-	// 			meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].z;
-	// 		}
-	//
-	// 		std::size_t currentIndexBufferSize = mesh->mNumFaces * 3UL;
-	//
-	// 		for (unsigned mI = 0, rI = indexBufferOffset; mI < mesh->mNumFaces; mI++) {
-	// 			meshResource.indexBuffer [rI++] = static_cast <PropMeshResource::IndexType> (vertexIndexOffset + mesh->mFaces [mI].mIndices [0]);
-	// 			meshResource.indexBuffer [rI++] = static_cast <PropMeshResource::IndexType> (vertexIndexOffset + mesh->mFaces [mI].mIndices [1]);
-	// 			meshResource.indexBuffer [rI++] = static_cast <PropMeshResource::IndexType> (vertexIndexOffset + mesh->mFaces [mI].mIndices [2]);
-	// 		}
-	//
-	// 		vertexBufferOffset += currentVertexBufferSize;
-	// 		vertexIndexOffset += mesh->mNumVertices;
-	// 		indexBufferOffset += currentIndexBufferSize;
-	//
-	// 		// FIXME: what if first mesh doesn't have normals/textcoords and second have? This indexing will fail.
-	//
-	// 		if (true == mesh->HasTextureCoords (0)) {
-	// 			std::size_t currentUVBufferSize = mesh->mNumVertices * 2UL;
-	//
-	// 			for (unsigned mI = 0, rI = uvBufferOffset; mI < mesh->mNumVertices; mI++) {
-	// 				meshResource.uvBuffer [rI++] = mesh->mTextureCoords [0] [mI].x;
-	// 				meshResource.uvBuffer [rI++] = mesh->mTextureCoords [0] [mI].y;
-	// 			}
-	//
-	// 			uvBufferOffset += currentUVBufferSize;
-	// 		}
-	//
-	// 		if (true == mesh->HasNormals ()) {
-	// 			std::size_t currentNormalBufferSize = currentVertexBufferSize;
-	//
-	// 			for (unsigned mI = 0, rI = normalBufferOffset; mI < mesh->mNumVertices; mI++) {
-	// 				meshResource.normalBuffer [rI++] = mesh->mNormals [mI].x;
-	// 				meshResource.normalBuffer [rI++] = mesh->mNormals [mI].y;
-	// 				meshResource.normalBuffer [rI++] = mesh->mNormals [mI].z;
-	// 			}
-	//
-	// 			normalBufferOffset += currentNormalBufferSize;
-	// 		}
-	// 	}
-	// }
+	R3D_GenMeshDataTangents (meshData.get (), R3D_PRIMITIVE_TRIANGLES);
 
 	return meshResource;
 
