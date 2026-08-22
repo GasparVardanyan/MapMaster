@@ -20,8 +20,7 @@ MapMaster_Build_EnableDebugBuildDebugInfos (r3d)
 
 target_link_libraries (MapMaster_External_R3D INTERFACE r3d)
 
-target_include_directories (MapMaster_External_R3D
-	INTERFACE
-        ${r3d_SOURCE_DIR}/include
-        ${raylib_SOURCE_DIR}/src
+target_include_directories (MapMaster_External_R3D INTERFACE
+	${r3d_SOURCE_DIR}/include
+	${raylib_SOURCE_DIR}/src
 )

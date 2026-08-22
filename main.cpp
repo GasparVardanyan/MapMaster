@@ -7,6 +7,7 @@
 
 # include "MapMaster/Utils/Tanki.hpp"
 # include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
+# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp"
 
 namespace MapMaster::Tanki {
 template <class MapRendererBackend>
