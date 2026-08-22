@@ -124,33 +124,44 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		}
 
 		BeginDrawing ();
-		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-			R3D_Begin(camera);
-			// R3D_PushLight(* map_r3d_light);
-			R3D_PushLightEx(*map_r3d_light, map_r3d_shadow, true);
+
+		if (false == drawCollisionGeometry) {
+			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+				R3D_Begin (camera);
+				R3D_PushLightEx (*map_r3d_light, map_r3d_shadow, true);
+			}
+			else {
+				ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
+				BeginMode3D (camera);
+			}
+
+			rmap->render (camera);
+
+			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+				R3D_End ();
+			}
+			else {
+				EndMode3D ();
+			}
 		}
 		else {
 			ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
 			BeginMode3D (camera);
+
+			rmap->renderCollisionGeometry ();
+
+			EndMode3D ();
 		}
 
 		if (true == drawCollisionGeometry) {
-			rmap->renderCollisionGeometry ();
 		}
 		else {
-			rmap->render (camera);
+			// rmap->render (camera);
 
 			// rlPushMatrix ();
 			// rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
 			// DrawGrid (50, 500.0F * scale);
 			// rlPopMatrix ();
-		}
-
-		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-			R3D_End();
-		}
-		else {
-			EndMode3D ();
 		}
 
 		DrawFPS (10, 10);
