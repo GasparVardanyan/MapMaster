@@ -32,6 +32,7 @@ PropGPUResourceManagerR3DBackend::CreateTextureResource <false> (
 template <bool Upload>
 PropGPUResourceManagerR3DBackend::MeshResource PropGPUResourceManagerR3DBackend::CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource) {
 	MeshResource m = {};
+	m.aabb = meshResource.aabb;
 
 	if constexpr (true == Upload) {
 		m.mesh = std::shared_ptr <R3D_Mesh> (

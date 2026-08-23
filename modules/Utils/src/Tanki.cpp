@@ -49,6 +49,8 @@ void OpenMapWindow (int width, int height, const std::string & title, int logLev
 		SetConfigFlags (FLAG_MSAA_4X_HINT);
 		InitWindow (width, height, title.c_str ());
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+			R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
+			R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
 			R3D_Init (width, height);
 		}
 	}
