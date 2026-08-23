@@ -12,7 +12,6 @@
 
 namespace MapMaster::Tanki {
 
-// TODO: make an interface trait
 // cppcheck-suppress-begin unusedStructMember
 class PropGPUResourceManagerR3DBackend {
 public:

@@ -6,8 +6,8 @@
 # include <raylib.h>
 
 # include "MapMaster/Utils/Tanki.hpp"
-# include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
-# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp"
+# include "MapMaster/Tanki/MapRendererR3DBackend.hpp" // IWYU pragma: keep
+# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp" // IWYU pragma: keep
 
 namespace MapMaster::Tanki {
 template <class MapRendererBackend>

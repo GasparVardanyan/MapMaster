@@ -5,7 +5,6 @@
 # include <cstdio>
 # include <cstdlib>
 # include <cstring>
-# include <iostream>
 # include <limits>
 # include <memory>
 # include <string>
@@ -17,16 +16,12 @@
 
 # include <assimp/config.h>
 # include <assimp/material.h>
-# include <assimp/material.inl>
 # include <assimp/mesh.h>
 # include <assimp/postprocess.h>
 # include <assimp/scene.h>
 # include <assimp/types.h>
 # include <assimp/vector3.h>
 # include <stb_image.h>
-
-# include <assimp/Importer.hpp>
-# include <assimp/postprocess.h>
 
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 

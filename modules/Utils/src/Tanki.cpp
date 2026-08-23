@@ -24,9 +24,9 @@
 
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/Map.hpp"
-# include "MapMaster/Tanki/MapRenderer.hpp"
-# include "MapMaster/Tanki/MapRendererR3DBackend.hpp"
-# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp"
+# include "MapMaster/Tanki/MapRenderer.hpp" // IWYU pragma: keep
+# include "MapMaster/Tanki/MapRendererR3DBackend.hpp" // IWYU pragma: keep
+# include "MapMaster/Tanki/MapRendererRaylibBackend.hpp" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropLibrary.hpp"
 
 namespace MapMaster {

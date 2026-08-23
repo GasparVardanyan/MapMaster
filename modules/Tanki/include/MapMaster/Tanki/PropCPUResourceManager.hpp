@@ -1,5 +1,6 @@
 # pragma once
 
+# include <cstdio>
 # include <functional>
 # include <map>
 # include <memory>
@@ -9,17 +10,71 @@
 # include <utility>
 # include <vector>
 
+extern "C" {
+	struct aiScene;
+	struct aiNode;
+}
+
 namespace MapMaster::Tanki {
 
 class Map;
 class PropLibrary;
 
+template <class PropCPUResourceManagerBackend, typename = void>
+struct IsPropCPUResourceManagerBackend : std::false_type {};
+
+template <class PropCPUResourceManagerBackend>
+struct IsPropCPUResourceManagerBackend <
+	PropCPUResourceManagerBackend,
+	std::void_t <
+		std::enable_if_t <std::is_same_v <
+			decltype (& PropCPUResourceManagerBackend::AssimpImporterRemoveComponentFlags),
+			int *
+		>>,
+		std::enable_if_t <std::is_same_v <
+			decltype (& PropCPUResourceManagerBackend::AssimpPostProcessorSteps),
+			unsigned int *
+		>>,
+
+		typename PropCPUResourceManagerBackend::PropMeshResource,
+		typename PropCPUResourceManagerBackend::PropTextureResource,
+
+		std::enable_if_t <std::is_invocable_v <
+			decltype (PropCPUResourceManagerBackend::ParseMeshResource),
+			const aiScene *, const aiNode *
+		>>,
+		std::enable_if_t <std::is_invocable_v <
+			decltype (PropCPUResourceManagerBackend::ParseTextureResource),
+			std::FILE *, std::FILE *
+		>>,
+
+		std::enable_if_t <std::is_same_v <
+			typename PropCPUResourceManagerBackend::PropMeshResource,
+			std::invoke_result_t <
+				decltype (PropCPUResourceManagerBackend::ParseMeshResource),
+				const aiScene *, const aiNode *
+			>
+		>>,
+		std::enable_if_t <std::is_same_v <
+			typename PropCPUResourceManagerBackend::PropTextureResource,
+			std::invoke_result_t <
+				decltype (PropCPUResourceManagerBackend::ParseTextureResource),
+				std::FILE *, std::FILE *
+			>
+		>>
+	>
+> : std::true_type {};
+
 // cppcheck-suppress-begin unusedStructMember
 template <class PropCPUResourceManagerBackend>
 class PropCPUResourceManager {
 public:
-	using PropMeshResource = PropCPUResourceManagerBackend::PropMeshResource;
-	using PropTextureResource = PropCPUResourceManagerBackend::PropTextureResource;
+	using Backend = std::enable_if_t <
+		IsPropCPUResourceManagerBackend <PropCPUResourceManagerBackend>::value,
+		PropCPUResourceManagerBackend
+	>;
+	using PropMeshResource = Backend::PropMeshResource;
+	using PropTextureResource = Backend::PropTextureResource;
 
 	enum class OverlapBehaviour : unsigned char {
 		Ignore, Override
