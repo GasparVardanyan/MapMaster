@@ -49,9 +49,21 @@ void OpenMapWindow (int width, int height, const std::string & title, int logLev
 		SetConfigFlags (FLAG_MSAA_4X_HINT);
 		InitWindow (width, height, title.c_str ());
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+			R3D_Init (width, height);
+
+			R3D_ENVIRONMENT_SET (ssao.enabled, true);
+			R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
+			R3D_ENVIRONMENT_SET (ssr.enabled, true);
+			R3D_ENVIRONMENT_SET (fog.mode, R3D_Fog::R3D_FOG_EXP2);
+			R3D_ENVIRONMENT_SET (fog.density, 0.0065);
+			R3D_ENVIRONMENT_SET (fog.color, (Color) { .r = 0x4A, .g = 0x3A, .b = 0x5A, .a = 0xFF });
+
+			R3D_ENVIRONMENT_SET (ambient.color, (Color) { .r = 0x80, .g = 0x70, .b = 0x90, .a = 0xFF });
+			R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
+			R3D_ENVIRONMENT_SET (background.color, (Color) {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
+
 			R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
 			R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
-			R3D_Init (width, height);
 		}
 	}
 }
@@ -93,12 +105,6 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		map_r3d_shadow.opacity = 1.0f;
 	}
 
-	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-		R3D_GetEnvironment ()->ambient.color = WHITE;
-		R3D_GetEnvironment ()->ambient.energy = 0.2;
-		R3D_GetEnvironment ()->background.color = {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF};
-	}
-
 	R3D_Light* map_r3d_light = nullptr;
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 		map_r3d_light = new R3D_Light;
@@ -107,11 +113,20 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		// 	WHITE,
 		// 	0.8
 		// );
+		// *map_r3d_light = R3D_CreateDirLight (
+		// 		{ -0.35f, -0.75f, -0.25f },
+		// 		(Color) {
+		// 		.r = 0xFF,
+		// 		.g = 0xB0,
+		// 		.b = 0x70,
+		// 		.a = 0xFF
+		// 		},
+		// 		0.7f
+		// 		);
 		* map_r3d_light = R3D_CreateOmniLight (
 			{ 3000 * scale, 9000 * scale, 9000 * scale },
 			10000,
-			WHITE,
-			2
+			(Color) { .r = 0xFF, .g = 0xB0, .b = 0x70, .a = 0xFF }, 0.7F
 		);
 	}
 
