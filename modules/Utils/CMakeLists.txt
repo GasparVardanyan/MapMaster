@@ -8,8 +8,6 @@ include (MapMasterBuildUtils)
 MapMaster_Build_ModuleConfig (MapMaster_Module_Utils)
 
 target_link_libraries (MapMaster_Module_Utils MapMaster_Module_Tanki)
-target_link_libraries (MapMaster_Module_Utils MapMaster_Module_TankiRaylibBackend)
-target_link_libraries (MapMaster_Module_Utils MapMaster_Module_TankiR3DBackend)
 target_link_libraries (MapMaster_Module_Utils MapMaster_Module_Scene3D)
 
 target_include_directories (MapMaster_Module_Utils PUBLIC include)
