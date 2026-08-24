@@ -4,9 +4,3 @@
 
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 
-namespace MapMaster::Tanki {
-
-template class PropCPUResourceManager <PropCPUResourceManagerR3DBackend>;
-template class PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;
-
-}  // namespace MapMaster::Tanki
