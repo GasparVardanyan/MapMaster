@@ -14,11 +14,11 @@ include (MapMasterBuildUtils)
 
 MapMaster_Build_ModuleConfig (MapMaster_Module_TankiR3DBackend)
 
-target_link_libraries (MapMaster_Module_TankiR3DBackend PUBLIC
+target_link_libraries (MapMaster_Module_TankiR3DBackend PRIVATE
 	MapMaster_Module_TankiCore
 )
 
-target_link_libraries (MapMaster_Module_TankiR3DBackend PUBLIC
+target_link_libraries (MapMaster_Module_TankiR3DBackend PRIVATE
 	MapMaster_External_TBB
 	MapMaster_External_Assimp
 	MapMaster_External_Raylib

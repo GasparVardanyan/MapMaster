@@ -12,7 +12,7 @@ include (MapMasterBuildUtils)
 
 MapMaster_Build_ModuleConfig (MapMaster_Module_TankiCore)
 
-target_link_libraries (MapMaster_Module_TankiCore PUBLIC
+target_link_libraries (MapMaster_Module_TankiCore PRIVATE
 	MapMaster_External_TBB
 	MapMaster_External_Assimp
 	MapMaster_External_STB

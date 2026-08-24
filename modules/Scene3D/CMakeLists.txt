@@ -7,7 +7,7 @@ include (MapMasterBuildUtils)
 
 MapMaster_Build_ModuleConfig (MapMaster_Module_Scene3D)
 
-target_link_libraries (MapMaster_Module_Scene3D PUBLIC
+target_link_libraries (MapMaster_Module_Scene3D PRIVATE
 	MapMaster_External_Raylib
 )
 
