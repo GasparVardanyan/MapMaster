@@ -10,10 +10,8 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
-# include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManagerR3DBackend.hpp"
 
 namespace MapMaster::Tanki {

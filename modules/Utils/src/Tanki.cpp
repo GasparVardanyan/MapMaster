@@ -46,14 +46,15 @@ void OpenMapWindow (int width, int height, const std::string & title, int logLev
 		|| std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>
 	) {
 		SetTraceLogLevel (logLevel);
+		SetConfigFlags (FLAG_FULLSCREEN_MODE);
 		SetConfigFlags (FLAG_MSAA_4X_HINT);
-		InitWindow (width, height, title.c_str ());
+		InitWindow (0, 0, title.c_str ());
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 			R3D_Init (width, height);
 
 			R3D_ENVIRONMENT_SET (ssao.enabled, true);
 			R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
-			R3D_ENVIRONMENT_SET (ssr.enabled, true);
+			// R3D_ENVIRONMENT_SET (ssr.enabled, true);
 			R3D_ENVIRONMENT_SET (fog.mode, R3D_Fog::R3D_FOG_EXP2);
 			R3D_ENVIRONMENT_SET (fog.density, 0.0065);
 			R3D_ENVIRONMENT_SET (fog.color, (Color) { .r = 0x4A, .g = 0x3A, .b = 0x5A, .a = 0xFF });
@@ -181,7 +182,9 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		EndDrawing ();
 	}
 
-	delete map_r3d_light;
+	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+		delete map_r3d_light;
+	}
 
 	// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 }

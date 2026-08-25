@@ -283,7 +283,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMeshResources (
 	resources.resize (meshDescriptors.size ());
 
 	std::transform (
-		std::execution::par_unseq,
+		std::execution::seq,
 		meshDescriptors.cbegin (),
 		meshDescriptors.cend (),
 		resources.begin (),
@@ -312,7 +312,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadTextureResource
 	resources.resize (textureDescriptors.size ());
 
 	std::transform (
-		std::execution::par_unseq,
+		std::execution::seq,
 		textureDescriptors.cbegin (),
 		textureDescriptors.cend (),
 		resources.begin (),

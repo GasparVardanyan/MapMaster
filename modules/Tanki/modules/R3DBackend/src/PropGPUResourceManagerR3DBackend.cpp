@@ -7,6 +7,9 @@
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_texture.h>
 
+# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManager.inl" // IWYU pragma: keep
+
 using namespace MapMaster::Tanki;
 
 template PropGPUResourceManagerR3DBackend::MeshResource
@@ -116,3 +119,7 @@ PropGPUResourceManagerR3DBackend::SpriteInfo PropGPUResourceManagerR3DBackend::C
 		.size = size,
 	};
 }
+
+namespace MapMaster::Tanki {
+template class PropGPUResourceManager <PropGPUResourceManagerR3DBackend>;
+}  // namespace MapMaster::Tanki

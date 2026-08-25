@@ -9,7 +9,7 @@ project (${PROJECT_NAME} VERSION ${VERSION} LANGUAGES C CXX)
 
 add_subdirectory (${CMAKE_SOURCE_DIR}/modules/MapMaster)
 
-add_executable (${PROJECT_NAME} main.cpp)
+add_executable (${PROJECT_NAME} src/main.cpp)
 MapMaster_Build_ModuleConfig (${PROJECT_NAME})
-target_link_libraries (${PROJECT_NAME} MapMasterLibrary)
+target_link_libraries (${PROJECT_NAME} PRIVATE MapMasterLibrary)
 target_compile_options (${PROJECT_NAME} PRIVATE -Wno-c99-extensions)

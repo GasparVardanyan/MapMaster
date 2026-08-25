@@ -5,6 +5,9 @@
 
 # include <raylib.h>
 
+# include "MapMaster/Tanki/PropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropGPUResourceManager.inl" // IWYU pragma: keep
+
 using namespace MapMaster::Tanki;
 
 template PropGPUResourceManagerRaylibBackend::MeshResource
@@ -127,3 +130,7 @@ PropGPUResourceManagerRaylibBackend::SpriteInfo PropGPUResourceManagerRaylibBack
 		.size = size,
 	};
 }
+
+namespace MapMaster::Tanki {
+template class PropGPUResourceManager <PropGPUResourceManagerRaylibBackend>;
+}  // namespace MapMaster::Tanki

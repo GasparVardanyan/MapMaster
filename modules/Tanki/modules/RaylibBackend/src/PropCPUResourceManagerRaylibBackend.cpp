@@ -16,6 +16,8 @@
 # include <stb_image.h>
 
 # include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 
 using namespace MapMaster::Tanki;
 
@@ -260,3 +262,7 @@ PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerR
 		};
 	}
 }
+
+namespace MapMaster::Tanki {
+template class PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;
+}  // namespace MapMaster::Tanki

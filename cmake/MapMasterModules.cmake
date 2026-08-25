@@ -2,6 +2,7 @@ add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../modules/Tanki
 	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_Module_Tanki
 )
+
 add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../modules/Scene3D
 	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_Module_Scene3D

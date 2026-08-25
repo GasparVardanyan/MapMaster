@@ -380,6 +380,8 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::ParsedMeshInfo PropCPURe
 						.v3 = { .x = v3.x, .y = v3.y, .z = v3.z },
 					});
 				}
+				else if (true == nodeName.starts_with ("occl")) {
+				}
 			}
 		}
 

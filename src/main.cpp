@@ -43,7 +43,7 @@ int main (int argc, char ** argv) {
 
 	std::chrono::time_point start = std::chrono::steady_clock::now ();
 
-	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = MapMaster::Utils::Tanki::LoadMapRenderer <MapRendererBackend> (propLibsRoot, mapFile, scale, false);
+	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = MapMaster::Utils::Tanki::LoadMapRenderer <MapRendererBackend> (propLibsRoot, mapFile, scale, true);
 
 	std::chrono::time_point end = std::chrono::steady_clock::now ();
 
