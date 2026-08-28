@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <!-- start images -->
+  <xs:element name="images">
+    <xs:complexType>
+      <xs:sequence>
+        <!-- start image -->
+        <xs:element name="image" minOccurs="0" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="new-name" type="xs:string" use="required"/>
+            <xs:attribute name="alpha" type="xs:string" use="optional"/>
+          </xs:complexType>
+        </xs:element>
+        <!-- end image -->
+      </xs:sequence>
+    </xs:complexType>
+    <xs:unique name="unique-image-name">
+      <xs:selector xpath="image"/>
+      <xs:field xpath="@name"/>
+    </xs:unique>
+  </xs:element>
+  <!-- end images -->
+</xs:schema>
