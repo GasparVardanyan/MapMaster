@@ -41,7 +41,7 @@ using PropLibraryNameToResourceManagerVectorMap = std::map <
 
 namespace Window {
 template <class MapRendererBackend>
-void OpenMapWindow (int width, int height, const std::string & title = {}, int logLevel = LOG_NONE);
+void OpenMapWindow (const std::string & title = {}, int logLevel = LOG_NONE, float scale = 1.0F);
 template <class MapRendererBackend>
 void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap, float scale = 1.0, const std::string & msg1 = {}, const std::string & msg2 = {});
 template <class MapRendererBackend>

@@ -260,10 +260,10 @@ void MapRendererR3DBackend::setCollisionGeometryEdgeColor (Color color) {
 	m_collisionGeometryEdgeColor = color;
 }
 
-Color MapRendererR3DBackend::collisionGeometryFaceColor () {
+Color MapRendererR3DBackend::collisionGeometryFaceColor () const {
 	return m_collisionGeometryFaceColor;
 }
 
-Color MapRendererR3DBackend::collisionGeometryEdgeColor () {
+Color MapRendererR3DBackend::collisionGeometryEdgeColor () const {
 	return m_collisionGeometryEdgeColor;
 }

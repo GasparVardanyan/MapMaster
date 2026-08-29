@@ -7,6 +7,7 @@
 # include <utility>
 # include <vector>
 
+# include "MapMaster/Tanki/PrimitiveFactory.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 
@@ -28,6 +29,14 @@ struct IsPropGPUResourceManagerBackend <
 		std::enable_if_t <std::is_same_v <
 			typename PropGPUResourceManagerBackend::CPUResourceManager,
 			PropCPUResourceManager <typename PropGPUResourceManagerBackend::CPUResourceManagerBackend>
+		>>,
+
+		typename PropGPUResourceManagerBackend::PrimitiveFactoryBackend,
+		typename PropGPUResourceManagerBackend::PrimitiveFactory,
+
+		std::enable_if_t <std::is_same_v <
+			typename PropGPUResourceManagerBackend::PrimitiveFactory,
+			PrimitiveFactory <typename PropGPUResourceManagerBackend::PrimitiveFactoryBackend>
 		>>,
 
 		typename PropGPUResourceManagerBackend::MeshResource,
@@ -78,9 +87,7 @@ struct IsPropGPUResourceManagerBackend <
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropGPUResourceManagerBackend::UploadTextureResource),
 			typename PropGPUResourceManagerBackend::TextureResource &
-		>>,
-
-		void
+		>>
 	>
 > : std::true_type {};
 

@@ -40,7 +40,7 @@ namespace MapMaster::Utils::Tanki {
 
 namespace Window {
 template <class MapRendererBackend>
-void OpenMapWindow (int width, int height, const std::string & title, int logLevel) {
+void OpenMapWindow (const std::string & title, int logLevel, float scale) {
 	if constexpr (
 		   std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererRaylibBackend>
 		|| std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>
@@ -50,9 +50,11 @@ void OpenMapWindow (int width, int height, const std::string & title, int logLev
 		SetConfigFlags (FLAG_MSAA_4X_HINT);
 		InitWindow (0, 0, title.c_str ());
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-			R3D_Init (width, height);
+			R3D_Init (GetScreenWidth (), GetScreenHeight ());
 
 			R3D_ENVIRONMENT_SET (ssao.enabled, true);
+			R3D_ENVIRONMENT_SET (ssao.radius, 1.0F * scale);
+			R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
 			R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
 			// R3D_ENVIRONMENT_SET (ssr.enabled, true);
 			R3D_ENVIRONMENT_SET (fog.mode, R3D_Fog::R3D_FOG_EXP2);
@@ -63,8 +65,8 @@ void OpenMapWindow (int width, int height, const std::string & title, int logLev
 			R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
 			R3D_ENVIRONMENT_SET (background.color, (Color) {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
 
-			R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
-			R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
+			// R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
+			// R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
 		}
 	}
 }
@@ -387,8 +389,8 @@ std::vector <std::string> FindMapLibraryNames (const MapMaster::Tanki::Map & map
 
 namespace Window {
 
-template void OpenMapWindow <MapMaster::Tanki::MapRendererRaylibBackend> (int width, int height, const std::string & title, int logLevel);
-template void OpenMapWindow <MapMaster::Tanki::MapRendererR3DBackend> (int width, int height, const std::string & title, int logLevel);
+template void OpenMapWindow <MapMaster::Tanki::MapRendererRaylibBackend> (const std::string & title, int logLevel, float scale);
+template void OpenMapWindow <MapMaster::Tanki::MapRendererR3DBackend> (const std::string & title, int logLevel, float scale);
 
 
 template void CloseMapWindow <MapMaster::Tanki::MapRendererRaylibBackend> ();

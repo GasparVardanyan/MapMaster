@@ -258,10 +258,10 @@ void MapRendererRaylibBackend::setCollisionGeometryEdgeColor (Color color) {
 	m_collisionGeometryEdgeColor = color;
 }
 
-Color MapRendererRaylibBackend::collisionGeometryFaceColor () {
+Color MapRendererRaylibBackend::collisionGeometryFaceColor () const {
 	return m_collisionGeometryFaceColor;
 }
 
-Color MapRendererRaylibBackend::collisionGeometryEdgeColor () {
+Color MapRendererRaylibBackend::collisionGeometryEdgeColor () const {
 	return m_collisionGeometryEdgeColor;
 }

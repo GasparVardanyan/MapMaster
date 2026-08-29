@@ -21,6 +21,8 @@ class MapRendererR3DBackend {
 public:
 	using CPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerR3DBackend>;
 	using GPUResourceManager = PropGPUResourceManager <PropGPUResourceManagerR3DBackend>;
+	using Camera = Camera;
+	using Color = Color;
 
 	struct SceneTriangleCollider {
 		Vector3 v1 = {};
@@ -71,8 +73,8 @@ public:
 
 	void setCollisionGeometryFaceColor (Color color);
 	void setCollisionGeometryEdgeColor (Color color);
-	Color collisionGeometryFaceColor ();
-	Color collisionGeometryEdgeColor ();
+	[[nodiscard]] Color collisionGeometryFaceColor () const;
+	[[nodiscard]] Color collisionGeometryEdgeColor () const;
 
 private:
 	std::shared_ptr <GPUResourceManager> m_gpuResourceManager = std::make_shared <GPUResourceManager> (false);

@@ -20,6 +20,8 @@ class MapRendererRaylibBackend {
 public:
 	using CPUResourceManager = PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;
 	using GPUResourceManager = PropGPUResourceManager <PropGPUResourceManagerRaylibBackend>;
+	using Camera = Camera;
+	using Color = Color;
 
 	struct SceneTriangleCollider {
 		Vector3 v1 = {};
@@ -71,8 +73,8 @@ public:
 
 	void setCollisionGeometryFaceColor (Color color);
 	void setCollisionGeometryEdgeColor (Color color);
-	Color collisionGeometryFaceColor ();
-	Color collisionGeometryEdgeColor ();
+	[[nodiscard]] Color collisionGeometryFaceColor () const;
+	[[nodiscard]] Color collisionGeometryEdgeColor () const;
 
 private:
 	std::shared_ptr <GPUResourceManager> m_gpuResourceManager = std::make_shared <GPUResourceManager> (false);

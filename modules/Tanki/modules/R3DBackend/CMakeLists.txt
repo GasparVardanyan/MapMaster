@@ -1,11 +1,13 @@
 add_library (MapMaster_Module_TankiR3DBackend SHARED
 	include/MapMaster/Tanki/MapRendererR3DBackend.hpp
+	include/MapMaster/Tanki/PrimitiveFactoryR3DBackend.hpp
 	include/MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp
 	include/MapMaster/Tanki/PropGPUResourceManagerR3DBackend.hpp
 	include/MapMaster/Tanki/R3DMapRenderer.hpp
 	include/MapMaster/Tanki/R3DPropCPUResourceManager.hpp
 	include/MapMaster/Tanki/R3DPropGPUResourceManager.hpp
 	src/MapRendererR3DBackend.cpp
+	src/PrimitiveFactoryR3DBackend.cpp
 	src/PropCPUResourceManagerR3DBackend.cpp
 	src/PropGPUResourceManagerR3DBackend.cpp
 )
