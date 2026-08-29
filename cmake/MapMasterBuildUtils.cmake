@@ -1,3 +1,5 @@
+include (MapMasterConfig)
+
 function (MapMaster_Build_SetCompilerOptions target)
 	set_target_properties (${target} PROPERTIES
 		CXX_STANDARD 20
@@ -32,8 +34,15 @@ function (MapMaster_Build_EnableDebugBuildDebugInfos target)
 	)
 endfunction ()
 
+function (MapMaster_Apply_Config target)
+	target_compile_definitions(${target} PRIVATE
+		MAPMASTER_3D_YUP=$<BOOL:${MAPMASTER_3D_YUP}>
+	)
+endfunction ()
+
 function (MapMaster_Build_ModuleConfig target)
 	MapMaster_Build_SetCompilerOptions (${target})
 	MapMaster_Build_EnableReleaseBuildOptimizations (${target})
 	MapMaster_Build_EnableDebugBuildDebugInfos (${target})
+	MapMaster_Apply_Config (${target})
 endfunction ()

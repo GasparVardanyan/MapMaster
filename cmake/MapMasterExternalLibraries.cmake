@@ -5,11 +5,11 @@ add_subdirectory (
 
 add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../external_libraries/raylib
-	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_External_R3D
+	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_External_Raylib
 )
 add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../external_libraries/r3d
-	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_External_Raylib
+	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_External_R3D
 )
 
 add_subdirectory (
