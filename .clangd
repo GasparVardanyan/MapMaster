@@ -1,0 +1,7 @@
+If:
+  PathMatch: .*\.inl$
+
+CompileFlags:
+  Add:
+    - -x
+    - c++

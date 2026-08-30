@@ -25,7 +25,7 @@ static constexpr float scale = 0.005F;
 int main (int argc, char ** argv) {
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers)
 	// MapMaster::Utils::Tanki::Window::OpenMapWindow <MapRendererBackend> (1680, 1050, "MapMaster", LOG_NONE);
-	MapMaster::Utils::Tanki::Window::OpenMapWindow <MapRendererBackend> (1920, 1080, "MapMaster", LOG_NONE);
+	MapMaster::Utils::Tanki::Window::OpenMapWindow <MapRendererBackend> ("MapMaster", LOG_NONE);
 
 	std::string propLibsRoot, mapFile;
 

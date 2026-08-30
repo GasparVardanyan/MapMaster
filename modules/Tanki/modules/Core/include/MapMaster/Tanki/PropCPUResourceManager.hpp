@@ -10,6 +10,17 @@
 # include <utility>
 # include <vector>
 
+# include "MapMaster/Tanki/PropMetaData.hpp"
+
+namespace MapMaster {
+namespace Tanki {
+namespace PropMetaData {
+struct Mesh;
+struct Texture;
+}  // namespace PropMetaData
+}  // namespace Tanki
+}  // namespace MapMaster
+
 extern "C" {
 	struct aiScene;
 	struct aiNode;
@@ -38,6 +49,19 @@ struct IsPropCPUResourceManagerBackend <
 
 		typename PropCPUResourceManagerBackend::PropMeshResource,
 		typename PropCPUResourceManagerBackend::PropTextureResource,
+
+		decltype (PropCPUResourceManagerBackend::PropMeshResource::meta),
+		decltype (PropCPUResourceManagerBackend::PropTextureResource::meta),
+
+		std::enable_if_t <std::is_same_v <
+			decltype (PropCPUResourceManagerBackend::PropMeshResource::meta),
+			PropMetaData::Mesh
+		>>,
+
+		std::enable_if_t <std::is_same_v <
+			decltype (PropCPUResourceManagerBackend::PropTextureResource::meta),
+			PropMetaData::Texture
+		>>,
 
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::ParseMeshResource),
@@ -80,42 +104,9 @@ public:
 		Ignore, Override
 	};
 
-	struct Collider {
-		using VertexType = float;
-
-		static_assert (std::is_floating_point_v <VertexType>);
-
-		struct BoxCollider {
-			struct {
-				VertexType x, y, z;
-			} vMin, vMax;
-		};
-		struct RectCollider {
-			struct {
-				VertexType x, y, z;
-			} v1, v2, v3, v4;
-		};
-		struct TriangleCollider {
-			struct {
-				VertexType x, y, z;
-			} v1, v2, v3;
-		};
-
-		std::vector <BoxCollider> boxColliders;
-		std::vector <RectCollider> rectColliders;
-		std::vector <TriangleCollider> triangleColliders;
-	};
-
-	using MeshResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>)>;
+	using MeshResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropMeshResource>)>;
 	using TextureResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropTextureResource>)>;
 	using MapResourcesLoadCallback = std::function <void ()>;
-
-private:
-	struct ParsedMeshInfo {
-		std::vector <PropMeshResource> meshResources;
-		PropMeshResource meshResource;
-		Collider collider;
-	};
 
 public:
 	explicit PropCPUResourceManager (bool parseCollisionPrimitives = false);
@@ -136,16 +127,16 @@ public:
 	/**
 	 * @brief load and parse texture files
 	 *
-	 * @param textureDescriptors {{libraryName, {diffuseFileName, alphaFileName}}}
+	 * @param textureDescriptors {{libraryName, diffuseFileName, alphaFileName}, ...}
 	 */
 	void loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors);
 
 	void loadMapResources (const Map & map);
+	void loadPropLibraryResources (const PropLibrary & propLibrary);
 
 	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> & propMeshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> & propTextureResources () const;
-	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <Collider>>> & colliders () const;
 
 	[[nodiscard]] const PropMeshResource & getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
@@ -158,14 +149,13 @@ public:
 	void clearCallbacks ();
 
 private:
-	ParsedMeshInfo loadMeshResource (const std::string & libraryName, const std::string & meshFile);
+	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile);
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
 
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
-	std::map <std::string, std::map <std::string, std::shared_ptr <Collider>>> m_colliders;
 
 	struct {
 		MeshResourceLoadCallback meshResourceLoad = nullptr;

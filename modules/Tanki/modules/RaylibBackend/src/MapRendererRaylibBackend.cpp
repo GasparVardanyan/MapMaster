@@ -11,6 +11,7 @@
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 using namespace MapMaster::Tanki;
 
@@ -21,8 +22,7 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 	const auto & raylibTextureResources = m_gpuResourceManager->textureResources ();
 	const auto & raylibSpriteInfos = m_gpuResourceManager->spriteInfos ();
 
-	const CPUResourceManager & resourceManager = m_gpuResourceManager->cpuResourceManager ();
-	const auto & propLibraries = resourceManager.propLibraries ();
+	const auto & propLibraries = m_gpuResourceManager->propLibraries ();
 
 	for (const auto & [libraryName, groups] : m_map->mapObjects ()) {
 		const PropLibrary & library = * propLibraries.at (libraryName);
@@ -33,20 +33,17 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 
 			for (const auto & [propName, propInfo] : props) {
 				if (true == group.meshes.contains (propName)) {
-					const typename CPUResourceManager::PropMeshResource & meshResource = const_cast <CPUResourceManager::PropMeshResource &> (
-						resourceManager.getMeshResource (libraryName, groupName, propName)
-					);
-
 					const PropLibrary::PropMesh & propMesh = group.meshes.at (propName);
 					const std::string meshFile = propMesh.file;
 
-					const typename CPUResourceManager::Collider & collider = * resourceManager.colliders ().at (libraryName).at (meshFile);
+					const GPUResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
+					const PropMetaData::Mesh::Collider & collider = raylibMeshResource.meta.collider;
 
 					for (const Map::MapObject & mapObject : propInfo) {
 						std::string textureName = mapObject.textureName;
 						std::string textureFile;
 						if (true == textureName.empty ()) {
-							textureFile = meshResource.textureFile;
+							textureFile = raylibMeshResource.meta.textureFile;
 						}
 						else {
 							textureFile = propMesh.textures.at (textureName);
@@ -54,8 +51,7 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 
 						textureFile = library.getActualTextureFileName (textureFile);
 
-						const typename GPUResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
-						const typename GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+						const GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
 
 						const Matrix transform = MatrixMultiply (
 							MatrixMultiply (
@@ -80,7 +76,7 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 						sceneMesh.material.maps [MATERIAL_MAP_DIFFUSE].texture = * raylibTextureResource.texture;
 
-						for (const typename CPUResourceManager::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
+						for (const typename PropMetaData::Mesh::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
 							sceneMesh.triangleColliders.push_back ({
 								.v1 = Vector3Transform (Vector3 { .x = triangleCollider.v1.x, .y = triangleCollider.v1.y, .z = triangleCollider.v1.z}, transform),
 								.v2 = Vector3Transform (Vector3 { .x = triangleCollider.v2.x, .y = triangleCollider.v2.y, .z = triangleCollider.v2.z}, transform),
@@ -88,7 +84,7 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 							});
 						}
 
-						for (const typename CPUResourceManager::Collider::RectCollider & rectCollider : collider.rectColliders) {
+						for (const typename PropMetaData::Mesh::Collider::RectCollider & rectCollider : collider.rectColliders) {
 							sceneMesh.rectColliders.push_back ({
 								.v1 = Vector3Transform (Vector3 { .x = rectCollider.v1.x, .y = rectCollider.v1.y, .z = rectCollider.v1.z}, transform),
 								.v2 = Vector3Transform (Vector3 { .x = rectCollider.v2.x, .y = rectCollider.v2.y, .z = rectCollider.v2.z}, transform),
@@ -97,7 +93,7 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 							});
 						}
 
-						for (const typename CPUResourceManager::Collider::BoxCollider & boxCollider : collider.boxColliders) {
+						for (const typename PropMetaData::Mesh::Collider::BoxCollider & boxCollider : collider.boxColliders) {
 							Vector3 v1 = Vector3Transform (Vector3 { .x = boxCollider.vMin.x, .y = boxCollider.vMin.y, .z = boxCollider.vMin.z}, transform);
 							Vector3 v2 = Vector3Transform (Vector3 { .x = boxCollider.vMax.x, .y = boxCollider.vMax.y, .z = boxCollider.vMax.z}, transform);
 							Vector3 vMin, vMax;

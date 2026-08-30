@@ -3,16 +3,9 @@
 # include <cmath>
 # include <cstdint>
 # include <cstdio>
-# include <cstdlib>
-# include <cstring>
 # include <limits>
 # include <memory>
 # include <string>
-
-# include <raylib.h>
-# include <raymath.h>
-# include <r3d/r3d_mesh_data.h>
-# include <r3d/r3d_vertex.h>
 
 # include <assimp/config.h>
 # include <assimp/material.h>
@@ -23,9 +16,15 @@
 # include <assimp/vector3.h>
 # include <stb_image.h>
 
+# include <raylib.h>
+# include <raymath.h>
+# include <r3d/r3d_mesh_data.h>
+# include <r3d/r3d_vertex.h>
+
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 using namespace MapMaster::Tanki;
 
@@ -55,6 +54,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 
 	PropMeshResource meshResource;
+	std::string textureFile;
 	int vertexCount = 0;
 	int indexCount = 0;
 
@@ -70,6 +70,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 		indexCount
 	)), [] (R3D_MeshData * meshData) -> void {
 		R3D_UnloadMeshData (* meshData);
+		delete meshData;
 	});
 
 	meshData->vertexCount = vertexCount;
@@ -105,7 +106,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 				return static_cast <char> (std::tolower (c));
 			});
 
-			meshResource.textureFile = matName;
+			textureFile = matName;
 		}
 
 		// NOLINTBEGIN(hicpp-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
@@ -170,6 +171,23 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 		vertexOffset += mesh->mNumVertices;
 	}
 
+	meshResource.meta = {
+		.aabb = {
+			.min = {
+				.x = meshResource.aabb.min.x,
+				.y = meshResource.aabb.min.y,
+				.z = meshResource.aabb.min.z,
+			},
+			.max = {
+				.x = meshResource.aabb.max.x,
+				.y = meshResource.aabb.max.y,
+				.z = meshResource.aabb.max.z,
+			},
+		},
+		.textureFile = textureFile,
+		.collider = PropMetaData::Mesh::ParseCollider (scene, visualNode),
+	};
+
 	return meshResource;
 
 	// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
@@ -216,32 +234,15 @@ PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DB
 
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
-		.width = width,
-		.height = height,
-		.channels = desiredChannels
+		.meta = {
+			.width = width,
+			.height = height,
+			.channels = desiredChannels,
+		},
 	};
 }
 
 
-
-PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DBackend::PropTextureResource::clone () {
-	if (width < 0 || height < 0 || channels < 0) {
-		return {};
-	}
-	else {
-		std::size_t bufSize = static_cast <std::size_t> (width) * height * channels;
-		// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto,cppcoreguidelines-owning-memory,hicpp-no-malloc,cppcoreguidelines-no-malloc)
-		unsigned char * newPixBuf = static_cast <unsigned char *> (std::malloc (bufSize));
-		std::memcpy (newPixBuf, pixBuffer.get (), bufSize);
-
-		return {
-			.pixBuffer = std::shared_ptr <unsigned char> (newPixBuf),
-			.width = width,
-			.height = height,
-			.channels = channels
-		};
-	}
-}
 
 namespace MapMaster::Tanki {
 template class PropCPUResourceManager <PropCPUResourceManagerR3DBackend>;

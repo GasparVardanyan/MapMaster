@@ -1,5 +1,6 @@
 # pragma once
 
+# include "MapMaster/Tanki/PropMetaData.hpp"
 # include <cstdint>
 # include <cstdio>
 # include <memory>
@@ -43,17 +44,12 @@ public:
 		static_assert (std::is_same_v <decltype (Vector3::y), float>);
 		static_assert (std::is_same_v <decltype (Vector3::z), float>);
 
-		std::string textureFile;
+		PropMetaData::Mesh meta;
 	};
 
 	struct PropTextureResource {
 		std::shared_ptr <unsigned char> pixBuffer;
-		int width = -1;
-		int height = -1;
-		int channels = -1;
-
-		// TODO: replace with big five
-		PropTextureResource clone ();
+		PropMetaData::Texture meta;
 	};
 
 	static PropMeshResource ParseMeshResource (const aiScene * scene, const aiNode * visualNode);

@@ -1,8 +1,7 @@
 # include <algorithm>
 # include <cctype>
 # include <cstdio>
-# include <cstdlib>
-# include <cstring>
+# include <limits>
 # include <memory>
 # include <string>
 # include <vector>
@@ -15,9 +14,13 @@
 # include <assimp/types.h>
 # include <stb_image.h>
 
+# include <raylib.h>
+# include <raymath.h>
+
 # include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 using namespace MapMaster::Tanki;
 
@@ -46,6 +49,20 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 
 	PropMeshResource meshResource;
+	std::string textureFile;
+
+	BoundingBox aabb = {
+		.min = {
+			.x = std::numeric_limits <float>::max (),
+			.y = std::numeric_limits <float>::max (),
+			.z = std::numeric_limits <float>::max (),
+		},
+		.max = {
+			.x = std::numeric_limits <float>::min (),
+			.y = std::numeric_limits <float>::min (),
+			.z = std::numeric_limits <float>::min (),
+		},
+	};
 
 	if (1 == visualNode->mNumMeshes) {
 		const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
@@ -59,7 +76,7 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 				return static_cast <char> (std::tolower (c));
 			});
 
-			meshResource.textureFile = matName;
+			textureFile = matName;
 		}
 
 		meshResource.vertexBuffer.resize (mesh->mNumVertices * 3UL);
@@ -68,6 +85,17 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 			meshResource.vertexBuffer [3 * i + 0] = mesh->mVertices [i].x;
 			meshResource.vertexBuffer [3 * i + 1] = mesh->mVertices [i].y;
 			meshResource.vertexBuffer [3 * i + 2] = mesh->mVertices [i].z;
+
+			aabb.min = Vector3Min (aabb.min, {
+				.x = mesh->mVertices [i].x,
+				.y = mesh->mVertices [i].y,
+				.z = mesh->mVertices [i].z,
+			});
+			aabb.max = Vector3Max (aabb.max, {
+				.x = mesh->mVertices [i].x,
+				.y = mesh->mVertices [i].y,
+				.z = mesh->mVertices [i].z,
+			});
 		}
 
 		meshResource.indexBuffer.resize (mesh->mNumFaces * 3UL);
@@ -119,7 +147,7 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 					return static_cast <char> (std::tolower (c));
 				});
 
-				meshResource.textureFile = matName;
+				textureFile = matName;
 			}
 		}
 
@@ -149,6 +177,17 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 				meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].x;
 				meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].y;
 				meshResource.vertexBuffer [rI++] = mesh->mVertices [mI].z;
+
+				aabb.min = Vector3Min (aabb.min, {
+					.x = mesh->mVertices [mI].x,
+					.y = mesh->mVertices [mI].y,
+					.z = mesh->mVertices [mI].z,
+				});
+				aabb.max = Vector3Max (aabb.max, {
+					.x = mesh->mVertices [mI].x,
+					.y = mesh->mVertices [mI].y,
+					.z = mesh->mVertices [mI].z,
+				});
 			}
 
 			std::size_t currentIndexBufferSize = mesh->mNumFaces * 3UL;
@@ -189,6 +228,23 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 			}
 		}
 	}
+
+	meshResource.meta = {
+		.aabb = {
+			.min = {
+				.x = aabb.min.x,
+				.y = aabb.min.y,
+				.z = aabb.min.z,
+			},
+			.max = {
+				.x = aabb.max.x,
+				.y = aabb.max.y,
+				.z = aabb.max.z,
+			},
+		},
+		.textureFile = textureFile,
+		.collider = PropMetaData::Mesh::ParseCollider (scene, visualNode),
+	};
 
 	return meshResource;
 
@@ -236,32 +292,15 @@ PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerR
 
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
-		.width = width,
-		.height = height,
-		.channels = desiredChannels
+		.meta = {
+			.width = width,
+			.height = height,
+			.channels = desiredChannels,
+		},
 	};
 }
 
 
-
-PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerRaylibBackend::PropTextureResource::clone () {
-	if (width < 0 || height < 0 || channels < 0) {
-		return {};
-	}
-	else {
-		std::size_t bufSize = static_cast <std::size_t> (width) * height * channels;
-		// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto,cppcoreguidelines-owning-memory,hicpp-no-malloc,cppcoreguidelines-no-malloc)
-		unsigned char * newPixBuf = static_cast <unsigned char *> (std::malloc (bufSize));
-		std::memcpy (newPixBuf, pixBuffer.get (), bufSize);
-
-		return {
-			.pixBuffer = std::shared_ptr <unsigned char> (newPixBuf),
-			.width = width,
-			.height = height,
-			.channels = channels
-		};
-	}
-}
 
 namespace MapMaster::Tanki {
 template class PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;

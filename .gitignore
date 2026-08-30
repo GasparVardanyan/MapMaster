@@ -3,3 +3,4 @@ out/**
 compile_commands.json
 .vim.session
 .exrc
+.sanity-snapshot.json

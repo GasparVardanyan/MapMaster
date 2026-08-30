@@ -24,6 +24,7 @@ namespace MapMaster::Tanki {
 template <class PropGPUResourceManagerBackend>
 PropGPUResourceManager <PropGPUResourceManagerBackend>::PropGPUResourceManager (bool parseCollisionPrimitives)
 	: m_resourceManager (parseCollisionPrimitives)
+	, m_parseCollisionPrimitives (parseCollisionPrimitives)
 {
 }
 
@@ -31,7 +32,14 @@ template <class PropGPUResourceManagerBackend>
 void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadLibrary (const std::string & path) {
 	std::shared_ptr <PropLibrary> library = std::make_shared <PropLibrary> ();
 	library->loadDirectory (path);
-	m_resourceManager.addPropLibrary (std::move (library));
+	m_resourceManager.addPropLibrary (library);
+
+	const std::string & libraryName = library->name ();
+
+	m_propLibraries.try_emplace (
+		libraryName,
+		std::move (library)
+	);
 }
 
 template <class PropGPUResourceManagerBackend>
@@ -66,7 +74,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 	std::mutex textureResourceMutex;
 	std::condition_variable textureResourceNotifier;
 
-	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile, std::shared_ptr <typename CPUResourceManager::PropMeshResource> meshResource, std::shared_ptr <typename CPUResourceManager::Collider>) -> void {
+	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile, std::shared_ptr <typename CPUResourceManager::PropMeshResource> meshResource) -> void {
 		{
 			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);;
 			meshQueue.emplace (libraryName, meshFile, std::move (meshResource));
@@ -171,27 +179,27 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 	}
 
 	resLoaderThread.join ();
+	m_resourceManager.dropResources ();
 	m_resourceManager.clearCallbacks ();
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
-	// cppcheck-suppress shadowFunction
 	const std::map <std::string, std::map <std::string, std::shared_ptr <typename CPUResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
 
 	for (const auto & [libraryName, groups] : map.mapObjects ()) {
 		const PropLibrary & library = * libraries.at (libraryName);
 		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
 		for (const auto & [groupName, props] : groups) {
-			const PropLibrary::Group & group = libraryGroups.at (groupName);
+			const std::map <std::string, PropLibrary::PropSprite> & groupSprites = libraryGroups.at (groupName).sprites;
 			for (const auto & [propName, propInfo] : props) {
-				if (true == group.sprites.contains (propName)) {
-					const PropLibrary::PropSprite & sprite = group.sprites.at (propName);
+				if (const auto & sIt = groupSprites.find (propName); groupSprites.end () != sIt) {
+					const PropLibrary::PropSprite & sprite = sIt->second;
 					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
-
-					const typename CPUResourceManager::PropTextureResource & textureResource = * textureResources.at (libraryName).at (textureFile);
 
 					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
-						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, textureResource);
+						const TextureResource & textureResource = m_textureResources.at (libraryName).at (textureFile);
+
+						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, textureResource.meta);
 					}
 				}
 			}
@@ -228,7 +236,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources_OL
 						std::string textureName = prop.textureName;
 						std::string textureFile;
 						if (true == textureName.empty ()) {
-							textureFile = meshResource.textureFile;
+							textureFile = meshResource.meta.textureFile;
 						}
 						else {
 							textureFile = group.meshes.at (propName).textures.at (textureName);
@@ -249,7 +257,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources_OL
 
 					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
-						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, textureResource);
+						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, textureResource.meta);
 					}
 				}
 			}
@@ -263,18 +271,6 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources_OL
 
 	loadMeshResources (meshDescriptors);
 	loadTextureResources (textureDescriptors);
-
-	for (auto & [libraryName, textureFiles] : m_textureResources) {
-		for (auto & [textureFile, textureResource] : textureFiles) {
-			PropGPUResourceManagerBackend::UploadTextureResource (textureResource);
-		}
-	}
-
-	for (auto & [libraryName, meshFiles] : m_meshResources) {
-		for (auto & [meshFile, meshResource] : meshFiles) {
-			PropGPUResourceManagerBackend::UploadMeshResource (meshResource);
-		}
-	}
 }
 
 template <class PropGPUResourceManagerBackend>
@@ -289,7 +285,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMeshResources (
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
 			// NOLINTNEXTLINE(hicpp-use-auto,modernize-use-auto)
-			return PropGPUResourceManagerBackend::template CreateMeshResource <false> (
+			return PropGPUResourceManagerBackend::CreateMeshResource (
 				const_cast <CPUResourceManager::PropMeshResource &> (
 					* m_resourceManager.propMeshResources ().at (descriptor.first).at (descriptor.second)
 				)
@@ -317,7 +313,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadTextureResource
 		textureDescriptors.cend (),
 		resources.begin (),
 		[this] (const std::pair <std::string, std::string> & descriptor) {
-			return PropGPUResourceManagerBackend::template CreateTextureResource <false> (* m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second));
+			return PropGPUResourceManagerBackend::CreateTextureResource (* m_resourceManager.propTextureResources ().at (descriptor.first).at (descriptor.second));
 		}
 	);
 
@@ -338,6 +334,11 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadTextureResource
 // | |__| | |____   | |     | |  | |____| | \ \ ____) |
 //  \_____|______|  |_|     |_|  |______|_|  \_\_____/
 //
+
+template <class PropGPUResourceManagerBackend>
+const std::map <std::string, std::shared_ptr <PropLibrary>> & PropGPUResourceManager <PropGPUResourceManagerBackend>::propLibraries () const {
+	return m_propLibraries;
+}
 
 template <class PropGPUResourceManagerBackend>
 const PropGPUResourceManager <PropGPUResourceManagerBackend>::CPUResourceManager & PropGPUResourceManager <PropGPUResourceManagerBackend>::cpuResourceManager () {

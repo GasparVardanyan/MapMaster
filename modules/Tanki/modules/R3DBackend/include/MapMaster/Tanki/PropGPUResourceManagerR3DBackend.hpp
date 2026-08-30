@@ -11,6 +11,7 @@
 # include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -23,18 +24,13 @@ public:
 	using PrimitiveFactory = PrimitiveFactory <PrimitiveFactoryBackend>;
 
 	struct MeshResource {
-		std::shared_ptr <R3D_MeshData> meshData;
 		std::shared_ptr <R3D_Mesh> mesh;
-		BoundingBox aabb;
-
-		// TODO: clone()
+		PropMetaData::Mesh meta;
 	};
 
 	struct TextureResource {
-		Image image;
 		std::shared_ptr <Texture2D> texture;
-
-		// TODO: clone()
+		PropMetaData::Texture meta;
 	};
 
 	struct SpriteInfo {
@@ -42,16 +38,10 @@ public:
 		Vector2 size;
 	};
 
-	template <bool Upload = true>
 	static MeshResource CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource);
-
-	template <bool Upload = true>
 	static TextureResource CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource);
 
-	static void UploadMeshResource (MeshResource & meshResource);
-	static void UploadTextureResource (TextureResource & meshResource);
-
-	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const CPUResourceManager::PropTextureResource & textureResource);
+	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropMetaData::Texture & meta);
 
 private:
 	static void unloadMeshResource (R3D_Mesh * mesh);

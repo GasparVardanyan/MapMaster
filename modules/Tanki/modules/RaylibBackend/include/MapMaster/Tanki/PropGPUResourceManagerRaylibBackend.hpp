@@ -9,6 +9,7 @@
 # include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -22,15 +23,12 @@ public:
 
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;
-
-		// TODO: clone()
+		PropMetaData::Mesh meta;
 	};
 
 	struct TextureResource {
-		Image image;
 		std::shared_ptr <Texture2D> texture;
-
-		// TODO: clone()
+		PropMetaData::Texture meta;
 	};
 
 	struct SpriteInfo {
@@ -38,16 +36,10 @@ public:
 		Vector2 size;
 	};
 
-	template <bool Upload = true>
 	static MeshResource CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource);
-
-	template <bool Upload = true>
 	static TextureResource CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource);
 
-	static void UploadMeshResource (MeshResource & meshResource);
-	static void UploadTextureResource (TextureResource & textureResource);
-
-	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & spriteInfo, const CPUResourceManager::PropTextureResource & textureResource);
+	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropMetaData::Texture & meta);
 
 private:
 	static void unloadMeshResource (Mesh * mesh);

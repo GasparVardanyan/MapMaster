@@ -1,12 +1,23 @@
+set_source_files_properties (
+	include/MapMaster/Tanki/PropCPUResourceManager.inl
+	include/MapMaster/Tanki/PropGPUResourceManager.inl
+	PROPERTIES
+		LANGUAGE CXX
+)
+
 add_library (MapMaster_Module_TankiCore SHARED
 	include/MapMaster/Tanki/Map.hpp
 	include/MapMaster/Tanki/MapRenderer.hpp
 	include/MapMaster/Tanki/PrimitiveFactory.hpp
 	include/MapMaster/Tanki/PropCPUResourceManager.hpp
+	include/MapMaster/Tanki/PropCPUResourceManager.inl
 	include/MapMaster/Tanki/PropGPUResourceManager.hpp
+	include/MapMaster/Tanki/PropGPUResourceManager.inl
 	include/MapMaster/Tanki/PropLibrary.hpp
+	include/MapMaster/Tanki/PropMetaData.hpp
 	src/Map.cpp
 	src/PropLibrary.cpp
+	src/PropMetaData.cpp
 )
 
 include (MapMasterBuildUtils)

@@ -14,13 +14,13 @@
 # include <functional>
 # include <type_traits>
 
+# include <pugixml.hpp>
+
 # include <raylib.h>
 # include <r3d/r3d_core.h>
 # include <r3d/r3d_draw.h>
 # include <r3d/r3d_lighting.h>
 # include <r3d/r3d_environment.h>
-
-# include <pugixml.hpp>
 
 # include "MapMaster/Scene3D/CameraController.hpp"
 # include "MapMaster/Tanki/Map.hpp"
@@ -28,13 +28,6 @@
 # include "MapMaster/Tanki/MapRendererR3DBackend.hpp" // IWYU pragma: keep
 # include "MapMaster/Tanki/MapRendererRaylibBackend.hpp" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropLibrary.hpp"
-
-namespace MapMaster {
-namespace Tanki {
-class MapRendererR3DBackend;
-class MapRendererRaylibBackend;
-}  // namespace Tanki
-}  // namespace MapMaster
 
 namespace MapMaster::Utils::Tanki {
 
@@ -65,8 +58,8 @@ void OpenMapWindow (const std::string & title, int logLevel, float scale) {
 			R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
 			R3D_ENVIRONMENT_SET (background.color, (Color) {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
 
-			// R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
-			// R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
+			R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
+			R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
 		}
 	}
 }

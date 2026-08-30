@@ -11,6 +11,12 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 
+namespace MapMaster {
+namespace Tanki {
+template <class PrimitiveFactoryBackend> class PrimitiveFactory;
+}  // namespace Tanki
+}  // namespace MapMaster
+
 namespace MapMaster::Tanki {
 
 class Map;
@@ -44,30 +50,30 @@ struct IsPropGPUResourceManagerBackend <
 		typename PropGPUResourceManagerBackend::SpriteInfo,
 
 		std::enable_if_t <std::is_invocable_v <
-			decltype (PropGPUResourceManagerBackend::template CreateMeshResource <true>),
+			decltype (PropGPUResourceManagerBackend::CreateMeshResource),
 			typename PropGPUResourceManagerBackend::CPUResourceManager::PropMeshResource &
 		>>,
 		std::enable_if_t <std::is_invocable_v <
-			decltype (PropGPUResourceManagerBackend::template CreateTextureResource <true>),
+			decltype (PropGPUResourceManagerBackend::CreateTextureResource),
 			const typename PropGPUResourceManagerBackend::CPUResourceManager::PropTextureResource &
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropGPUResourceManagerBackend::CreateSpriteInfo),
 			const PropLibrary::PropSprite &,
-			const typename PropGPUResourceManagerBackend::CPUResourceManager::PropTextureResource &
+			const PropMetaData::Texture &
 		>>,
 
 		std::enable_if_t <std::is_same_v <
 			typename PropGPUResourceManagerBackend::MeshResource,
 			std::invoke_result_t <
-				decltype (PropGPUResourceManagerBackend::template CreateMeshResource <true>),
+				decltype (PropGPUResourceManagerBackend::CreateMeshResource),
 				typename PropGPUResourceManagerBackend::CPUResourceManager::PropMeshResource &
 			>
 		>>,
 		std::enable_if_t <std::is_same_v <
 			typename PropGPUResourceManagerBackend::TextureResource,
 			std::invoke_result_t <
-				decltype (PropGPUResourceManagerBackend::template CreateTextureResource <true>),
+				decltype (PropGPUResourceManagerBackend::CreateTextureResource),
 				const typename PropGPUResourceManagerBackend::CPUResourceManager::PropTextureResource &
 			>
 		>>,
@@ -76,17 +82,8 @@ struct IsPropGPUResourceManagerBackend <
 			std::invoke_result_t <
 				decltype (PropGPUResourceManagerBackend::CreateSpriteInfo),
 				const PropLibrary::PropSprite &,
-				const typename PropGPUResourceManagerBackend::CPUResourceManager::PropTextureResource &
+				const PropMetaData::Texture &
 			>
-		>>,
-
-		std::enable_if_t <std::is_invocable_v <
-			decltype (PropGPUResourceManagerBackend::UploadMeshResource),
-			typename PropGPUResourceManagerBackend::MeshResource &
-		>>,
-		std::enable_if_t <std::is_invocable_v <
-			decltype (PropGPUResourceManagerBackend::UploadTextureResource),
-			typename PropGPUResourceManagerBackend::TextureResource &
 		>>
 	>
 > : std::true_type {};
@@ -103,6 +100,7 @@ public:
 	using MeshResource = Backend::MeshResource;
 	using TextureResource = Backend::TextureResource;
 	using SpriteInfo = Backend::SpriteInfo;
+	using PrimitiveFactory = Backend::PrimitiveFactory;
 
 public:
 	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false);
@@ -126,18 +124,23 @@ public:
 	 */
 	void loadTextureResources (const std::vector <std::pair <std::string, std::string>> & textureDescriptors);
 
+	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
 	[[nodiscard]] const CPUResourceManager & cpuResourceManager ();
 	[[nodiscard]] const std::map <std::string, std::map <std::string, MeshResource>> & meshResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, TextureResource>> & textureResources () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, SpriteInfo>> & spriteInfos () const;
 
 private:
-	CPUResourceManager m_resourceManager;
 	std::string m_libraryRootDir;
+	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
+	CPUResourceManager m_resourceManager;
 
 	std::map <std::string, std::map <std::string, MeshResource>> m_meshResources;
 	std::map <std::string, std::map <std::string, TextureResource>> m_textureResources;
 	std::map <std::string, std::map <std::string, SpriteInfo>> m_spriteInfos;
+
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
+	const bool m_parseCollisionPrimitives;
 };
 // cppcheck-suppress-end unusedStructMember
 

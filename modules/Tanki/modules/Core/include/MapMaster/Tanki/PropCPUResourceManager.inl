@@ -1,17 +1,13 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
 # include <algorithm>
-# include <array>
-# include <cctype>
 # include <cstdio>
 # include <cstdlib>
 # include <cstring>
 # include <execution>
 # include <initializer_list>
-# include <iterator>
 # include <map>
 # include <memory>
-# include <queue>
 # include <set>
 # include <stdexcept>
 # include <string>
@@ -31,6 +27,7 @@
 
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 using namespace MapMaster::Tanki;
 
@@ -87,7 +84,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::setOverlapBehaviour
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
-	std::vector <std::pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>>> resources;
+	std::vector <std::shared_ptr <PropMeshResource>> resources;
 	resources.resize (meshDescriptors.size ());
 
 	std::transform (
@@ -95,30 +92,25 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (
 		meshDescriptors.cbegin (),
 		meshDescriptors.cend (),
 		resources.begin (),
-		[this] (const std::pair <std::string, std::string> & descriptor) -> std::pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> {
-			ParsedMeshInfo meshInfo = loadMeshResource (descriptor.first, descriptor.second);
-
-			std::shared_ptr <Collider> collider = std::make_shared <Collider> (std::move (meshInfo.collider));
-			std::shared_ptr <PropMeshResource> meshResource = std::make_shared <PropMeshResource> (std::move (meshInfo.meshResource));
+		[this] (const std::pair <std::string, std::string> & descriptor) -> std::shared_ptr <PropMeshResource> {
+			std::shared_ptr <PropMeshResource> meshResource = std::make_shared <PropMeshResource> (
+				loadMeshResource (descriptor.first, descriptor.second)
+			);
 
 			if (nullptr != m_callbacks.meshResourceLoad) {
-				m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, meshResource, collider);
+				m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, meshResource);
 			}
 
 			// NOLINTNEXTLINE(google-build-explicit-make-pair)
-			return std::make_pair <std::shared_ptr <PropMeshResource>, std::shared_ptr <Collider>> (
-				std::move (meshResource),
-				std::move (collider)
-			);
+			return std::move (meshResource);
 		}
 	);
 
 	std::size_t mI = 0;
 
 	for (const auto & [libraryName, meshFile] : meshDescriptors) {
-		auto & [meshResource, collider] = resources [mI];
+		auto & meshResource = resources [mI];
 		m_propMeshResources [libraryName] [meshFile] = std::move (meshResource);
-		m_colliders [libraryName] [meshFile] = std::move (collider);
 
 		mI++;
 	}
@@ -135,7 +127,9 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource
 		textureDescriptors.cend (),
 		resources.begin (),
 		[this] (const std::tuple <std::string, std::string, std::string> & descriptor) -> std::shared_ptr <PropTextureResource> {
-			std::shared_ptr <PropTextureResource> textureResource = std::make_shared <PropTextureResource> (loadTextureResource (std::get <0> (descriptor), std::get <1> (descriptor), std::get <2> (descriptor)));
+			std::shared_ptr <PropTextureResource> textureResource = std::make_shared <PropTextureResource> (
+				loadTextureResource (std::get <0> (descriptor), std::get <1> (descriptor), std::get <2> (descriptor))
+			);
 
 			if (nullptr != m_callbacks.textureResourceLoad) {
 				m_callbacks.textureResourceLoad (std::get <0> (descriptor), std::get <1> (descriptor), textureResource);
@@ -166,9 +160,11 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 
 		for (const auto & [groupName, propNames] : groupNames) {
 			const PropLibrary::Group & group = groups.at (groupName);
+			const std::map <std::string, PropLibrary::PropMesh> & groupMeshes = group.meshes;
+			const std::map <std::string, PropLibrary::PropSprite> & groupSprites = group.sprites;
 
 			for (const auto & [propName, propList] : propNames) {
-				if (auto mIt = group.meshes.find (propName); group.meshes.end () != mIt) {
+				if (auto mIt = groupMeshes.find (propName); groupMeshes.end () != mIt) {
 					meshDescriptors.emplace_back (
 						libraryName,
 						mIt->second.file
@@ -192,8 +188,9 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 						}
 					}
 				}
-				else if (auto sIt = group.sprites.find (propName); group.sprites.end () != sIt) {
-					std::string diffuseFile = sIt->second.diffuseFile;
+				else if (auto sIt = groupSprites.find (propName); groupSprites.end () != sIt) {
+					const PropLibrary::PropSprite & sprite = sIt->second;
+					std::string diffuseFile = sprite.diffuseFile;
 					std::string alphaFile;
 
 					if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
@@ -229,7 +226,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 			for (const std::string & propName : props) {
 				const PropLibrary::PropMesh & prop = group.meshes.at (propName);
 
-				std::string diffuseFile = libraryMeshResources.at (prop.file)->textureFile;
+				std::string diffuseFile = libraryMeshResources.at (prop.file)->meta.textureFile;
 				std::string alphaFile;
 
 				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
@@ -253,6 +250,10 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	}
 }
 
+template <class PropCPUResourceManagerBackend>
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadPropLibraryResources (const PropLibrary & propLibrary) {
+}
+
 
 
 //  _      ____          _____  ______ _____    _    _ ______ _      _____  ______ _____   _____
@@ -264,7 +265,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 //
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::ParsedMeshInfo PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
 	const std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
 
 	Assimp::Importer importer;
@@ -273,128 +274,12 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::ParsedMeshInfo PropCPURe
 		PropCPUResourceManagerBackend::AssimpImporterRemoveComponentFlags
 	);
 
-	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
-
 	const aiScene * scene = importer.ReadFile (meshPath, PropCPUResourceManagerBackend::AssimpPostProcessorSteps);
 
-	ParsedMeshInfo info {};
-
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	const aiNode * visualNode = scene->mRootNode->mChildren [0];
 
-	std::queue <aiNode *> nodes;
-	nodes.push (scene->mRootNode);
-
-	while (false == nodes.empty ()) {
-		aiNode * node = nodes.front ();
-		nodes.pop ();
-
-		if (node != visualNode) { // TODO: read occluders
-			aiMatrix4x4 transform = node->mTransformation;
-			// for (aiNode * p = node->mParent; scene->mRootNode != p; p = p->mParent) {
-			// 	transform = p->mTransformation * transform;
-			// }
-
-			if (true == m_parseCollisionPrimitives) {
-				std::string nodeName = node->mName.C_Str ();
-				std::ranges::transform (nodeName, nodeName.begin (), [] (char c) -> char {
-					return static_cast <char> (std::tolower (c));
-				});
-
-				if (true == nodeName.starts_with ("plane")) {
-					const aiMesh * rectMesh = scene->mMeshes [node->mMeshes [0]];
-
-					const aiVector3D * _v1 = rectMesh->mVertices;
-					const aiVector3D * _v2 = rectMesh->mVertices + 1;
-					const aiVector3D * _v3 = rectMesh->mVertices + 2;
-
-					using VertexAndOppositeEdgeLengthSqaurePair = std::pair <const aiVector3D *, double>;
-
-					std::array <VertexAndOppositeEdgeLengthSqaurePair, 3> vedata = {
-						VertexAndOppositeEdgeLengthSqaurePair {_v1, (* _v2 - * _v3).SquareLength ()},
-						VertexAndOppositeEdgeLengthSqaurePair {_v2, (* _v1 - * _v3).SquareLength ()},
-						VertexAndOppositeEdgeLengthSqaurePair {_v3, (* _v1 - * _v2).SquareLength ()}
-					};
-
-					auto hIt = std::ranges::max_element (vedata, [] (const VertexAndOppositeEdgeLengthSqaurePair & ved1, const VertexAndOppositeEdgeLengthSqaurePair & ved2) -> bool {
-						return ved1.second < ved2.second;
-					});
-
-					std::ranges::iter_swap (vedata.begin (), hIt);
-
-					aiVector3D v1 = transform * * vedata [0].first;
-					aiVector3D v2 = transform * * vedata [1].first;
-					aiVector3D v3 = transform * * vedata [2].first;
-					aiVector3D v4 = v2 + v3 - v1;
-
-					info.collider.rectColliders.push_back ({
-						.v1 = { .x = v1.x, .y = v1.y, .z = v1.z },
-						.v2 = { .x = v2.x, .y = v2.y, .z = v2.z },
-						.v3 = { .x = v3.x, .y = v3.y, .z = v3.z },
-						.v4 = { .x = v4.x, .y = v4.y, .z = v4.z },
-					});
-				}
-				else if (true == nodeName.starts_with ("box")) {
-					const aiMesh * boxMesh = scene->mMeshes [node->mMeshes [0]];
-					typename Collider::VertexType minX, maxX, minY, maxY, minZ, maxZ;
-					const aiVector3D v1 = transform * boxMesh->mVertices [0];
-					minX = maxX = v1.x;
-					minY = maxY = v1.y;
-					minZ = maxZ = v1.z;
-
-					for (unsigned int i = 1; i < boxMesh->mNumVertices; i++) {
-						const aiVector3D v = transform * boxMesh->mVertices [i];
-						if (v.x < minX) {
-							minX = v.x;
-						}
-						else if (v.x > maxX) {
-							maxX = v.x;
-						}
-						if (v.y < minY) {
-							minY = v.y;
-						}
-						else if (v.y > maxY) {
-							maxY = v.y;
-						}
-						if (v.z < minZ) {
-							minZ = v.z;
-						}
-						else if (v.z > maxZ) {
-							maxZ = v.z;
-						}
-					}
-
-					info.collider.boxColliders.push_back ({
-						.vMin = { .x = minX, .y = minY, .z = minZ},
-						.vMax = { .x = maxX, .y = maxY, .z = maxZ},
-					});
-				}
-				else if (true == nodeName.starts_with ("tri")) {
-					const aiMesh * triangleMesh = scene->mMeshes [node->mMeshes [0]];
-					aiVector3D v1 = transform * triangleMesh->mVertices [0];
-					aiVector3D v2 = transform * triangleMesh->mVertices [1];
-					aiVector3D v3 = transform * triangleMesh->mVertices [2];
-
-					info.collider.triangleColliders.push_back ({
-						.v1 = { .x = v1.x, .y = v1.y, .z = v1.z },
-						.v2 = { .x = v2.x, .y = v2.y, .z = v2.z },
-						.v3 = { .x = v3.x, .y = v3.y, .z = v3.z },
-					});
-				}
-				else if (true == nodeName.starts_with ("occl")) {
-				}
-			}
-		}
-
-		for (int i = 0; i < node->mNumChildren; i++) {
-			nodes.push (node->mChildren [i]);
-		}
-	}
-
-	info.meshResource = PropCPUResourceManagerBackend::ParseMeshResource (scene, visualNode);
-
-	// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
-
-	return info;
+	return PropCPUResourceManagerBackend::ParseMeshResource (scene, visualNode);
 }
 
 template <class PropCPUResourceManagerBackend>
@@ -448,11 +333,6 @@ const std::map <std::string, std::map <std::string, std::shared_ptr <typename Pr
 }
 
 template <class PropCPUResourceManagerBackend>
-const std::map <std::string, std::map <std::string, std::shared_ptr <typename PropCPUResourceManager <PropCPUResourceManagerBackend>::Collider>>> & PropCPUResourceManager <PropCPUResourceManagerBackend>::colliders () const {
-	return m_colliders;
-}
-
-template <class PropCPUResourceManagerBackend>
 const PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource & PropCPUResourceManager <PropCPUResourceManagerBackend>::getMeshResource (const std::string & libraryName, const std::string & groupName, const std::string & propName) const {
 	const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propName).file;
 	return * m_propMeshResources.at (libraryName).at (meshFile);
@@ -468,7 +348,7 @@ const PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResourc
 	}
 	else {
 		const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propMeshName).file;
-		return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile)->textureFile));
+		return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile)->meta.textureFile));
 	}
 }
 
