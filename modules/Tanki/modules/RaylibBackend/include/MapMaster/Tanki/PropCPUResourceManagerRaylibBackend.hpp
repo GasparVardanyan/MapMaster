@@ -33,7 +33,7 @@ public:
 		static_assert (std::is_integral_v <IndexType>);
 
 		std::vector <VertexType> vertexBuffer;
-		std::vector <NormalType> normalBuffer;
+		// std::vector <NormalType> normalBuffer;
 		std::vector <TexCoordType> uvBuffer;
 		std::vector <IndexType> indexBuffer;
 
@@ -45,7 +45,7 @@ public:
 		PropMetaData::Texture meta;
 	};
 
-	static PropMeshResource ParseMeshResource (const aiScene * scene, const aiNode * visualNode);
+	static PropMeshResource ParseMeshResource (const aiScene * scene);
 	static PropTextureResource ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle);
 };
 // cppcheck-suppress-end unusedStructMember

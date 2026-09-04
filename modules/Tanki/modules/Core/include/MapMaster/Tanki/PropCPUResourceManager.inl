@@ -276,10 +276,8 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPU
 
 	const aiScene * scene = importer.ReadFile (meshPath, PropCPUResourceManagerBackend::AssimpPostProcessorSteps);
 
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	const aiNode * visualNode = scene->mRootNode->mChildren [0];
 
-	return PropCPUResourceManagerBackend::ParseMeshResource (scene, visualNode);
+	return PropCPUResourceManagerBackend::ParseMeshResource (scene);
 }
 
 template <class PropCPUResourceManagerBackend>

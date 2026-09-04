@@ -1,6 +1,7 @@
 # include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
 
 # include <memory>
+# include <string>
 # include <vector>
 
 # include <raylib.h>
@@ -21,9 +22,9 @@ PropGPUResourceManagerRaylibBackend::MeshResource PropGPUResourceManagerRaylibBa
 	if (false == meshResource.uvBuffer.empty ()) {
 		m.mesh->texcoords = meshResource.uvBuffer.data ();
 	}
-	if (false == meshResource.normalBuffer.empty ()) {
-		m.mesh->normals = meshResource.normalBuffer.data ();
-	}
+	// if (false == meshResource.normalBuffer.empty ()) {
+	// 	m.mesh->normals = meshResource.normalBuffer.data ();
+	// }
 
 	m.mesh->triangleCount = static_cast <int> (meshResource.indexBuffer.size () / 3);
 

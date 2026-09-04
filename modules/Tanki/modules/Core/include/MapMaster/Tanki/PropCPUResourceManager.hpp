@@ -12,21 +12,13 @@
 
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
-namespace MapMaster {
-namespace Tanki {
-namespace PropMetaData {
-struct Mesh;
-struct Texture;
-}  // namespace PropMetaData
-}  // namespace Tanki
-}  // namespace MapMaster
 
-extern "C" {
-	struct aiScene;
-	struct aiNode;
-}
+
+extern "C" { struct aiScene; }
 
 namespace MapMaster::Tanki {
+
+namespace PropMetaData { struct Mesh; struct Sprite; struct Texture; }
 
 class Map;
 class PropLibrary;
@@ -65,7 +57,7 @@ struct IsPropCPUResourceManagerBackend <
 
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::ParseMeshResource),
-			const aiScene *, const aiNode *
+			const aiScene *
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::ParseTextureResource),
@@ -76,7 +68,7 @@ struct IsPropCPUResourceManagerBackend <
 			typename PropCPUResourceManagerBackend::PropMeshResource,
 			std::invoke_result_t <
 				decltype (PropCPUResourceManagerBackend::ParseMeshResource),
-				const aiScene *, const aiNode *
+				const aiScene *
 			>
 		>>,
 		std::enable_if_t <std::is_same_v <
@@ -156,6 +148,7 @@ private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
+	std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
 
 	struct {
 		MeshResourceLoadCallback meshResourceLoad = nullptr;

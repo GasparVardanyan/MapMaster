@@ -22,9 +22,10 @@
 namespace MapMaster::Tanki {
 
 template <class PropGPUResourceManagerBackend>
-PropGPUResourceManager <PropGPUResourceManagerBackend>::PropGPUResourceManager (bool parseCollisionPrimitives)
+PropGPUResourceManager <PropGPUResourceManagerBackend>::PropGPUResourceManager (bool parseCollisionPrimitives, bool freeCpuData)
 	: m_resourceManager (parseCollisionPrimitives)
 	, m_parseCollisionPrimitives (parseCollisionPrimitives)
+	, m_freeCpuData (freeCpuData)
 {
 }
 
@@ -179,7 +180,9 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 	}
 
 	resLoaderThread.join ();
-	m_resourceManager.dropResources ();
+	if (true == m_freeCpuData) {
+		m_resourceManager.dropResources ();
+	}
 	m_resourceManager.clearCallbacks ();
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
@@ -271,6 +274,10 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources_OL
 
 	loadMeshResources (meshDescriptors);
 	loadTextureResources (textureDescriptors);
+
+	if (true == m_freeCpuData) {
+		m_resourceManager.dropResources ();
+	}
 }
 
 template <class PropGPUResourceManagerBackend>

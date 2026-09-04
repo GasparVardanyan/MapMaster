@@ -11,16 +11,16 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 
-namespace MapMaster {
-namespace Tanki {
-template <class PrimitiveFactoryBackend> class PrimitiveFactory;
-}  // namespace Tanki
-}  // namespace MapMaster
+
 
 namespace MapMaster::Tanki {
 
+namespace PropMetaData { struct Texture; }
+
 class Map;
+
 template <class PropCPUResourceManagerBackend> class PropCPUResourceManager;
+template <class PrimitiveFactoryBackend> class PrimitiveFactory;
 
 template <class PropGPUResourceManagerBackend, typename = void>
 struct IsPropGPUResourceManagerBackend : std::false_type {};
@@ -103,7 +103,7 @@ public:
 	using PrimitiveFactory = Backend::PrimitiveFactory;
 
 public:
-	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false);
+	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false, bool freeCpuData = true);
 
 	void loadLibrary (const std::string & path);
 	void loadMapLibraries (const Map & map, const std::string & libraryRootDir);
@@ -134,6 +134,7 @@ private:
 	std::string m_libraryRootDir;
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	CPUResourceManager m_resourceManager;
+	PrimitiveFactory m_primitiveFactory;
 
 	std::map <std::string, std::map <std::string, MeshResource>> m_meshResources;
 	std::map <std::string, std::map <std::string, TextureResource>> m_textureResources;
@@ -141,6 +142,8 @@ private:
 
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 	const bool m_parseCollisionPrimitives;
+	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
+	const bool m_freeCpuData;
 };
 // cppcheck-suppress-end unusedStructMember
 

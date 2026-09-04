@@ -206,7 +206,7 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 
 	if (true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
-		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true));
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true, true));
 
 		// this loads the map xml data
 		rmap->map ()->loadFile (mapFile);

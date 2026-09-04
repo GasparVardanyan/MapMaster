@@ -1,6 +1,9 @@
 # pragma once
 
+# include <memory>
 # include <type_traits>
+
+# include "MapMaster/Tanki/PropMetaData.hpp"
 
 namespace MapMaster::Tanki {
 
@@ -11,8 +14,10 @@ template <class PrimitiveFactoryBackend>
 struct IsPrimitiveFactoryBackend <
 	PrimitiveFactoryBackend,
 	std::void_t <
-		typename PrimitiveFactoryBackend::SpriteResource,
-		void
+		typename PrimitiveFactoryBackend::SpriteMeshResource,
+		typename PrimitiveFactoryBackend::TriangleColliderMeshResource,
+		typename PrimitiveFactoryBackend::RectColliderMeshResource,
+		typename PrimitiveFactoryBackend::BoxColliderMeshResource
 	>
 > : std::true_type {};
 
@@ -25,8 +30,11 @@ public:
 	>;
 
 	using SpriteMeshResource = Backend::SpriteMeshResource;
+	using TriangleColliderMeshResource = Backend::TriangleColliderMeshResource;
+	using RectColliderMeshResource = Backend::RectColliderMeshResource;
+	using BoxColliderMeshResource = Backend::BoxColliderMeshResource;
 
-private:
+	std::shared_ptr <SpriteMeshResource> GetSharedSpriteMeshResource (const PropMetaData::Sprite & meta);
 };
 
 }  // namespace MapMaster::Tanki

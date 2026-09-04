@@ -50,8 +50,9 @@ unsigned int PropCPUResourceManagerR3DBackend::AssimpPostProcessorSteps =
 	aiProcess_CalcTangentSpace
 ;
 
-PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBackend::ParseMeshResource (const aiScene * scene, const aiNode * visualNode) {
-	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
+PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBackend::ParseMeshResource (const aiScene * scene) {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	const aiNode * visualNode = scene->mRootNode->mChildren [0];
 
 	PropMeshResource meshResource;
 	std::string textureFile;
@@ -185,7 +186,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 			},
 		},
 		.textureFile = textureFile,
-		.collider = PropMetaData::Mesh::ParseCollider (scene, visualNode),
+		.collider = PropMetaData::Mesh::ParseCollider (scene),
 	};
 
 	return meshResource;

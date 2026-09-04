@@ -45,8 +45,9 @@ unsigned int PropCPUResourceManagerRaylibBackend::AssimpPostProcessorSteps =
 	aiProcess_FlipUVs
 ;
 
-PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRaylibBackend::ParseMeshResource (const aiScene * scene, const aiNode * visualNode) {
-	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
+PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRaylibBackend::ParseMeshResource (const aiScene * scene) {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	const aiNode * visualNode = scene->mRootNode->mChildren [0];
 
 	PropMeshResource meshResource;
 	std::string textureFile;
@@ -115,15 +116,15 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 			}
 		}
 
-		if (true == mesh->HasNormals ()) {
-			meshResource.normalBuffer.resize (mesh->mNumVertices * 3UL);
-
-			for (unsigned i = 0; i < mesh->mNumVertices; i++) {
-				meshResource.normalBuffer [3 * i + 0] = mesh->mNormals [i].x;
-				meshResource.normalBuffer [3 * i + 1] = mesh->mNormals [i].y;
-				meshResource.normalBuffer [3 * i + 2] = mesh->mNormals [i].z;
-			}
-		}
+		// if (true == mesh->HasNormals ()) {
+		// 	meshResource.normalBuffer.resize (mesh->mNumVertices * 3UL);
+		//
+		// 	for (unsigned i = 0; i < mesh->mNumVertices; i++) {
+		// 		meshResource.normalBuffer [3 * i + 0] = mesh->mNormals [i].x;
+		// 		meshResource.normalBuffer [3 * i + 1] = mesh->mNormals [i].y;
+		// 		meshResource.normalBuffer [3 * i + 2] = mesh->mNormals [i].z;
+		// 	}
+		// }
 	}
 	else {
 		std::size_t vertexBufferSize = 0;
@@ -133,8 +134,8 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 		std::size_t indexBufferOffset = 0;
 		std::size_t uvBufferSize = 0;
 		std::size_t uvBufferOffset = 0;
-		std::size_t normalBufferSize = 0;
-		std::size_t normalBufferOffset = 0;
+		// std::size_t normalBufferSize = 0;
+		// std::size_t normalBufferOffset = 0;
 
 		{
 			const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [0]];
@@ -158,15 +159,15 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 			if (true == mesh->HasTextureCoords (0)) {
 				uvBufferSize += mesh->mNumVertices * 2UL;
 			}
-			if (true == mesh->HasNormals ()) {
-				normalBufferSize += mesh->mNumVertices * 3UL;
-			}
+			// if (true == mesh->HasNormals ()) {
+			// 	normalBufferSize += mesh->mNumVertices * 3UL;
+			// }
 		}
 
 		meshResource.vertexBuffer.resize (vertexBufferSize);
 		meshResource.indexBuffer.resize (indexBufferSize);
 		meshResource.uvBuffer.resize (uvBufferSize);
-		meshResource.normalBuffer.resize (normalBufferSize);
+		// meshResource.normalBuffer.resize (normalBufferSize);
 
 		for (unsigned int meshI = 0; meshI < visualNode->mNumMeshes; meshI++) {
 			const aiMesh * mesh = scene->mMeshes [visualNode->mMeshes [meshI]];
@@ -215,17 +216,17 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 				uvBufferOffset += currentUVBufferSize;
 			}
 
-			if (true == mesh->HasNormals ()) {
-				std::size_t currentNormalBufferSize = currentVertexBufferSize;
-
-				for (unsigned mI = 0, rI = normalBufferOffset; mI < mesh->mNumVertices; mI++) {
-					meshResource.normalBuffer [rI++] = mesh->mNormals [mI].x;
-					meshResource.normalBuffer [rI++] = mesh->mNormals [mI].y;
-					meshResource.normalBuffer [rI++] = mesh->mNormals [mI].z;
-				}
-
-				normalBufferOffset += currentNormalBufferSize;
-			}
+			// if (true == mesh->HasNormals ()) {
+			// 	std::size_t currentNormalBufferSize = currentVertexBufferSize;
+			//
+			// 	for (unsigned mI = 0, rI = normalBufferOffset; mI < mesh->mNumVertices; mI++) {
+			// 		meshResource.normalBuffer [rI++] = mesh->mNormals [mI].x;
+			// 		meshResource.normalBuffer [rI++] = mesh->mNormals [mI].y;
+			// 		meshResource.normalBuffer [rI++] = mesh->mNormals [mI].z;
+			// 	}
+			//
+			// 	normalBufferOffset += currentNormalBufferSize;
+			// }
 		}
 	}
 
@@ -243,7 +244,7 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 			},
 		},
 		.textureFile = textureFile,
-		.collider = PropMetaData::Mesh::ParseCollider (scene, visualNode),
+		.collider = PropMetaData::Mesh::ParseCollider (scene),
 	};
 
 	return meshResource;

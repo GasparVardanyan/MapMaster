@@ -17,7 +17,9 @@
 
 using namespace MapMaster::Tanki;
 
-PropMetaData::Mesh::Collider PropMetaData::Mesh::ParseCollider (const aiScene * scene, const aiNode * visualNode) {
+PropMetaData::Mesh::Collider PropMetaData::Mesh::ParseCollider (const aiScene * scene) {
+	// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	const aiNode * visualNode = scene->mRootNode->mChildren [0];
 	Collider collider;
 
 	std::queue <aiNode *> nodes;

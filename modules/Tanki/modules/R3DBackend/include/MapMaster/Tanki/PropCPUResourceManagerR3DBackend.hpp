@@ -52,7 +52,7 @@ public:
 		PropMetaData::Texture meta;
 	};
 
-	static PropMeshResource ParseMeshResource (const aiScene * scene, const aiNode * visualNode);
+	static PropMeshResource ParseMeshResource (const aiScene * scene);
 	static PropTextureResource ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle);
 };
 // cppcheck-suppress-end unusedStructMember
