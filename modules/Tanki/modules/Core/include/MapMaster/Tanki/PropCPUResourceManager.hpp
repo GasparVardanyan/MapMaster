@@ -11,6 +11,7 @@
 # include <vector>
 
 # include "MapMaster/Tanki/PropMetaData.hpp"
+# include "MapMaster/Tanki/Utils/ParallelTaskRunner.hpp"
 
 
 
@@ -92,6 +93,9 @@ public:
 	using PropMeshResource = Backend::PropMeshResource;
 	using PropTextureResource = Backend::PropTextureResource;
 
+	using MeshLoader = Utils::ParallelTaskRunner <PropCPUResourceManager, Utils::ParallelTask <PropMeshResource, std::string, std::string>>;
+	using TextureLoader = Utils::ParallelTaskRunner <PropCPUResourceManager, Utils::ParallelTask <PropTextureResource, std::string, std::string, std::string>>;
+
 	enum class OverlapBehaviour : unsigned char {
 		Ignore, Override
 	};
@@ -114,7 +118,7 @@ public:
 	 *
 	 * @param meshDescriptors {{libraryName, meshFileName}, ...}
 	 */
-	void loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors);
+	void loadMeshResources (const std::vector <std::tuple <std::string, std::string>> & meshDescriptors);
 
 	/**
 	 * @brief load and parse texture files
@@ -134,6 +138,9 @@ public:
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
 
+	MeshLoader & meshLoader ();
+	TextureLoader & textureLoader ();
+
 	void setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback);
 	void setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback);
 	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
@@ -141,14 +148,17 @@ public:
 	void clearCallbacks ();
 
 private:
-	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile);
-	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile);
+	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile) const;
+	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) const;
 
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
+
+	MeshLoader m_meshLoader;
+	TextureLoader m_textureLoader;
 
 	struct {
 		MeshResourceLoadCallback meshResourceLoad = nullptr;

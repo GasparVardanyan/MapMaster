@@ -36,6 +36,8 @@ using namespace MapMaster::Tanki;
 template <class PropCPUResourceManagerBackend>
 PropCPUResourceManager <PropCPUResourceManagerBackend>::PropCPUResourceManager (bool parseCollisionPrimitives)
 	: m_parseCollisionPrimitives (parseCollisionPrimitives)
+	, m_meshLoader (* this, & PropCPUResourceManager::loadMeshResource)
+	, m_textureLoader (* this, & PropCPUResourceManager::loadTextureResource)
 {
 }
 
@@ -83,28 +85,8 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::setOverlapBehaviour
 //
 
 template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (const std::vector <std::pair <std::string, std::string>> & meshDescriptors) {
-	std::vector <std::shared_ptr <PropMeshResource>> resources;
-	resources.resize (meshDescriptors.size ());
-
-	std::transform (
-		std::execution::par_unseq,
-		meshDescriptors.cbegin (),
-		meshDescriptors.cend (),
-		resources.begin (),
-		[this] (const std::pair <std::string, std::string> & descriptor) -> std::shared_ptr <PropMeshResource> {
-			std::shared_ptr <PropMeshResource> meshResource = std::make_shared <PropMeshResource> (
-				loadMeshResource (descriptor.first, descriptor.second)
-			);
-
-			if (nullptr != m_callbacks.meshResourceLoad) {
-				m_callbacks.meshResourceLoad (descriptor.first, descriptor.second, meshResource);
-			}
-
-			// NOLINTNEXTLINE(google-build-explicit-make-pair)
-			return std::move (meshResource);
-		}
-	);
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (const std::vector <std::tuple <std::string, std::string>> & meshDescriptors) {
+	std::vector <std::shared_ptr <PropMeshResource>> resources = m_meshLoader.run (meshDescriptors);
 
 	std::size_t mI = 0;
 
@@ -118,26 +100,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors) {
-	std::vector <std::shared_ptr <PropTextureResource>> resources;
-	resources.resize (textureDescriptors.size ());
-
-	std::transform (
-		std::execution::par_unseq,
-		textureDescriptors.cbegin (),
-		textureDescriptors.cend (),
-		resources.begin (),
-		[this] (const std::tuple <std::string, std::string, std::string> & descriptor) -> std::shared_ptr <PropTextureResource> {
-			std::shared_ptr <PropTextureResource> textureResource = std::make_shared <PropTextureResource> (
-				loadTextureResource (std::get <0> (descriptor), std::get <1> (descriptor), std::get <2> (descriptor))
-			);
-
-			if (nullptr != m_callbacks.textureResourceLoad) {
-				m_callbacks.textureResourceLoad (std::get <0> (descriptor), std::get <1> (descriptor), textureResource);
-			}
-
-			return textureResource;
-		}
-	);
+	std::vector <std::shared_ptr <PropTextureResource>> resources = m_textureLoader.run (textureDescriptors);
 
 	std::size_t tI = 0;
 	for (const auto & [libraryName, diffuseFile, _] : textureDescriptors) {
@@ -149,7 +112,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (const Map & map) {
-	std::vector <std::pair <std::string, std::string>> meshDescriptors;
+	std::vector <std::tuple <std::string, std::string>> meshDescriptors;
 	std::vector <std::tuple <std::string, std::string, std::string>> textureDescriptors;
 
 	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
@@ -265,7 +228,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadPropLibraryReso
 //
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResource (const std::string & libraryName, const std::string & meshFile) {
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResource (const std::string & libraryName, const std::string & meshFile) const {
 	const std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
 
 	Assimp::Importer importer;
@@ -276,12 +239,11 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPU
 
 	const aiScene * scene = importer.ReadFile (meshPath, PropCPUResourceManagerBackend::AssimpPostProcessorSteps);
 
-
 	return PropCPUResourceManagerBackend::ParseMeshResource (scene);
 }
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResource PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) {
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResource PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) const {
 	const std::string diffusePath = m_propLibraries.at (libraryName)->path () + "/" + diffuseFile;
 
 	std::FILE * diffuseFileHandle = std::fopen (diffusePath.c_str (), "rb");
@@ -357,6 +319,15 @@ const PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResourc
 	return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (library.groups ().at (groupName).sprites.at (propSpriteName).diffuseFile));
 }
 
+template <class PropCPUResourceManagerBackend>
+PropCPUResourceManager <PropCPUResourceManagerBackend>::MeshLoader & PropCPUResourceManager <PropCPUResourceManagerBackend>::meshLoader () {
+	return m_meshLoader;
+}
+
+template <class PropCPUResourceManagerBackend>
+PropCPUResourceManager <PropCPUResourceManagerBackend>::TextureLoader & PropCPUResourceManager <PropCPUResourceManagerBackend>::textureLoader () {
+	return m_textureLoader;
+}
 
 
 

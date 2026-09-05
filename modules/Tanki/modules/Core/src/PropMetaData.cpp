@@ -18,7 +18,7 @@
 using namespace MapMaster::Tanki;
 
 PropMetaData::Mesh::Collider PropMetaData::Mesh::ParseCollider (const aiScene * scene) {
-	// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	const aiNode * visualNode = scene->mRootNode->mChildren [0];
 	Collider collider;
 
@@ -50,14 +50,26 @@ PropMetaData::Mesh::Collider PropMetaData::Mesh::ParseCollider (const aiScene * 
 				using VertexAndOppositeEdgeLengthSqaurePair = std::pair <const aiVector3D *, double>;
 
 				std::array <VertexAndOppositeEdgeLengthSqaurePair, 3> vedata = {
-					VertexAndOppositeEdgeLengthSqaurePair {_v1, (* _v2 - * _v3).SquareLength ()},
-					VertexAndOppositeEdgeLengthSqaurePair {_v2, (* _v1 - * _v3).SquareLength ()},
-					VertexAndOppositeEdgeLengthSqaurePair {_v3, (* _v1 - * _v2).SquareLength ()}
+					VertexAndOppositeEdgeLengthSqaurePair {
+						_v1, (* _v2 - * _v3).SquareLength (),
+					},
+					VertexAndOppositeEdgeLengthSqaurePair {
+						_v2, (* _v1 - * _v3).SquareLength (),
+					},
+					VertexAndOppositeEdgeLengthSqaurePair {
+						_v3, (* _v1 - * _v2).SquareLength (),
+					}
 				};
 
-				auto hIt = std::ranges::max_element (vedata, [] (const VertexAndOppositeEdgeLengthSqaurePair & ved1, const VertexAndOppositeEdgeLengthSqaurePair & ved2) -> bool {
-					return ved1.second < ved2.second;
-				});
+				auto * hIt = std::ranges::max_element (
+					vedata,
+					[] (
+						const VertexAndOppositeEdgeLengthSqaurePair & ved1,
+						const VertexAndOppositeEdgeLengthSqaurePair & ved2
+					) -> bool {
+						return ved1.second < ved2.second;
+					}
+				);
 
 				std::ranges::iter_swap (vedata.begin (), hIt);
 
@@ -124,10 +136,11 @@ PropMetaData::Mesh::Collider PropMetaData::Mesh::ParseCollider (const aiScene * 
 			}
 		}
 
-		for (int i = 0; i < node->mNumChildren; i++) {
+		for (unsigned i = 0; i < node->mNumChildren; i++) {
 			nodes.push (node->mChildren [i]);
 		}
 	}
+	// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 	return collider;
 }

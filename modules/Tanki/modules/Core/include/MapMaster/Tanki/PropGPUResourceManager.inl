@@ -1,14 +1,10 @@
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 
 # include <algorithm>
-# include <condition_variable>
 # include <cstddef>
 # include <execution>
 # include <map>
 # include <memory>
-# include <mutex>
-# include <queue>
-# include <stack>
 # include <string>
 # include <thread>
 # include <tuple>
@@ -63,123 +59,39 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapLibraries (c
 
 template <class PropGPUResourceManagerBackend>
 void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (const Map & map) {
-	// TODO: use tuple
-	std::queue <std::tuple <std::string, std::string, std::shared_ptr <typename CPUResourceManager::PropMeshResource>>> meshQueue;
-	std::queue <std::tuple <std::string, std::string, std::shared_ptr <typename CPUResourceManager::PropTextureResource>>> textureQueue;
-
-	bool meshesFinished = false;
-	bool texturesFinished = false;
-
-	std::mutex meshResourceMutex;
-	std::condition_variable meshResourceNotifier;
-	std::mutex textureResourceMutex;
-	std::condition_variable textureResourceNotifier;
-
-	m_resourceManager.setMeshResourceLoadCallback ([& meshResourceMutex, & meshQueue, & meshResourceNotifier] (const std::string & libraryName, const std::string & meshFile, std::shared_ptr <typename CPUResourceManager::PropMeshResource> meshResource) -> void {
-		{
-			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);;
-			meshQueue.emplace (libraryName, meshFile, std::move (meshResource));
-		}
-
-		meshResourceNotifier.notify_one ();
-	});
-
-	m_resourceManager.setTextureResourceLoadCallback ([& textureResourceMutex, & textureQueue, & textureResourceNotifier] (const std::string & libraryName, const std::string & textureFile, std::shared_ptr <typename CPUResourceManager::PropTextureResource> textureResource) -> void {
-		{
-			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
-			textureQueue.emplace  (libraryName, textureFile, std::move (textureResource));
-		}
-
-		textureResourceNotifier.notify_one ();
-	});
-
-	m_resourceManager.setMapMeshResourcesLoadCallback ([& meshesFinished, & meshResourceMutex, & meshResourceNotifier] () -> void {
-		{
-			std::scoped_lock <std::mutex> meshResourceLock (meshResourceMutex);
-			meshesFinished = true;
-		}
-
-		meshResourceNotifier.notify_one ();
-	});
-
-	m_resourceManager.setMapTextureResourcesLoadCallback ([& texturesFinished, &textureResourceMutex, & textureResourceNotifier] () -> void {
-		{
-			std::scoped_lock <std::mutex> textureResourceLock (textureResourceMutex);
-			texturesFinished = true;
-		}
-
-		textureResourceNotifier.notify_one ();
-	});
-
 	std::thread resLoaderThread ([this, & map] () -> void {
 		m_resourceManager.loadMapResources (map);
 	});
 
-	while (true) {
-		std::stack <std::tuple <std::string, std::string, std::shared_ptr <typename CPUResourceManager::PropMeshResource>>> meshesToProcess;
-		bool finished = false;
-
-		{
-			std::unique_lock <std::mutex> meshResourceLock (meshResourceMutex);
-			meshResourceNotifier.wait (meshResourceLock, [& meshQueue, & meshesFinished] () -> bool {
-				return false == meshQueue.empty () || true == meshesFinished;
-			});
-
-			while (false == meshQueue.empty ()) {
-				meshesToProcess.push (meshQueue.front ());
-				meshQueue.pop ();
-			}
-
-			finished = meshesFinished;
-		}
-
-		while (false == meshesToProcess.empty ()) {
-			const auto & [libraryName, meshFile, meshRes] = meshesToProcess.top ();
-
-			m_meshResources [libraryName] [meshFile] = PropGPUResourceManagerBackend::CreateMeshResource (const_cast <CPUResourceManager::PropMeshResource &> (
-				* meshRes.get ()
+	m_resourceManager.meshLoader ().listen ([this] (std::vector <std::tuple <
+		std::string,
+		std::string,
+		std::shared_ptr <typename CPUResourceManager::PropMeshResource>
+	// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+	>> && meshesToProcess) -> void {
+		for (auto & [libraryName, meshFile, meshRes] : meshesToProcess) {
+			m_meshResources [std::move (libraryName)] [std::move (meshFile)] = PropGPUResourceManagerBackend::CreateMeshResource (const_cast <CPUResourceManager::PropMeshResource &> (
+				* meshRes
 			));
-
-			meshesToProcess.pop ();
 		}
+	});
 
-		if (true == finished) {
-			break;
+	m_resourceManager.textureLoader ().listen ([this] (std::vector <std::tuple <
+		std::string,
+		std::string,
+		std::string,
+		std::shared_ptr <typename CPUResourceManager::PropTextureResource>
+	// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+	>> && texturesToProcess) -> void {
+		for (auto & [libraryName, textureFile, _, textureRes] : texturesToProcess) {
+			m_textureResources [std::move (libraryName)] [std::move (textureFile)] = PropGPUResourceManagerBackend::CreateTextureResource (
+				* textureRes
+			);
 		}
-	}
-
-	while (true) {
-		std::stack <std::tuple <std::string, std::string, std::shared_ptr <typename CPUResourceManager::PropTextureResource>>> texturesToProcess;
-		bool finished = false;
-
-		{
-			std::unique_lock <std::mutex> textureResourceLock (textureResourceMutex);
-			textureResourceNotifier.wait (textureResourceLock, [& textureQueue, & texturesFinished] () -> bool {
-				return false == textureQueue.empty () || true == texturesFinished;
-			});
-
-			while (false == textureQueue.empty ()) {
-				texturesToProcess.push (textureQueue.front ());
-				textureQueue.pop ();
-			}
-
-			finished = texturesFinished;
-		}
-
-		while (false == texturesToProcess.empty ()) {
-			const auto & [libraryName, textureFile, textureRes] = texturesToProcess.top ();
-
-			m_textureResources [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateTextureResource (* textureRes.get ());
-
-			texturesToProcess.pop ();
-		}
-
-		if (true == finished) {
-			break;
-		}
-	}
+	});
 
 	resLoaderThread.join ();
+
 	if (true == m_freeCpuData) {
 		m_resourceManager.dropResources ();
 	}

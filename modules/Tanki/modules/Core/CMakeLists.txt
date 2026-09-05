@@ -1,6 +1,7 @@
 set_source_files_properties (
 	include/MapMaster/Tanki/PropCPUResourceManager.inl
 	include/MapMaster/Tanki/PropGPUResourceManager.inl
+	include/MapMaster/Tanki/Utils/ParallelTaskRunner.inl
 	PROPERTIES
 		LANGUAGE CXX
 )
@@ -15,6 +16,8 @@ add_library (MapMaster_Module_TankiCore SHARED
 	include/MapMaster/Tanki/PropGPUResourceManager.inl
 	include/MapMaster/Tanki/PropLibrary.hpp
 	include/MapMaster/Tanki/PropMetaData.hpp
+	include/MapMaster/Tanki/Utils/ParallelTaskRunner.hpp
+	include/MapMaster/Tanki/Utils/ParallelTaskRunner.inl
 	src/Map.cpp
 	src/PropLibrary.cpp
 	src/PropMetaData.cpp

@@ -26,6 +26,10 @@ function (MapMaster_Build_EnableReleaseBuildOptimizations target)
 	target_link_options (${target} PRIVATE
 		$<$<CONFIG:Release>:-flto>
 	)
+
+	set_property (TARGET ${target} PROPERTY
+		INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
+	)
 endfunction ()
 
 function (MapMaster_Build_EnableDebugBuildDebugInfos target)
