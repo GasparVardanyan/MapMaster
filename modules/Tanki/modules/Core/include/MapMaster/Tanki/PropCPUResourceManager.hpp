@@ -100,10 +100,6 @@ public:
 		Ignore, Override
 	};
 
-	using MeshResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropMeshResource>)>;
-	using TextureResourceLoadCallback = std::function <void (std::string, std::string, std::shared_ptr <PropTextureResource>)>;
-	using MapResourcesLoadCallback = std::function <void ()>;
-
 public:
 	explicit PropCPUResourceManager (bool parseCollisionPrimitives = false);
 
@@ -118,14 +114,14 @@ public:
 	 *
 	 * @param meshDescriptors {{libraryName, meshFileName}, ...}
 	 */
-	void loadMeshResources (const std::vector <std::tuple <std::string, std::string>> & meshDescriptors);
+	void loadMeshResources (std::vector <std::tuple <std::string, std::string>> && meshDescriptors);
 
 	/**
 	 * @brief load and parse texture files
 	 *
 	 * @param textureDescriptors {{libraryName, diffuseFileName, alphaFileName}, ...}
 	 */
-	void loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors);
+	void loadTextureResources (std::vector <std::tuple <std::string, std::string, std::string>> && textureDescriptors);
 
 	void loadMapResources (const Map & map);
 	void loadPropLibraryResources (const PropLibrary & propLibrary);
@@ -141,12 +137,6 @@ public:
 	MeshLoader & meshLoader ();
 	TextureLoader & textureLoader ();
 
-	void setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback);
-	void setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback);
-	void setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback);
-	void setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback);
-	void clearCallbacks ();
-
 private:
 	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile) const;
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) const;
@@ -159,13 +149,6 @@ private:
 
 	MeshLoader m_meshLoader;
 	TextureLoader m_textureLoader;
-
-	struct {
-		MeshResourceLoadCallback meshResourceLoad = nullptr;
-		TextureResourceLoadCallback textureResourceLoad = nullptr;
-		MapResourcesLoadCallback mapMeshResourcesLoad = nullptr;
-		MapResourcesLoadCallback mapTextureResourcesLoad = nullptr;
-	} m_callbacks;
 
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)

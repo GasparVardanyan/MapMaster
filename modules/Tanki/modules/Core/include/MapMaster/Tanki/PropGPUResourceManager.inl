@@ -95,7 +95,6 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 	if (true == m_freeCpuData) {
 		m_resourceManager.dropResources ();
 	}
-	m_resourceManager.clearCallbacks ();
 
 	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
 	const std::map <std::string, std::map <std::string, std::shared_ptr <typename CPUResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();

@@ -85,26 +85,27 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::setOverlapBehaviour
 //
 
 template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (const std::vector <std::tuple <std::string, std::string>> & meshDescriptors) {
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (std::vector <std::tuple <std::string, std::string>> && meshDescriptors) {
 	std::vector <std::shared_ptr <PropMeshResource>> resources = m_meshLoader.run (meshDescriptors);
 
 	std::size_t mI = 0;
 
-	for (const auto & [libraryName, meshFile] : meshDescriptors) {
-		auto & meshResource = resources [mI];
-		m_propMeshResources [libraryName] [meshFile] = std::move (meshResource);
+	for (auto & [libraryName, meshFile] : meshDescriptors) {
+		m_propMeshResources [std::move (libraryName)] [std::move (meshFile)] = std::move (resources [mI]);
 
 		mI++;
 	}
 }
 
 template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResources (const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors) {
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResources (std::vector <std::tuple <std::string, std::string, std::string>> && textureDescriptors) {
 	std::vector <std::shared_ptr <PropTextureResource>> resources = m_textureLoader.run (textureDescriptors);
 
 	std::size_t tI = 0;
-	for (const auto & [libraryName, diffuseFile, _] : textureDescriptors) {
-		m_propTextureResources [libraryName] [diffuseFile] = (std::move (resources [tI]));
+	for (auto & [libraryName, diffuseFile, _] : textureDescriptors) {
+		m_propTextureResources [std::move (libraryName)] [std::move (diffuseFile)] = (std::move (resources [tI]));
 
 		tI++;
 	}
@@ -172,11 +173,8 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
 	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
 
-	loadMeshResources (meshDescriptors);
-
-	if (nullptr != m_callbacks.mapMeshResourcesLoad) {
-		m_callbacks.mapMeshResourcesLoad ();
-	}
+	loadMeshResources (std::move (meshDescriptors));
+	meshDescriptors.clear ();
 
 	for (const auto & [libraryName, groupData] : defaultTextures) {
 		const PropLibrary & library = * m_propLibraries.at (libraryName);
@@ -206,11 +204,8 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
 	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
 
-	loadTextureResources (textureDescriptors);
-
-	if (nullptr != m_callbacks.mapTextureResourcesLoad) {
-		m_callbacks.mapTextureResourcesLoad ();
-	}
+	loadTextureResources (std::move (textureDescriptors));
+	textureDescriptors.clear ();
 }
 
 template <class PropCPUResourceManagerBackend>
@@ -327,39 +322,4 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::MeshLoader & PropCPUReso
 template <class PropCPUResourceManagerBackend>
 PropCPUResourceManager <PropCPUResourceManagerBackend>::TextureLoader & PropCPUResourceManager <PropCPUResourceManagerBackend>::textureLoader () {
 	return m_textureLoader;
-}
-
-
-
-//   _____          _      _      ____          _____ _  __ _____
-//  / ____|   /\   | |    | |    |  _ \   /\   / ____| |/ // ____|
-// | |       /  \  | |    | |    | |_) | /  \ | |    | ' /| (___
-// | |      / /\ \ | |    | |    |  _ < / /\ \| |    |  <  \___ \
-// | |____ / ____ \| |____| |____| |_) / ____ \ |____| . \ ____) |
-//  \_____/_/    \_\______|______|____/_/    \_\_____|_|\_\_____/
-//
-
-template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::setMeshResourceLoadCallback (const MeshResourceLoadCallback & callback) {
-	m_callbacks.meshResourceLoad = callback;
-}
-
-template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::setTextureResourceLoadCallback (const TextureResourceLoadCallback & callback) {
-	m_callbacks.textureResourceLoad = callback;
-}
-
-template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::setMapMeshResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
-	m_callbacks.mapMeshResourcesLoad = callback;
-}
-
-template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::setMapTextureResourcesLoadCallback (const MapResourcesLoadCallback & callback) {
-	m_callbacks.mapTextureResourcesLoad = callback;
-}
-
-template <class PropCPUResourceManagerBackend>
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::clearCallbacks () {
-	m_callbacks = {};
 }
