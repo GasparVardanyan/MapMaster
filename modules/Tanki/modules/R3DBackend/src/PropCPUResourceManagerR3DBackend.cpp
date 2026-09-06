@@ -1,3 +1,5 @@
+# include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
+
 # include <algorithm>
 # include <cctype>
 # include <cmath>
@@ -21,7 +23,6 @@
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerR3DBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropMetaData.hpp"

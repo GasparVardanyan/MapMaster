@@ -1,5 +1,6 @@
 # include "MapMaster/Tanki/Utils/ParallelTask.hpp"
 
+# include <algorithm>
 # include <cstddef>
 # include <execution>
 # include <memory>

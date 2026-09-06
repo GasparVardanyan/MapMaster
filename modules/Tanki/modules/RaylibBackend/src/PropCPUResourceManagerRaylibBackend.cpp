@@ -1,3 +1,5 @@
+# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
+
 # include <algorithm>
 # include <cctype>
 # include <cstdio>
@@ -17,7 +19,6 @@
 # include <raylib.h>
 # include <raymath.h>
 
-# include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropMetaData.hpp"
