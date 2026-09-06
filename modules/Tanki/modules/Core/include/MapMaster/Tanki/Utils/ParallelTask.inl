@@ -1,9 +1,10 @@
-# include "MapMaster/Tanki/Utils/ParallelTaskRunner.hpp"
+# include "MapMaster/Tanki/Utils/ParallelTask.hpp"
 
 # include <cstddef>
 # include <execution>
 # include <memory>
 # include <mutex>
+# include <type_traits>
 # include <utility>
 # include <vector>
 
@@ -52,73 +53,93 @@ struct TaskInputProcessorHelper <
 
 
 
-template <class Producer, class ParallelTask>
-ParallelTaskRunner <Producer, ParallelTask>::ParallelTaskRunner (
+template <class Producer, typename OutputType, typename ... InputArgTypes>
+ParallelTask <Producer, OutputType, InputArgTypes ...>::ParallelTask (
 	const Producer & producer,
 	Processor processor
 ) : m_producer (producer), m_processor (processor) {}
 
-template <class Producer, class ParallelTask>
-void ParallelTaskRunner <Producer, ParallelTask>::reset () {
+template <class Producer, typename OutputType, typename ... InputArgTypes>
+void ParallelTask <Producer, OutputType, InputArgTypes ...>::reset () {
 	m_finished = false;
 	m_callbackInput.clear ();
 }
 
-template <class Producer, class ParallelTask>
-std::vector <
-	std::shared_ptr <typename ParallelTaskRunner <Producer, ParallelTask>::Output>
-> ParallelTaskRunner <Producer, ParallelTask>::run (
-	const std::vector <ParallelTaskRunner <Producer, ParallelTask>::Input> & input
+template <class Producer, typename OutputType, typename ... InputArgTypes>
+template <bool Collect, bool PassToCallback>
+std::conditional_t <Collect, std::vector <
+	std::shared_ptr <typename ParallelTask <Producer, OutputType, InputArgTypes ...>::Output>
+>, void> ParallelTask <Producer, OutputType, InputArgTypes ...>::run (
+	const std::vector <ParallelTask <Producer, OutputType, InputArgTypes ...>::Input> & inputVector
 ) {
 	reset ();
 
-	std::vector <std::shared_ptr <Output>> output;
-	output.resize (input.size ());
+	auto process = [this] (
+		const Input & input
+	) -> std::shared_ptr <Output> {
+		std::shared_ptr <Output> result = std::make_shared <Output> (
+			ParallelTaskRunner_detail::TaskInputProcessorHelper <Input>::Process (
+				m_producer,
+				m_processor,
+				input
+			)
+		);
 
-	std::transform (
-		std::execution::par_unseq,
-		input.cbegin (),
-		input.cend (),
-		output.begin (),
-		[this] (
-			const Input & descriptor
-		) -> std::shared_ptr <Output> {
-			std::shared_ptr <Output> result = std::make_shared <Output> (
-				ParallelTaskRunner_detail::TaskInputProcessorHelper <Input>::Process (
-					m_producer,
-					m_processor,
-					descriptor
-				)
-			);
-
+		if constexpr (true == PassToCallback) {
 			{
 				std::scoped_lock <std::mutex> lock (m_readyMutex);
 				ParallelTaskRunner_detail::TaskInputProcessorHelper <Input>::InsertOutput (
 					m_callbackInput,
-					descriptor,
+					input,
 					result
 				);
 			}
 
 			m_readyNotifier.notify_one ();
-
-			return std::move (result);
 		}
-	);
 
-	{
-		std::scoped_lock <std::mutex> lock (m_readyMutex);
-		m_finished = true;
+		return result;
+	};
+
+	std::vector <std::shared_ptr <Output>> output;
+
+	if constexpr (true == Collect) {
+		output.resize (inputVector.size ());
+
+		std::transform (
+			std::execution::par_unseq,
+			inputVector.cbegin (),
+			inputVector.cend (),
+			output.begin (),
+			process
+		);
+	}
+	else {
+		std::for_each (
+			std::execution::par_unseq,
+			inputVector.cbegin (),
+			inputVector.cend (),
+			process
+		);
 	}
 
-	m_readyNotifier.notify_one ();
+	if constexpr (true == PassToCallback) {
+		{
+			std::scoped_lock <std::mutex> lock (m_readyMutex);
+			m_finished = true;
+		}
 
-	return output;
+		m_readyNotifier.notify_one ();
+	}
+
+	if constexpr (true == Collect) {
+		return output;
+	}
 }
 
-template <class Producer, class ParallelTask>
-void ParallelTaskRunner <Producer, ParallelTask>::listen (
-	ParallelTaskRunner <Producer, ParallelTask>::Callback callback
+template <class Producer, typename OutputType, typename ... InputArgTypes>
+void ParallelTask <Producer, OutputType, InputArgTypes ...>::listen (
+	ParallelTask <Producer, OutputType, InputArgTypes ...>::Callback callback
 ) {
 	while (true) {
 		std::vector <CallbackInput> resultToProcess;

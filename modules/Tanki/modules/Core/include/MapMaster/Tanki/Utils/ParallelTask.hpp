@@ -5,6 +5,7 @@
 # include <memory>
 # include <mutex>
 # include <tuple>
+# include <type_traits>
 # include <vector>
 
 
@@ -16,40 +17,40 @@ namespace ParallelTaskRunner_detail {
 template <typename ...>
 struct TaskCallbackInput;
 
-template <typename Output, typename ... InputArgs>
-struct TaskCallbackInput <Output, std::tuple <InputArgs ...>> {
-	using type = std::tuple <InputArgs ..., std::shared_ptr <Output>>;
+template <typename Output, typename ... InputArgTypes>
+struct TaskCallbackInput <Output, std::tuple <InputArgTypes ...>> {
+	using type = std::tuple <InputArgTypes ..., std::shared_ptr <Output>>;
 };
 
 template <typename...>
 struct TaskProcessor;
 
-template <typename Producer, typename Output, typename ... InputArgs>
-struct TaskProcessor <Producer, std::tuple <InputArgs ...>, Output> {
-	using type = Output (Producer::*) (const InputArgs & ...) const;
+template <typename Producer, typename Output, typename ... InputArgTypes>
+struct TaskProcessor <Producer, std::tuple <InputArgTypes ...>, Output> {
+	using type = Output (Producer::*) (const InputArgTypes & ...) const;
 };
 
 } // namespace ParallelTaskRunner_detail
 
 
 
-template <class Producer, class ParallelTask>
-class ParallelTaskRunner {
+template <class Producer, typename OutputType, typename ... InputArgTypes>
+class ParallelTask {
 public:
-	using Task = ParallelTask;
-	using Input = Task::Input;
-	using Output = Task::Output;
+	using Input = std::tuple <InputArgTypes ...>;
+	using Output = OutputType;
 	using CallbackInput = ParallelTaskRunner_detail::TaskCallbackInput <Output, Input>::type;
 
 	using Callback = std::function <void (std::vector <CallbackInput> &&)>;
 	using Processor = ParallelTaskRunner_detail::TaskProcessor <Producer, Input, Output>::type;
 
-	ParallelTaskRunner (const Producer & producer, Processor processor);
+	ParallelTask (const Producer & producer, Processor processor);
 
 	void reset ();
 
-	std::vector <std::shared_ptr <Output>> run (
-		const std::vector <Input> & input
+	template <bool Collect = true, bool PassToCallback = true>
+	std::conditional_t <Collect, std::vector <std::shared_ptr <Output>>, void> run (
+		const std::vector <Input> & inputVector
 	);
 
 	void listen (Callback callback);
@@ -62,14 +63,6 @@ private:
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 	const Producer & m_producer;
 	Processor m_processor;
-};
-
-template <typename OutputType, typename ... InputArgs>
-struct ParallelTask {
-	using Input = std::tuple <InputArgs ...>;
-	using Output = OutputType;
-
-	ParallelTask ();
 };
 
 }  // namespace MapMaster::Tanki::Utils

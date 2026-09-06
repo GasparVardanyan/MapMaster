@@ -11,7 +11,7 @@
 # include <vector>
 
 # include "MapMaster/Tanki/PropMetaData.hpp"
-# include "MapMaster/Tanki/Utils/ParallelTaskRunner.hpp"
+# include "MapMaster/Tanki/Utils/ParallelTask.hpp"
 
 
 
@@ -93,15 +93,15 @@ public:
 	using PropMeshResource = Backend::PropMeshResource;
 	using PropTextureResource = Backend::PropTextureResource;
 
-	using MeshLoader = Utils::ParallelTaskRunner <PropCPUResourceManager, Utils::ParallelTask <PropMeshResource, std::string, std::string>>;
-	using TextureLoader = Utils::ParallelTaskRunner <PropCPUResourceManager, Utils::ParallelTask <PropTextureResource, std::string, std::string, std::string>>;
+	using MeshLoaderTask = Utils::ParallelTask <PropCPUResourceManager, PropMeshResource, std::string, std::string>;
+	using TextureLoaderTask = Utils::ParallelTask <PropCPUResourceManager, PropTextureResource, std::string, std::string, std::string>;
 
 	enum class OverlapBehaviour : unsigned char {
 		Ignore, Override
 	};
 
 public:
-	explicit PropCPUResourceManager (bool parseCollisionPrimitives = false);
+	explicit PropCPUResourceManager (bool parseCollisionPrimitives = false, bool collectCpuData = true);
 
 	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();
@@ -134,8 +134,8 @@ public:
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propMeshName, const std::string & textureName) const;
 	[[nodiscard]] const PropTextureResource & getTextureResource (const std::string & libraryName, const std::string & groupName, const std::string & propSpriteName) const;
 
-	MeshLoader & meshLoader ();
-	TextureLoader & textureLoader ();
+	MeshLoaderTask & meshLoader ();
+	TextureLoaderTask & textureLoader ();
 
 private:
 	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile) const;
@@ -147,12 +147,13 @@ private:
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
 
-	MeshLoader m_meshLoader;
-	TextureLoader m_textureLoader;
+	MeshLoaderTask m_meshLoader;
+	TextureLoaderTask m_textureLoader;
 
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 	const bool m_parseCollisionPrimitives;
+	const bool m_collectCpuData;
 };
 // cppcheck-suppress-end unusedStructMember
 

@@ -19,7 +19,8 @@ namespace MapMaster::Tanki {
 
 template <class PropGPUResourceManagerBackend>
 PropGPUResourceManager <PropGPUResourceManagerBackend>::PropGPUResourceManager (bool parseCollisionPrimitives, bool freeCpuData)
-	: m_resourceManager (parseCollisionPrimitives)
+	// : m_resourceManager (parseCollisionPrimitives, false == freeCpuData)
+	: m_resourceManager (parseCollisionPrimitives, true)
 	, m_parseCollisionPrimitives (parseCollisionPrimitives)
 	, m_freeCpuData (freeCpuData)
 {

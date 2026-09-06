@@ -34,8 +34,9 @@ using namespace MapMaster::Tanki;
 
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::PropCPUResourceManager (bool parseCollisionPrimitives)
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropCPUResourceManager (bool parseCollisionPrimitives, bool collectCpuData)
 	: m_parseCollisionPrimitives (parseCollisionPrimitives)
+	, m_collectCpuData (collectCpuData)
 	, m_meshLoader (* this, & PropCPUResourceManager::loadMeshResource)
 	, m_textureLoader (* this, & PropCPUResourceManager::loadTextureResource)
 {
@@ -87,27 +88,37 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::setOverlapBehaviour
 template <class PropCPUResourceManagerBackend>
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (std::vector <std::tuple <std::string, std::string>> && meshDescriptors) {
-	std::vector <std::shared_ptr <PropMeshResource>> resources = m_meshLoader.run (meshDescriptors);
+	if (true == m_collectCpuData) {
+		std::vector <std::shared_ptr <PropMeshResource>> resources = m_meshLoader.template run <true, true> (meshDescriptors);
 
-	std::size_t mI = 0;
+		std::size_t mI = 0;
 
-	for (auto & [libraryName, meshFile] : meshDescriptors) {
-		m_propMeshResources [std::move (libraryName)] [std::move (meshFile)] = std::move (resources [mI]);
+		for (auto & [libraryName, meshFile] : meshDescriptors) {
+			m_propMeshResources [std::move (libraryName)] [std::move (meshFile)] = std::move (resources [mI]);
 
-		mI++;
+			mI++;
+		}
+	}
+	else {
+		m_meshLoader.template run <false, true> (meshDescriptors);
 	}
 }
 
 template <class PropCPUResourceManagerBackend>
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResources (std::vector <std::tuple <std::string, std::string, std::string>> && textureDescriptors) {
-	std::vector <std::shared_ptr <PropTextureResource>> resources = m_textureLoader.run (textureDescriptors);
+	if (true == m_collectCpuData) {
+		std::vector <std::shared_ptr <PropTextureResource>> resources = m_textureLoader.template run <true, true> (textureDescriptors);
 
-	std::size_t tI = 0;
-	for (auto & [libraryName, diffuseFile, _] : textureDescriptors) {
-		m_propTextureResources [std::move (libraryName)] [std::move (diffuseFile)] = (std::move (resources [tI]));
+		std::size_t tI = 0;
+		for (auto & [libraryName, diffuseFile, _] : textureDescriptors) {
+			m_propTextureResources [std::move (libraryName)] [std::move (diffuseFile)] = (std::move (resources [tI]));
 
-		tI++;
+			tI++;
+		}
+	}
+	else {
+		m_textureLoader.template run <false, true> (textureDescriptors);
 	}
 }
 
@@ -315,11 +326,11 @@ const PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResourc
 }
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::MeshLoader & PropCPUResourceManager <PropCPUResourceManagerBackend>::meshLoader () {
+PropCPUResourceManager <PropCPUResourceManagerBackend>::MeshLoaderTask & PropCPUResourceManager <PropCPUResourceManagerBackend>::meshLoader () {
 	return m_meshLoader;
 }
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::TextureLoader & PropCPUResourceManager <PropCPUResourceManagerBackend>::textureLoader () {
+PropCPUResourceManager <PropCPUResourceManagerBackend>::TextureLoaderTask & PropCPUResourceManager <PropCPUResourceManagerBackend>::textureLoader () {
 	return m_textureLoader;
 }
