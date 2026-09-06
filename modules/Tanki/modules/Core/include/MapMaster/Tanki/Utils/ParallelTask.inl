@@ -86,6 +86,7 @@ std::conditional_t <Collect, std::vector <
 			)
 		);
 
+		// TODO: use non blocking queue
 		if constexpr (true == PassToCallback) {
 			{
 				std::scoped_lock <std::mutex> lock (m_readyMutex);
@@ -108,7 +109,7 @@ std::conditional_t <Collect, std::vector <
 		output.resize (inputVector.size ());
 
 		std::transform (
-			std::execution::par_unseq,
+			std::execution::par,
 			inputVector.cbegin (),
 			inputVector.cend (),
 			output.begin (),
@@ -117,7 +118,7 @@ std::conditional_t <Collect, std::vector <
 	}
 	else {
 		std::for_each (
-			std::execution::par_unseq,
+			std::execution::par,
 			inputVector.cbegin (),
 			inputVector.cend (),
 			process
