@@ -5,9 +5,10 @@
 - [ ] parse occluders
 - [x] R3D backend for PropGPUResourceManager
 - [ ] R3D map rendering - half done
-- [ ] imgui docking
-- [ ] rlImgui
+- [ ] imgui docking and rlImgui
+- [ ] 3d backend cmake toggles
+- [ ] helper cpu resource backend for utils
 
 ## BUGs
-- [ ] CPU resource manager makes use of loaded mesh and texture resources after
+- [x] CPU resource manager makes use of loaded mesh and texture resources after
 processing them and so prevents the use of non collecting ParallelTask

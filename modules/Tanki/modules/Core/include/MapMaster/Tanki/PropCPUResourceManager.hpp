@@ -4,6 +4,7 @@
 # include <functional>
 # include <map>
 # include <memory>
+# include <optional>
 # include <string>
 # include <tuple>
 # include <type_traits>
@@ -114,14 +115,20 @@ public:
 	 *
 	 * @param meshDescriptors {{libraryName, meshFileName}, ...}
 	 */
-	void loadMeshResources (std::vector <std::tuple <std::string, std::string>> && meshDescriptors);
+	void loadMeshResources (
+		const std::vector <std::tuple <std::string, std::string>> & meshDescriptors,
+		std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Mesh>>>> meta = {}
+	);
 
 	/**
 	 * @brief load and parse texture files
 	 *
 	 * @param textureDescriptors {{libraryName, diffuseFileName, alphaFileName}, ...}
 	 */
-	void loadTextureResources (std::vector <std::tuple <std::string, std::string, std::string>> && textureDescriptors);
+	void loadTextureResources (
+		const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors,
+		std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Texture>>>> meta = {}
+	);
 
 	void loadMapResources (const Map & map);
 	void loadPropLibraryResources (const PropLibrary & propLibrary);
@@ -144,9 +151,8 @@ private:
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
-	std::map <std::string, std::map <std::string, std::string>> m_propMeshResourceDefaultTextures;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
-	std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
+	// std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
 
 	MeshLoaderTask m_meshLoader;
 	TextureLoaderTask m_textureLoader;

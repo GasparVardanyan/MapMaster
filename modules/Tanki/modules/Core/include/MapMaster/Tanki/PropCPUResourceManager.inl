@@ -5,9 +5,11 @@
 # include <cstdlib>
 # include <cstring>
 # include <execution>
+# include <functional>
 # include <initializer_list>
 # include <map>
 # include <memory>
+# include <optional>
 # include <set>
 # include <stdexcept>
 # include <string>
@@ -87,38 +89,74 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::setOverlapBehaviour
 
 template <class PropCPUResourceManagerBackend>
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (std::vector <std::tuple <std::string, std::string>> && meshDescriptors) {
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (
+	const std::vector <std::tuple <std::string, std::string>> & meshDescriptors,
+	std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Mesh>>>> meta
+) {
 	if (true == m_collectCpuData) {
+		if (true == meta.has_value ()) {
+			throw std::runtime_error ("don't do this. use the metadata from the internal mesh data instead");
+		}
+
 		std::vector <std::shared_ptr <PropMeshResource>> resources = m_meshLoader.template run <true, true> (meshDescriptors);
 
 		std::size_t mI = 0;
 
 		for (auto & [libraryName, meshFile] : meshDescriptors) {
-			m_propMeshResources [std::move (libraryName)] [std::move (meshFile)] = std::move (resources [mI]);
+			m_propMeshResources [libraryName] [meshFile] = std::move (resources [mI]);
 
 			mI++;
 		}
 	}
 	else {
-		m_meshLoader.template run <false, true> (meshDescriptors);
+		if (true == meta.has_value ()) {
+			meta.value ().get () = m_meshLoader.template run <
+				true,
+				true,
+				[] (const std::shared_ptr <PropMeshResource> & meshResource) -> std::shared_ptr <PropMetaData::Mesh> {
+					return meshResource->meta;
+				}
+			> (meshDescriptors);
+		}
+		else {
+			m_meshLoader.template run <false, true> (meshDescriptors);
+		}
 	}
 }
 
 template <class PropCPUResourceManagerBackend>
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResources (std::vector <std::tuple <std::string, std::string, std::string>> && textureDescriptors) {
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResources (
+	const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors,
+	std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Texture>>>> meta
+) {
 	if (true == m_collectCpuData) {
+		if (true == meta.has_value ()) {
+			throw std::runtime_error ("don't do this. use the metadata from the internal mesh data instead");
+		}
+
 		std::vector <std::shared_ptr <PropTextureResource>> resources = m_textureLoader.template run <true, true> (textureDescriptors);
 
 		std::size_t tI = 0;
 		for (auto & [libraryName, diffuseFile, _] : textureDescriptors) {
-			m_propTextureResources [std::move (libraryName)] [std::move (diffuseFile)] = (std::move (resources [tI]));
+			m_propTextureResources [libraryName] [diffuseFile] = (std::move (resources [tI]));
 
 			tI++;
 		}
 	}
 	else {
-		m_textureLoader.template run <false, true> (textureDescriptors);
+		if (true == meta.has_value ()) {
+			meta.value ().get () = m_textureLoader.template run <
+				true,
+				true,
+				[] (const std::shared_ptr <PropTextureResource> & textureResource) -> std::shared_ptr <PropMetaData::Texture> {
+					return textureResource->meta;
+				}
+			> (textureDescriptors);
+		}
+		else {
+			m_textureLoader.template run <false, true> (textureDescriptors);
+		}
 	}
 }
 
@@ -127,7 +165,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::vector <std::tuple <std::string, std::string>> meshDescriptors;
 	std::vector <std::tuple <std::string, std::string, std::string>> textureDescriptors;
 
-	std::map <std::string, std::map <std::string, std::set <std::string>>> defaultTextures;
+	std::set <std::tuple <std::string, std::string>> defaultTextures;
 
 	for (const auto & [libraryName, groupNames] : map.mapObjects ()) {
 		const PropLibrary & library = * m_propLibraries.at (libraryName);
@@ -159,7 +197,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 							textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 						}
 						else {
-							defaultTextures [libraryName] [groupName].insert (propName);
+							defaultTextures.emplace (libraryName, mIt->second.file);
 						}
 					}
 				}
@@ -184,39 +222,45 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
 	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
 
-	loadMeshResources (std::move (meshDescriptors));
-	meshDescriptors.clear ();
+	std::vector <std::shared_ptr <PropMetaData::Mesh>> meshResourceMetaDatas;
 
-	for (const auto & [libraryName, groupData] : defaultTextures) {
-		const PropLibrary & library = * m_propLibraries.at (libraryName);
-		const std::map <std::string, PropLibrary::Group> & groups = library.groups ();
-		const std::map <std::string, std::shared_ptr <PropMeshResource>> & libraryMeshResources = m_propMeshResources.at (libraryName);
+	loadMeshResources (meshDescriptors, meshResourceMetaDatas);
 
-		for (const auto & [groupName, props] : groupData) {
-			const PropLibrary::Group & group = groups.at (groupName);
+	auto defaultTexturesIt = defaultTextures.cbegin ();
 
-			for (const std::string & propName : props) {
-				const PropLibrary::PropMesh & prop = group.meshes.at (propName);
-
-				std::string diffuseFile = libraryMeshResources.at (prop.file)->meta->textureFile;
-				std::string alphaFile;
-
-				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
-					alphaFile = it->second;
-				}
-				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
-					diffuseFile = it->second;
-				}
-				textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
+	for (std::size_t i = 0; i < meshDescriptors.size (); i++) {
+		while (defaultTextures.cend () != defaultTexturesIt) {
+			if (* defaultTexturesIt < meshDescriptors [i]) {
+				++defaultTexturesIt;
 			}
+			else {
+				break;
+			}
+		}
+
+		if (defaultTextures.cend () != defaultTexturesIt && * defaultTexturesIt == meshDescriptors [i]) {
+			const std::string & libraryName = std::get <0> (meshDescriptors [i]);
+			const PropLibrary & library = * m_propLibraries.at (libraryName);
+			std::string diffuseFile = meshResourceMetaDatas [i]->textureFile;
+			std::string alphaFile;
+
+			if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+				alphaFile = it->second;
+			}
+			if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+				diffuseFile = it->second;
+			}
+			textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 		}
 	}
 
 	std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
 	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
 
-	loadTextureResources (std::move (textureDescriptors));
-	textureDescriptors.clear ();
+	loadTextureResources (textureDescriptors);
+
+	// load sprite primitives...
+	// load collision primitives...
 }
 
 template <class PropCPUResourceManagerBackend>
