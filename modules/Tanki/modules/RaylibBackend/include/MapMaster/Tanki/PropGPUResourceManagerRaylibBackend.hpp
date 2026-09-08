@@ -23,12 +23,12 @@ public:
 
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;
-		PropMetaData::Mesh meta;
+		std::shared_ptr <PropMetaData::Mesh> meta;
 	};
 
 	struct TextureResource {
 		std::shared_ptr <Texture2D> texture;
-		PropMetaData::Texture meta;
+		std::shared_ptr <PropMetaData::Texture> meta;
 	};
 
 	struct SpriteInfo {

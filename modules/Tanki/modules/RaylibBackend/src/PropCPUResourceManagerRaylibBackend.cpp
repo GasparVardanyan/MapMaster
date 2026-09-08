@@ -233,7 +233,7 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 		}
 	}
 
-	meshResource.meta = {
+	meshResource.meta = std::make_shared <PropMetaData::Mesh> (PropMetaData::Mesh {
 		.aabb = {
 			.min = {
 				.x = aabb.min.x,
@@ -248,7 +248,7 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 		},
 		.textureFile = textureFile,
 		.collider = PropMetaData::Mesh::ParseCollider (scene),
-	};
+	});
 
 	return meshResource;
 
@@ -296,11 +296,11 @@ PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerR
 
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
-		.meta = {
+		.meta = std::make_shared <PropMetaData::Texture> (PropMetaData::Texture {
 			.width = width,
 			.height = height,
 			.channels = desiredChannels,
-		},
+		}),
 	};
 }
 

@@ -175,7 +175,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 		vertexOffset += mesh->mNumVertices;
 	}
 
-	meshResource.meta = {
+	meshResource.meta = std::make_shared <PropMetaData::Mesh> (PropMetaData::Mesh {
 		.aabb = {
 			.min = {
 				.x = meshResource.aabb.min.x,
@@ -190,7 +190,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 		},
 		.textureFile = textureFile,
 		.collider = PropMetaData::Mesh::ParseCollider (scene),
-	};
+	});
 
 	return meshResource;
 
@@ -238,11 +238,11 @@ PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DB
 
 	return {
 		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
-		.meta = {
+		.meta = std::make_shared <PropMetaData::Texture> (PropMetaData::Texture {
 			.width = width,
 			.height = height,
 			.channels = desiredChannels,
-		},
+		}),
 	};
 }
 

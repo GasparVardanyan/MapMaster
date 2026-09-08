@@ -42,7 +42,7 @@ PropGPUResourceManagerRaylibBackend::TextureResource PropGPUResourceManagerRayli
 
 	int pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8;
 
-	if (4 == textureResource.meta.channels) {
+	if (4 == textureResource.meta->channels) {
 		pixelFormat = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
 	}
 
@@ -50,8 +50,8 @@ PropGPUResourceManagerRaylibBackend::TextureResource PropGPUResourceManagerRayli
 		new Texture2D (LoadTextureFromImage (
 			{
 				.data = static_cast <void *> (textureResource.pixBuffer.get ()),
-				.width = textureResource.meta.width,
-				.height = textureResource.meta.height,
+				.width = textureResource.meta->width,
+				.height = textureResource.meta->height,
 				.mipmaps = 1,
 				.format = pixelFormat,
 			}

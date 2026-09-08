@@ -198,7 +198,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 			for (const std::string & propName : props) {
 				const PropLibrary::PropMesh & prop = group.meshes.at (propName);
 
-				std::string diffuseFile = libraryMeshResources.at (prop.file)->meta.textureFile;
+				std::string diffuseFile = libraryMeshResources.at (prop.file)->meta->textureFile;
 				std::string alphaFile;
 
 				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
@@ -314,7 +314,7 @@ const PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResourc
 	}
 	else {
 		const std::string & meshFile = m_propLibraries.at (libraryName)->groups ().at (groupName).meshes.at (propMeshName).file;
-		return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile)->meta.textureFile));
+		return * m_propTextureResources.at (libraryName).at (library.getActualTextureFileName (m_propMeshResources.at (libraryName).at (meshFile)->meta->textureFile));
 	}
 }
 

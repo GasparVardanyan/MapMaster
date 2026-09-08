@@ -114,7 +114,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
 						const TextureResource & textureResource = m_textureResources.at (libraryName).at (textureFile);
 
-						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, textureResource.meta);
+						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, * textureResource.meta);
 					}
 				}
 			}

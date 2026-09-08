@@ -48,12 +48,12 @@ struct IsPropCPUResourceManagerBackend <
 
 		std::enable_if_t <std::is_same_v <
 			decltype (PropCPUResourceManagerBackend::PropMeshResource::meta),
-			PropMetaData::Mesh
+			std::shared_ptr <PropMetaData::Mesh>
 		>>,
 
 		std::enable_if_t <std::is_same_v <
 			decltype (PropCPUResourceManagerBackend::PropTextureResource::meta),
-			PropMetaData::Texture
+			std::shared_ptr <PropMetaData::Texture>
 		>>,
 
 		std::enable_if_t <std::is_invocable_v <

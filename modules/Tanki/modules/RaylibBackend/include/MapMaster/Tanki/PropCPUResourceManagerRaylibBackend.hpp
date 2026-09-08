@@ -37,12 +37,12 @@ public:
 		std::vector <TexCoordType> uvBuffer;
 		std::vector <IndexType> indexBuffer;
 
-		PropMetaData::Mesh meta;
+		std::shared_ptr <PropMetaData::Mesh> meta;
 	};
 
 	struct PropTextureResource {
 		std::shared_ptr <unsigned char> pixBuffer;
-		PropMetaData::Texture meta;
+		std::shared_ptr <PropMetaData::Texture> meta;
 	};
 
 	static PropMeshResource ParseMeshResource (const aiScene * scene);

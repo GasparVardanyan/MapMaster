@@ -37,13 +37,13 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 					const std::string meshFile = propMesh.file;
 
 					const GPUResourceManager::MeshResource & raylibMeshResource = raylibMeshResources.at (libraryName).at (meshFile);
-					const PropMetaData::Mesh::Collider & collider = raylibMeshResource.meta.collider;
+					const PropMetaData::Mesh::Collider & collider = raylibMeshResource.meta->collider;
 
 					for (const Map::MapObject & mapObject : propInfo) {
 						std::string textureName = mapObject.textureName;
 						std::string textureFile;
 						if (true == textureName.empty ()) {
-							textureFile = raylibMeshResource.meta.textureFile;
+							textureFile = raylibMeshResource.meta->textureFile;
 						}
 						else {
 							textureFile = propMesh.textures.at (textureName);

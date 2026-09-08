@@ -44,12 +44,12 @@ public:
 		static_assert (std::is_same_v <decltype (Vector3::y), float>);
 		static_assert (std::is_same_v <decltype (Vector3::z), float>);
 
-		PropMetaData::Mesh meta;
+		std::shared_ptr <PropMetaData::Mesh> meta;
 	};
 
 	struct PropTextureResource {
 		std::shared_ptr <unsigned char> pixBuffer;
-		PropMetaData::Texture meta;
+		std::shared_ptr <PropMetaData::Texture> meta;
 	};
 
 	static PropMeshResource ParseMeshResource (const aiScene * scene);
