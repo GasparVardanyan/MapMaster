@@ -3,6 +3,7 @@
 # include <algorithm>
 # include <cstddef>
 # include <execution>
+# include <functional>
 # include <memory>
 # include <mutex>
 # include <type_traits>
@@ -67,10 +68,13 @@ void ParallelTask <Producer, OutputType, InputArgTypes ...>::reset () {
 }
 
 template <class Producer, typename OutputType, typename ... InputArgTypes>
-template <bool Collect, bool PassToCallback>
-std::conditional_t <Collect, std::vector <
-	std::shared_ptr <typename ParallelTask <Producer, OutputType, InputArgTypes ...>::Output>
->, void> ParallelTask <Producer, OutputType, InputArgTypes ...>::run (
+template <bool Collect, bool PassToCallback, auto ResultMutator >
+std::enable_if_t <
+	std::is_invocable_v <decltype (ResultMutator), std::shared_ptr <typename ParallelTask <Producer, OutputType, InputArgTypes ...>::Output>>,
+	std::conditional_t <Collect, std::vector <
+		std::remove_cvref_t <std::invoke_result_t <decltype (ResultMutator), std::shared_ptr <typename ParallelTask <Producer, OutputType, InputArgTypes ...>::Output>>>
+	>, void>
+> ParallelTask <Producer, OutputType, InputArgTypes ...>::run (
 	const std::vector <ParallelTask <Producer, OutputType, InputArgTypes ...>::Input> & inputVector
 ) {
 	reset ();
@@ -87,7 +91,7 @@ std::conditional_t <Collect, std::vector <
 		);
 
 		// TODO: use non blocking queue
-		if constexpr (true == PassToCallback) {
+		if constexpr (true == PassToCallback) { // NOTE: not affected by ResultMutator
 			{
 				std::scoped_lock <std::mutex> lock (m_readyMutex);
 				ParallelTaskRunner_detail::TaskInputProcessorHelper <Input>::InsertOutput (
@@ -103,18 +107,29 @@ std::conditional_t <Collect, std::vector <
 		return result;
 	};
 
-	std::vector <std::shared_ptr <Output>> output;
+	std::vector <std::remove_cvref_t <std::invoke_result_t <decltype (ResultMutator), std::shared_ptr <Output>>>> output;
 
 	if constexpr (true == Collect) {
 		output.resize (inputVector.size ());
 
-		std::transform (
-			std::execution::par,
-			inputVector.cbegin (),
-			inputVector.cend (),
-			output.begin (),
-			process
-		);
+		if constexpr (std::is_same_v <decltype (ResultMutator), std::identity>) {
+			std::transform (
+				std::execution::par,
+				inputVector.cbegin (),
+				inputVector.cend (),
+				output.begin (),
+				process
+			);
+		}
+		else {
+			std::transform (
+				std::execution::par,
+				inputVector.cbegin (),
+				inputVector.cend (),
+				output.begin (),
+				[&process] (const std::shared_ptr <Output> & res) { return ResultMutator (process (res)); }
+			);
+		}
 	}
 	else {
 		std::for_each (

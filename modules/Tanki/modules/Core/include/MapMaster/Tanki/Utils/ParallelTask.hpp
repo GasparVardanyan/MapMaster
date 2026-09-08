@@ -48,8 +48,17 @@ public:
 
 	void reset ();
 
-	template <bool Collect = true, bool PassToCallback = true>
-	std::conditional_t <Collect, std::vector <std::shared_ptr <Output>>, void> run (
+	template <
+		bool Collect = true,
+		bool PassToCallback = true,
+		auto ResultMutator = std::identity {}
+	>
+	std::enable_if_t <
+		std::is_invocable_v <decltype (ResultMutator), std::shared_ptr <Output>>,
+		std::conditional_t <Collect, std::vector <
+			std::remove_cvref_t <std::invoke_result_t <decltype (ResultMutator), std::shared_ptr <Output>>>
+		>, void>
+	> run (
 		const std::vector <Input> & inputVector
 	);
 

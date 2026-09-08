@@ -144,6 +144,7 @@ private:
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
+	std::map <std::string, std::map <std::string, std::string>> m_propMeshResourceDefaultTextures;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
 

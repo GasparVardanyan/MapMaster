@@ -132,7 +132,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 
 			uint16_t (& texCoord) [2]  = vPtr->texcoord;
 
-			R3D_PackTexCoord (texCoord, (Vector2) {
+			R3D_PackTexCoord (static_cast <uint16_t *> (texCoord), (Vector2) {
 				.x = assimpTexCoord.x,
 				.y = assimpTexCoord.y,
 			});
