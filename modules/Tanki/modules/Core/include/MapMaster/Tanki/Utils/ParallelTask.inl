@@ -127,7 +127,7 @@ std::enable_if_t <
 				inputVector.cbegin (),
 				inputVector.cend (),
 				output.begin (),
-				[&process] (const std::shared_ptr <Output> & res) { return ResultMutator (process (res)); }
+				[&process] (const Input & inp) { return ResultMutator (process (inp)); }
 			);
 		}
 	}
