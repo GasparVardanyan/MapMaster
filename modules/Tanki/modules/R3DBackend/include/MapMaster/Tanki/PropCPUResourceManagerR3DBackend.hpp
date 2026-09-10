@@ -1,21 +1,28 @@
 # pragma once
 
-# include "MapMaster/Tanki/PropMetaData.hpp"
 # include <cstdint>
 # include <cstdio>
 # include <memory>
-
 # include <string>
 # include <type_traits>
 # include <vector>
 
 # include <raylib.h>
-
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 
+# include "MapMaster/Tanki/PropMetaData.hpp"
+
 struct aiScene;
 struct aiNode;
+namespace MapMaster {
+namespace Tanki {
+namespace PropMetaData {
+struct Mesh;
+struct Texture;
+}  // namespace PropMetaData
+}  // namespace Tanki
+}  // namespace MapMaster
 
 namespace MapMaster::Tanki {
 

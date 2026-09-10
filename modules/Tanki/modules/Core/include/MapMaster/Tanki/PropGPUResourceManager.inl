@@ -3,6 +3,7 @@
 # include <algorithm>
 # include <cstddef>
 # include <execution>
+# include <iostream>
 # include <map>
 # include <memory>
 # include <string>
@@ -42,6 +43,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadLibrary (const 
 template <class PropGPUResourceManagerBackend>
 void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapLibraries (const Map & map, const std::string & libraryRootDir) {
 	for (const auto & [libraryName, groupData] : map.mapObjects ()) {
+		std::cout << "loading " << libraryRootDir + "/" + libraryName << '\n';
 		loadLibrary (libraryRootDir + "/" + libraryName);
 	}
 }

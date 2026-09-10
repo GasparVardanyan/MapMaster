@@ -1,7 +1,6 @@
 # include "MapMaster/Tanki/PropGPUResourceManagerRaylibBackend.hpp"
 
 # include <memory>
-# include <string>
 # include <vector>
 
 # include <raylib.h>

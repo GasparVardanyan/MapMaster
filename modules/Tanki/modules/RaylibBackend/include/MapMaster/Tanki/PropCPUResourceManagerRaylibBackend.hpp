@@ -2,16 +2,18 @@
 
 # include <cstdio>
 # include <memory>
-
-# include <raylib.h>
 # include <string>
 # include <type_traits>
 # include <vector>
+
+# include <raylib.h>
 
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
 struct aiScene;
 struct aiNode;
+
+namespace MapMaster::Tanki::PropMetaData { struct Mesh; struct Texture; }
 
 namespace MapMaster::Tanki {
 

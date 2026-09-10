@@ -15,6 +15,8 @@
 
 
 
+namespace MapMaster::Tanki::PropMetaData { struct Mesh; struct Texture; }
+
 namespace MapMaster::Tanki {
 
 // cppcheck-suppress-begin unusedStructMember

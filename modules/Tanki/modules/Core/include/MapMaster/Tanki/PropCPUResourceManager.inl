@@ -1,6 +1,7 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 
 # include <algorithm>
+# include <compare>
 # include <cstdio>
 # include <cstdlib>
 # include <cstring>

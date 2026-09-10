@@ -11,6 +11,8 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
+namespace MapMaster::Tanki::PropMetaData { struct Mesh; struct Texture; }
+
 namespace MapMaster::Tanki {
 
 // cppcheck-suppress-begin unusedStructMember

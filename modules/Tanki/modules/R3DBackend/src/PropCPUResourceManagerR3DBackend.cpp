@@ -8,6 +8,7 @@
 # include <limits>
 # include <memory>
 # include <string>
+# include <vector>
 
 # include <assimp/config.h>
 # include <assimp/material.h>
