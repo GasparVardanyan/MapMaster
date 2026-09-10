@@ -36,9 +36,8 @@ using namespace MapMaster::Tanki;
 
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::PropCPUResourceManager (bool parseCollisionPrimitives, bool collectCpuData)
-	: m_parseCollisionPrimitives (parseCollisionPrimitives)
-	, m_collectCpuData (collectCpuData)
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropCPUResourceManager (const ResourceSettings & resourceSettings)
+	: m_resourceSettings (resourceSettings)
 	, m_meshLoader (* this, & PropCPUResourceManager::loadMeshResource)
 	, m_textureLoader (* this, & PropCPUResourceManager::loadTextureResource)
 {
@@ -93,7 +92,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (
 	const std::vector <std::tuple <std::string, std::string>> & meshDescriptors,
 	std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Mesh>>>> meta
 ) {
-	if (true == m_collectCpuData) {
+	if (false == m_resourceSettings.dropCPUResources) {
 		if (true == meta.has_value ()) {
 			throw std::runtime_error ("don't do this. use the metadata from the internal mesh data instead");
 		}
@@ -102,7 +101,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResources (
 
 		std::size_t mI = 0;
 
-		for (auto & [libraryName, meshFile] : meshDescriptors) {
+		for (const auto & [libraryName, meshFile] : meshDescriptors) {
 			m_propMeshResources [libraryName] [meshFile] = std::move (resources [mI]);
 
 			mI++;
@@ -130,7 +129,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource
 	const std::vector <std::tuple <std::string, std::string, std::string>> & textureDescriptors,
 	std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Texture>>>> meta
 ) {
-	if (true == m_collectCpuData) {
+	if (false == m_resourceSettings.dropCPUResources) {
 		if (true == meta.has_value ()) {
 			throw std::runtime_error ("don't do this. use the metadata from the internal mesh data instead");
 		}
@@ -138,7 +137,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource
 		std::vector <std::shared_ptr <PropTextureResource>> resources = m_textureLoader.template run <true, true> (textureDescriptors);
 
 		std::size_t tI = 0;
-		for (auto & [libraryName, diffuseFile, _] : textureDescriptors) {
+		for (const auto & [libraryName, diffuseFile, _] : textureDescriptors) {
 			m_propTextureResources [libraryName] [diffuseFile] = (std::move (resources [tI]));
 
 			tI++;
@@ -166,6 +165,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::vector <std::tuple <std::string, std::string, std::string>> textureDescriptors;
 
 	std::set <std::tuple <std::string, std::string>> defaultTextures;
+	std::map <std::string, std::vector <std::string>> defaultTextures2;
 
 	for (const auto & [libraryName, groupNames] : map.mapObjects ()) {
 		const PropLibrary & library = * m_propLibraries.at (libraryName);
@@ -197,7 +197,12 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 							textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 						}
 						else {
-							defaultTextures.emplace (libraryName, mIt->second.file);
+							if (true == m_resourceSettings.dropCPUResources) {
+								defaultTextures.emplace (libraryName, mIt->second.file);
+							}
+							else {
+								defaultTextures2 [libraryName].push_back (mIt->second.file);
+							}
 						}
 					}
 				}
@@ -222,35 +227,62 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
 	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
 
-	std::vector <std::shared_ptr <PropMetaData::Mesh>> meshResourceMetaDatas;
+	if (true == m_resourceSettings.dropCPUResources) {
+		std::vector <std::shared_ptr <PropMetaData::Mesh>> meshResourceMetaDatas;
 
-	loadMeshResources (meshDescriptors, meshResourceMetaDatas);
+		loadMeshResources (meshDescriptors, meshResourceMetaDatas);
 
-	auto defaultTexturesIt = defaultTextures.cbegin ();
+		auto defaultTexturesIt = defaultTextures.cbegin ();
 
-	for (std::size_t i = 0; i < meshDescriptors.size (); i++) {
-		while (defaultTextures.cend () != defaultTexturesIt) {
-			if (* defaultTexturesIt < meshDescriptors [i]) {
-				++defaultTexturesIt;
+		for (std::size_t i = 0; i < meshDescriptors.size (); i++) {
+			while (defaultTextures.cend () != defaultTexturesIt) {
+				if (* defaultTexturesIt < meshDescriptors [i]) {
+					++defaultTexturesIt;
+				}
+				else {
+					break;
+				}
 			}
-			else {
+
+			if (defaultTextures.cend () == defaultTexturesIt) {
 				break;
 			}
+
+			if (* defaultTexturesIt == meshDescriptors [i]) {
+				const std::string & libraryName = std::get <0> (meshDescriptors [i]);
+				const PropLibrary & library = * m_propLibraries.at (libraryName);
+				std::string diffuseFile = meshResourceMetaDatas [i]->textureFile;
+				std::string alphaFile;
+
+				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+					alphaFile = it->second;
+				}
+				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+					diffuseFile = it->second;
+				}
+				textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
+			}
 		}
+	}
+	else {
+		loadMeshResources (meshDescriptors);
 
-		if (defaultTextures.cend () != defaultTexturesIt && * defaultTexturesIt == meshDescriptors [i]) {
-			const std::string & libraryName = std::get <0> (meshDescriptors [i]);
+		for (const auto & [libraryName, meshFileNames] : defaultTextures2) {
 			const PropLibrary & library = * m_propLibraries.at (libraryName);
-			std::string diffuseFile = meshResourceMetaDatas [i]->textureFile;
-			std::string alphaFile;
+			const std::map <std::string, std::shared_ptr <PropMeshResource>> & libraryMeshResources = m_propMeshResources.at (libraryName);
 
-			if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
-				alphaFile = it->second;
+			for (const std::string & meshFileName : meshFileNames) {
+				std::string diffuseFile = libraryMeshResources.at (meshFileName)->meta->textureFile;
+				std::string alphaFile;
+
+				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+					alphaFile = it->second;
+				}
+				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+					diffuseFile = it->second;
+				}
+				textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 			}
-			if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
-				diffuseFile = it->second;
-			}
-			textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 		}
 	}
 
@@ -289,7 +321,13 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPU
 
 	const aiScene * scene = importer.ReadFile (meshPath, PropCPUResourceManagerBackend::AssimpPostProcessorSteps);
 
-	return PropCPUResourceManagerBackend::ParseMeshResource (scene);
+	PropMeshResource resource = PropCPUResourceManagerBackend::ParseMeshResource (scene);
+
+	if (true == m_resourceSettings.loadPropColliderData) {
+		resource.meta->collider = PropMetaData::Mesh::ParseCollider (scene);
+	}
+
+	return resource;
 }
 
 template <class PropCPUResourceManagerBackend>

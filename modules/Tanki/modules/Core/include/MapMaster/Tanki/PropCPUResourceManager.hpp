@@ -12,6 +12,7 @@
 # include <vector>
 
 # include "MapMaster/Tanki/PropMetaData.hpp"
+# include "MapMaster/Tanki/ResourceSettings.hpp"
 # include "MapMaster/Tanki/Utils/ParallelTask.hpp"
 
 
@@ -102,7 +103,7 @@ public:
 	};
 
 public:
-	explicit PropCPUResourceManager (bool parseCollisionPrimitives = false, bool collectCpuData = true);
+	explicit PropCPUResourceManager (const ResourceSettings & resourceSettings = ResourceSettings {.loadPropColliderData = true, .dropCPUResources = true});
 
 	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();
@@ -159,8 +160,7 @@ private:
 
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-	const bool m_parseCollisionPrimitives;
-	const bool m_collectCpuData;
+	const ResourceSettings m_resourceSettings;
 };
 // cppcheck-suppress-end unusedStructMember
 

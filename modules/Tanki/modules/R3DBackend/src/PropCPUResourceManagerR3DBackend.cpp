@@ -189,7 +189,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 			},
 		},
 		.textureFile = textureFile,
-		.collider = PropMetaData::Mesh::ParseCollider (scene),
+		.collider = {},
 	});
 
 	return meshResource;

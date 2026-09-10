@@ -247,7 +247,7 @@ PropCPUResourceManagerRaylibBackend::PropMeshResource PropCPUResourceManagerRayl
 			},
 		},
 		.textureFile = textureFile,
-		.collider = PropMetaData::Mesh::ParseCollider (scene),
+		.collider = {},
 	});
 
 	return meshResource;

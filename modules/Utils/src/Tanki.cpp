@@ -28,6 +28,7 @@
 # include "MapMaster/Tanki/MapRendererR3DBackend.hpp" // IWYU pragma: keep
 # include "MapMaster/Tanki/MapRendererRaylibBackend.hpp" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/ResourceSettings.hpp"
 
 namespace MapMaster::Utils::Tanki {
 
@@ -206,7 +207,7 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 
 	if (true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
-		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true, true));
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (MapMaster::Tanki::ResourceSettings { .loadPropColliderData = true, .dropCPUResources = true }));
 
 		// this loads the map xml data
 		rmap->map ()->loadFile (mapFile);
@@ -225,9 +226,8 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 		// this creates the map scene
 		rmap->loadScene (scale);
 	}
-	else
-	{
-		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (true));
+	else {
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (MapMaster::Tanki::ResourceSettings { .loadPropColliderData = true, .dropCPUResources = false }));
 		rmap->map ()->loadFile (mapFile);
 
 		PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraryPaths (libraryRootPath);

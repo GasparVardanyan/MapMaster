@@ -10,6 +10,7 @@
 # include "MapMaster/Tanki/PrimitiveFactory.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/ResourceSettings.hpp"
 
 
 
@@ -103,7 +104,7 @@ public:
 	using PrimitiveFactory = Backend::PrimitiveFactory;
 
 public:
-	explicit PropGPUResourceManager (bool parseCollisionPrimitives = false, bool freeCpuData = true);
+	explicit PropGPUResourceManager (const ResourceSettings & resourceSettings = ResourceSettings {.loadPropColliderData = true, .dropCPUResources = true});
 
 	void loadLibrary (const std::string & path);
 	void loadMapLibraries (const Map & map, const std::string & libraryRootDir);
@@ -140,9 +141,7 @@ private:
 	std::map <std::string, std::map <std::string, SpriteInfo>> m_spriteInfos;
 
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-	const bool m_parseCollisionPrimitives;
-	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
-	const bool m_freeCpuData;
+	const ResourceSettings m_resourceSettings;
 };
 // cppcheck-suppress-end unusedStructMember
 
