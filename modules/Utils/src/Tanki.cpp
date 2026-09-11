@@ -128,53 +128,12 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 	}
 
 	while (false == WindowShouldClose ()) {
-		// UpdateCamera (& camera, CAMERA_THIRD_PERSON);
-		cameraController.updateCamera ();
-
-		if (true == IsKeyPressed (KEY_SPACE)) {
-			drawCollisionGeometry = !drawCollisionGeometry;
-		}
-
 		BeginDrawing ();
-
-		if (false == drawCollisionGeometry) {
-			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-				R3D_Begin (camera);
+			R3D_Begin (camera);
 				R3D_PushLightEx (* map_r3d_light, map_r3d_shadow, true);
-				// R3D_PushLight (* map_r3d_light);
-			}
-			else {
-				ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
-				BeginMode3D (camera);
-			}
-
-			rmap->render (camera);
-
-			if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-				R3D_End ();
-			}
-			else {
-				EndMode3D ();
-			}
-
-			// rlPushMatrix ();
-			// rlRotatef (90.0F, 1.0F, 0.0F, 0.0F);
-			// DrawGrid (50, 500.0F * scale);
-			// rlPopMatrix ();
-		}
-		else {
-			ClearBackground ({.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
-			BeginMode3D (camera);
-
-			rmap->renderCollisionGeometry ();
-
-			EndMode3D ();
-		}
-
-		DrawFPS (10, 10);
-		DrawText (msg1.c_str (), 10, 40, 20, GREEN);
-		DrawText (msg2.c_str (), 10, 70, 20, GREEN);
-
+				rmap->render (camera);
+			R3D_End ();
+			DrawFPS (10, 10);
 		EndDrawing ();
 	}
 
