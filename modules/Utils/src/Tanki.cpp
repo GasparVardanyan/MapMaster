@@ -55,8 +55,8 @@ void OpenMapWindow (const std::string & title, int logLevel, float scale) {
 			// R3D_ENVIRONMENT_SET (fog.density, 0.0065);
 			// R3D_ENVIRONMENT_SET (fog.color, (Color) { .r = 0x4A, .g = 0x3A, .b = 0x5A, .a = 0xFF });
 			//
-			// R3D_ENVIRONMENT_SET (ambient.color, (Color) { .r = 0x80, .g = 0x70, .b = 0x90, .a = 0xFF });
-			// R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
+			R3D_ENVIRONMENT_SET (ambient.color, (Color) { .r = 0x80, .g = 0x70, .b = 0x90, .a = 0xFF });
+			R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
 			// R3D_ENVIRONMENT_SET (background.color, (Color) {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
 
 			// R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
@@ -86,7 +86,7 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 		.projection = CAMERA_PERSPECTIVE,
 	};
 
-	SetTargetFPS (60);
+	// SetTargetFPS (60);
 
 	bool drawCollisionGeometry = false;
 
@@ -95,12 +95,12 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 	cameraController.setMoveSpeed (cameraController.moveSpeed () * scale);
 
 
-	R3D_ShadowMap map_r3d_shadow = {0};
-	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-		map_r3d_shadow = R3D_LoadShadowMap (R3D_LIGHT_OMNI);
-		map_r3d_shadow.cullMask = 0xFF;
-		map_r3d_shadow.opacity = 1.0f;
-	}
+	// R3D_ShadowMap map_r3d_shadow = {0};
+	// if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
+	// 	map_r3d_shadow = R3D_LoadShadowMap (R3D_LIGHT_OMNI);
+	// 	map_r3d_shadow.cullMask = 0xFF;
+	// 	map_r3d_shadow.opacity = 1.0f;
+	// }
 
 	R3D_Light* map_r3d_light = nullptr;
 	if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
@@ -130,7 +130,8 @@ void DrawMapRendererInCurrentWindow (std::shared_ptr <MapMaster::Tanki::MapRende
 	while (false == WindowShouldClose ()) {
 		BeginDrawing ();
 			R3D_Begin (camera);
-				R3D_PushLightEx (* map_r3d_light, map_r3d_shadow, true);
+				// R3D_PushLightEx (* map_r3d_light, map_r3d_shadow, true);
+				R3D_PushLight (* map_r3d_light);
 				rmap->render (camera);
 			R3D_End ();
 			DrawFPS (10, 10);
