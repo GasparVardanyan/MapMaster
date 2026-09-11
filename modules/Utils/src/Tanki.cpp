@@ -41,8 +41,8 @@ void OpenMapWindow (const std::string & title, int logLevel, float scale) {
 	) {
 		SetTraceLogLevel (logLevel);
 		SetConfigFlags (FLAG_FULLSCREEN_MODE);
-		SetConfigFlags (FLAG_MSAA_4X_HINT);
-		InitWindow (0, 0, title.c_str ());
+		// SetConfigFlags (FLAG_MSAA_4X_HINT);
+		InitWindow (1920, 1080, title.c_str ());
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 			R3D_Init (GetScreenWidth (), GetScreenHeight ());
 
