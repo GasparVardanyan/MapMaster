@@ -46,21 +46,21 @@ void OpenMapWindow (const std::string & title, int logLevel, float scale) {
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
 			R3D_Init (GetScreenWidth (), GetScreenHeight ());
 
-			R3D_ENVIRONMENT_SET (ssao.enabled, true);
-			R3D_ENVIRONMENT_SET (ssao.radius, 1.0F * scale);
-			R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
-			R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
-			// R3D_ENVIRONMENT_SET (ssr.enabled, true);
-			R3D_ENVIRONMENT_SET (fog.mode, R3D_Fog::R3D_FOG_EXP2);
-			R3D_ENVIRONMENT_SET (fog.density, 0.0065);
-			R3D_ENVIRONMENT_SET (fog.color, (Color) { .r = 0x4A, .g = 0x3A, .b = 0x5A, .a = 0xFF });
+			// R3D_ENVIRONMENT_SET (ssao.enabled, true);
+			// R3D_ENVIRONMENT_SET (ssao.radius, 1.0F * scale);
+			// R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
+			// R3D_ENVIRONMENT_SET (bloom.mode, R3D_Bloom::R3D_BLOOM_SCREEN);
+			// // R3D_ENVIRONMENT_SET (ssr.enabled, true);
+			// R3D_ENVIRONMENT_SET (fog.mode, R3D_Fog::R3D_FOG_EXP2);
+			// R3D_ENVIRONMENT_SET (fog.density, 0.0065);
+			// R3D_ENVIRONMENT_SET (fog.color, (Color) { .r = 0x4A, .g = 0x3A, .b = 0x5A, .a = 0xFF });
+			//
+			// R3D_ENVIRONMENT_SET (ambient.color, (Color) { .r = 0x80, .g = 0x70, .b = 0x90, .a = 0xFF });
+			// R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
+			// R3D_ENVIRONMENT_SET (background.color, (Color) {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
 
-			R3D_ENVIRONMENT_SET (ambient.color, (Color) { .r = 0x80, .g = 0x70, .b = 0x90, .a = 0xFF });
-			R3D_ENVIRONMENT_SET (ambient.energy, 0.35);
-			R3D_ENVIRONMENT_SET (background.color, (Color) {.r = 0x22, .g = 0x44, .b = 0x66, .a = 0xFF});
-
-			R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
-			R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
+			// R3D_SetAntiAliasingMode (R3D_AntiAliasingMode::R3D_ANTI_ALIASING_MODE_SMAA);
+			// R3D_SetAntiAliasingPreset (R3D_AntiAliasingPreset::R3D_ANTI_ALIASING_PRESET_ULTRA);
 		}
 	}
 }
