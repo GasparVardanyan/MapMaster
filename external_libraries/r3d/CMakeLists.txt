@@ -8,9 +8,20 @@ target_link_libraries (MapMaster_External_R3D INTERFACE
 set (BUILD_SHARED_LIBS true)
 set (DR3D_SUPPORT_ASSIMP OFF)
 
+list (PREPEND CMAKE_MODULE_PATH
+	"${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/R3D"
+)
+
+set (R3D_RAYLIB_VENDORED OFF)
+
 add_subdirectory (
 	${CMAKE_CURRENT_SOURCE_DIR}/../../external/r3d
 	${CMAKE_BINARY_DIR}/external/r3d
+)
+
+# FIXME: bad hack
+target_link_libraries (r3d PRIVATE
+	MapMaster_External_Raylib
 )
 
 include (MapMasterBuildUtils)

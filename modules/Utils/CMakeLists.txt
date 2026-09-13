@@ -13,6 +13,7 @@ target_link_libraries (MapMaster_Module_Utils PRIVATE
 )
 
 target_link_libraries (MapMaster_Module_Utils PRIVATE
+	MapMaster_External_PugiXML
 	MapMaster_External_R3D
 	MapMaster_External_Raylib
 )

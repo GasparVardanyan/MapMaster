@@ -2,6 +2,10 @@ add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../external_libraries/assimp
 	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_External_Assimp
 )
+add_subdirectory (
+	${CMAKE_CURRENT_LIST_DIR}/../external_libraries/pugixml
+	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_External_PugiXML
+)
 
 add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../external_libraries/raylib
