@@ -71,10 +71,11 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 						SceneMesh sceneMesh = {
 							.transform = transform,
 							.mesh = raylibMeshResource.mesh,
+							.texture = raylibTextureResource.texture,
 							.material = LoadMaterialDefault (),
 						};
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-						sceneMesh.material.maps [MATERIAL_MAP_DIFFUSE].texture = * raylibTextureResource.texture;
+						sceneMesh.material.maps [MATERIAL_MAP_DIFFUSE].texture = * sceneMesh.texture;
 
 						for (const typename PropMetaData::Mesh::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
 							sceneMesh.triangleColliders.push_back ({

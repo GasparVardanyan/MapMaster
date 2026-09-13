@@ -8,6 +8,7 @@
 # include <limits>
 # include <memory>
 # include <string>
+# include <vector>
 
 # include <assimp/config.h>
 # include <assimp/material.h>
@@ -189,7 +190,7 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 			},
 		},
 		.textureFile = textureFile,
-		.collider = PropMetaData::Mesh::ParseCollider (scene),
+		.collider = {},
 	});
 
 	return meshResource;

@@ -47,6 +47,7 @@ public:
 	struct SceneMesh {
 		Matrix transform = {};
 		std::shared_ptr <R3D_Mesh> mesh = nullptr;
+		std::shared_ptr <Texture2D> texture = nullptr;
 		R3D_Material material = {};
 
 		std::vector <SceneTriangleCollider> triangleColliders;
@@ -79,7 +80,7 @@ public:
 	[[nodiscard]] Color collisionGeometryEdgeColor () const;
 
 private:
-	std::shared_ptr <GPUResourceManager> m_gpuResourceManager = std::make_shared <GPUResourceManager> (false);
+	std::shared_ptr <GPUResourceManager> m_gpuResourceManager = std::make_shared <GPUResourceManager> ();
 	std::shared_ptr <Map> m_map = std::make_shared <Map> ();
 
 	struct {

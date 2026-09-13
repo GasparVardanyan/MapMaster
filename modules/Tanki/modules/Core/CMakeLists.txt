@@ -16,6 +16,7 @@ add_library (MapMaster_Module_TankiCore SHARED
 	include/MapMaster/Tanki/PropGPUResourceManager.inl
 	include/MapMaster/Tanki/PropLibrary.hpp
 	include/MapMaster/Tanki/PropMetaData.hpp
+	include/MapMaster/Tanki/ResourceSettings.hpp
 	include/MapMaster/Tanki/Utils/ParallelTask.hpp
 	include/MapMaster/Tanki/Utils/ParallelTask.inl
 	src/Map.cpp

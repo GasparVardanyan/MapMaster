@@ -73,10 +73,11 @@ void MapRendererR3DBackend::loadScene (float scale) {
 						SceneMesh sceneMesh = {
 							.transform = transform,
 							.mesh = raylibMeshResource.mesh,
-							.material = R3D_GetDefaultMaterial (),
+							.texture = raylibTextureResource.texture,
+							.material = R3D_GetDefaultMaterial ()
 						};
 						// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-						sceneMesh.material.albedo.texture = * raylibTextureResource.texture;
+						sceneMesh.material.albedo.texture = * sceneMesh.texture;
 
 						for (const PropMetaData::Mesh::Collider::TriangleCollider & triangleCollider : collider.triangleColliders) {
 							sceneMesh.triangleColliders.push_back ({

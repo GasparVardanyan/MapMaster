@@ -14,14 +14,14 @@
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/ResourceSettings.hpp"
 
 namespace MapMaster::Tanki {
 
 template <class PropGPUResourceManagerBackend>
-PropGPUResourceManager <PropGPUResourceManagerBackend>::PropGPUResourceManager (bool parseCollisionPrimitives, bool freeCpuData)
-	: m_resourceManager (parseCollisionPrimitives, false == freeCpuData)
-	, m_parseCollisionPrimitives (parseCollisionPrimitives)
-	, m_freeCpuData (freeCpuData)
+PropGPUResourceManager <PropGPUResourceManagerBackend>::PropGPUResourceManager (const ResourceSettings & resourceSettings)
+	: m_resourceManager (resourceSettings)
+	, m_resourceSettings (resourceSettings)
 {
 }
 
@@ -92,7 +92,7 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 
 	resLoaderThread.join ();
 
-	if (true == m_freeCpuData) {
+	if (true == m_resourceSettings.dropCPUResources) {
 		m_resourceManager.dropResources ();
 	}
 
