@@ -44,4 +44,4 @@ private:
 	Camera3D * m_camera = nullptr;
 };
 
-}  // namespace MapMaster::Tanki
+}  // namespace MapMaster::Scene3D

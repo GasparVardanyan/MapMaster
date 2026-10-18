@@ -87,11 +87,12 @@ PropMetaData::Mesh::Collider PropMetaData::Mesh::ParseCollider (const aiScene * 
 			}
 			else if (true == nodeName.starts_with ("box")) {
 				const aiMesh * boxMesh = scene->mMeshes [node->mMeshes [0]];
-				typename Collider::VertexType minX, maxX, minY, maxY, minZ, maxZ;
-				const aiVector3D v1 = transform * boxMesh->mVertices [0];
-				minX = maxX = v1.x;
-				minY = maxY = v1.y;
-				minZ = maxZ = v1.z;
+				Collider::VertexType minX, maxX, minY, maxY, minZ, maxZ; {
+					const aiVector3D v1 = transform * boxMesh->mVertices [0];
+					minX = maxX = v1.x;
+					minY = maxY = v1.y;
+					minZ = maxZ = v1.z;
+				}
 
 				for (unsigned int i = 1; i < boxMesh->mNumVertices; i++) {
 					const aiVector3D v = transform * boxMesh->mVertices [i];
