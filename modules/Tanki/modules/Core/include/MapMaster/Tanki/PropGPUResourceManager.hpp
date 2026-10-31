@@ -48,6 +48,7 @@ struct IsPropGPUResourceManagerBackend <
 
 		typename PropGPUResourceManagerBackend::MeshResource,
 		typename PropGPUResourceManagerBackend::TextureResource,
+		typename PropGPUResourceManagerBackend::SpriteResource,
 		typename PropGPUResourceManagerBackend::SpriteInfo,
 
 		std::enable_if_t <std::is_invocable_v <
@@ -57,6 +58,10 @@ struct IsPropGPUResourceManagerBackend <
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropGPUResourceManagerBackend::CreateTextureResource),
 			const typename PropGPUResourceManagerBackend::CPUResourceManager::PropTextureResource &
+		>>,
+		std::enable_if_t <std::is_invocable_v <
+			decltype (PropGPUResourceManagerBackend::CreateSpriteResource),
+			const typename PropGPUResourceManagerBackend::CPUResourceManager::PropSpriteResource &
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropGPUResourceManagerBackend::CreateSpriteInfo),
@@ -76,6 +81,13 @@ struct IsPropGPUResourceManagerBackend <
 			std::invoke_result_t <
 				decltype (PropGPUResourceManagerBackend::CreateTextureResource),
 				const typename PropGPUResourceManagerBackend::CPUResourceManager::PropTextureResource &
+			>
+		>>,
+		std::enable_if_t <std::is_same_v <
+			typename PropGPUResourceManagerBackend::SpriteResource,
+			std::invoke_result_t <
+				decltype (PropGPUResourceManagerBackend::CreateSpriteResource),
+				const typename PropGPUResourceManagerBackend::CPUResourceManager::PropSpriteResource &
 			>
 		>>,
 		std::enable_if_t <std::is_same_v <
@@ -100,6 +112,7 @@ public:
 	using CPUResourceManager = Backend::CPUResourceManager;
 	using MeshResource = Backend::MeshResource;
 	using TextureResource = Backend::TextureResource;
+	using SpriteResource = Backend::SpriteResource;
 	using SpriteInfo = Backend::SpriteInfo;
 	using PrimitiveFactory = Backend::PrimitiveFactory;
 
@@ -138,6 +151,7 @@ private:
 
 	std::map <std::string, std::map <std::string, MeshResource>> m_meshResources;
 	std::map <std::string, std::map <std::string, TextureResource>> m_textureResources;
+	std::map <std::string, std::map <std::string, SpriteResource>> m_spriteResources;
 	std::map <std::string, std::map <std::string, SpriteInfo>> m_spriteInfos;
 
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)

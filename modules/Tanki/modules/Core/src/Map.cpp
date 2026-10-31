@@ -37,7 +37,7 @@ void Map::parse (pugi::xml_node map) {
 				.positionX = prop.child ("position").child ("x").text ().as_double (),
 				.positionY = prop.child ("position").child ("y").text ().as_double (),
 				.positionZ = prop.child ("position").child ("z").text ().as_double (),
-				.textureName = prop.child ("texture-name").text ().as_string ()
+				.textureName = prop.child ("texture-name").text ().as_string (),
 			});
 		}
 	}

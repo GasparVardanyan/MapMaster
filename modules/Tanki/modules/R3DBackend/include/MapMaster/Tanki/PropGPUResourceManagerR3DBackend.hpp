@@ -37,6 +37,10 @@ public:
 		std::shared_ptr <PropMetaData::Texture> meta;
 	};
 
+	struct SpriteResource {
+
+	};
+
 	struct SpriteInfo {
 		Vector2 origin;
 		Vector2 size;
@@ -44,6 +48,7 @@ public:
 
 	static MeshResource CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource);
 	static TextureResource CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource);
+	static SpriteResource CreateSpriteResource (const CPUResourceManager::PropSpriteResource & spriteResource) { return {}; }
 
 	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropMetaData::Texture & meta);
 

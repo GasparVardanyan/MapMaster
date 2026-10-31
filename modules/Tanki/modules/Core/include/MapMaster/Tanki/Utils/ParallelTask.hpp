@@ -27,6 +27,7 @@ struct TaskProcessor;
 
 template <typename Producer, typename Output, typename ... InputArgTypes>
 struct TaskProcessor <Producer, std::tuple <InputArgTypes ...>, Output> {
+	// TODO: use a deduction guide and avoid const&
 	using type = Output (Producer::*) (const InputArgTypes & ...) const;
 };
 

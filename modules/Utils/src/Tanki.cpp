@@ -17,6 +17,7 @@
 # include <pugixml.hpp>
 
 # include <raylib.h>
+
 # include <r3d/r3d_core.h>
 # include <r3d/r3d_draw.h>
 # include <r3d/r3d_lighting.h>
@@ -29,6 +30,13 @@
 # include "MapMaster/Tanki/MapRendererRaylibBackend.hpp" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
+
+namespace MapMaster::Tanki {
+class PropCPUResourceManagerR3DBackend;
+class PropCPUResourceManagerRaylibBackend;
+} // namespace MapMaster::Tanki
+
+
 
 namespace MapMaster::Utils::Tanki {
 

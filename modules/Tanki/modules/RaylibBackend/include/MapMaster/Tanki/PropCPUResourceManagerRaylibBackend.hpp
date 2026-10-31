@@ -49,8 +49,13 @@ public:
 		std::shared_ptr <PropMetaData::Texture> meta;
 	};
 
+	struct PropSpriteResource {
+
+	};
+
 	static PropMeshResource ParseMeshResource (const aiScene * scene);
 	static PropTextureResource ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle);
+	static PropSpriteResource GenerateSpriteResource (double width, double height, double originX, double originY) { return {}; }
 };
 // cppcheck-suppress-end unusedStructMember
 

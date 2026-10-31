@@ -21,7 +21,7 @@ extern "C" { struct aiScene; }
 
 namespace MapMaster::Tanki {
 
-namespace PropMetaData { struct Mesh; struct Sprite; struct Texture; }
+namespace PropMetaData { struct Mesh; struct Texture; }
 
 class Map;
 class PropLibrary;
@@ -44,6 +44,7 @@ struct IsPropCPUResourceManagerBackend <
 
 		typename PropCPUResourceManagerBackend::PropMeshResource,
 		typename PropCPUResourceManagerBackend::PropTextureResource,
+		typename PropCPUResourceManagerBackend::PropSpriteResource,
 
 		decltype (PropCPUResourceManagerBackend::PropMeshResource::meta),
 		decltype (PropCPUResourceManagerBackend::PropTextureResource::meta),
@@ -66,6 +67,10 @@ struct IsPropCPUResourceManagerBackend <
 			decltype (PropCPUResourceManagerBackend::ParseTextureResource),
 			std::FILE *, std::FILE *
 		>>,
+		std::enable_if_t <std::is_invocable_v <
+			decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
+			double, double, double, double
+		>>,
 
 		std::enable_if_t <std::is_same_v <
 			typename PropCPUResourceManagerBackend::PropMeshResource,
@@ -80,6 +85,13 @@ struct IsPropCPUResourceManagerBackend <
 				decltype (PropCPUResourceManagerBackend::ParseTextureResource),
 				std::FILE *, std::FILE *
 			>
+		>>,
+		std::enable_if_t <std::is_same_v <
+			typename PropCPUResourceManagerBackend::PropSpriteResource,
+			std::invoke_result_t <
+				decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
+				double, double, double, double
+			>
 		>>
 	>
 > : std::true_type {};
@@ -92,14 +104,40 @@ public:
 		IsPropCPUResourceManagerBackend <PropCPUResourceManagerBackend>::value,
 		PropCPUResourceManagerBackend
 	>;
+
 	using PropMeshResource = Backend::PropMeshResource;
 	using PropTextureResource = Backend::PropTextureResource;
+	using PropSpriteResource = Backend::PropSpriteResource;
 
-	using MeshLoaderTask = Utils::ParallelTask <PropCPUResourceManager, PropMeshResource, std::string, std::string>;
-	using TextureLoaderTask = Utils::ParallelTask <PropCPUResourceManager, PropTextureResource, std::string, std::string, std::string>;
+	template <typename ... Ts>
+	using ParallelTask = Utils::ParallelTask <PropCPUResourceManager, Ts ...>;
+
+	using MeshLoaderTask = ParallelTask <
+		PropMeshResource,
+		std::string,
+		std::string
+	>;
+
+	using TextureLoaderTask = ParallelTask <
+		PropTextureResource,
+		std::string,
+		std::string,
+		std::string
+	>;
+
+	using SpriteGeneratorTask = ParallelTask <
+		PropSpriteResource,
+		std::string,
+		std::string,
+		double,
+		double,
+		double,
+		double,
+		double
+	>;
 
 	enum class OverlapBehaviour : unsigned char {
-		Ignore, Override
+		Ignore, Override,
 	};
 
 public:
@@ -131,6 +169,10 @@ public:
 		std::optional <std::reference_wrapper <std::vector <std::shared_ptr <PropMetaData::Texture>>>> meta = {}
 	);
 
+	void generateSpriteResources (
+		const std::vector <std::tuple <std::string, std::string, double, double, double, double, double>> & spriteDescriptors
+	);
+
 	void loadMapResources (const Map & map);
 	void loadPropLibraryResources (const PropLibrary & propLibrary);
 
@@ -144,19 +186,22 @@ public:
 
 	MeshLoaderTask & meshLoader ();
 	TextureLoaderTask & textureLoader ();
+	SpriteGeneratorTask & spriteGenerator ();
 
 private:
 	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile) const;
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) const;
+	PropSpriteResource generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const double & width, const double & height, const double & originX, const double & originY, const double & scale) const;
 
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> m_propMeshResources;
 	std::map <std::string, std::map <std::string, std::shared_ptr <PropTextureResource>>> m_propTextureResources;
-	// std::map <std::string, std::map <std::string, std::shared_ptr <PropMetaData::Sprite>>> m_propSpriteMetaDatas;
+	std::map <std::string, std::map <std::string, std::shared_ptr <PropSpriteResource>>> m_propSpriteResources;
 
 	MeshLoaderTask m_meshLoader;
 	TextureLoaderTask m_textureLoader;
+	SpriteGeneratorTask m_spriteGenerator;
 
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)

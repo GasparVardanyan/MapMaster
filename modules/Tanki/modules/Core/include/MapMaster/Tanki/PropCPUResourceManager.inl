@@ -41,6 +41,7 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropCPUResourceManager (
 	: m_resourceSettings (resourceSettings)
 	, m_meshLoader (* this, & PropCPUResourceManager::loadMeshResource)
 	, m_textureLoader (* this, & PropCPUResourceManager::loadTextureResource)
+	, m_spriteGenerator (* this, & PropCPUResourceManager::generateSpriteResource)
 {
 }
 
@@ -161,11 +162,22 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource
 }
 
 template <class PropCPUResourceManagerBackend>
+void PropCPUResourceManager <PropCPUResourceManagerBackend>::generateSpriteResources (
+	const std::vector <std::tuple <std::string, std::string, double, double, double, double, double>> & spriteDescriptors
+) {
+	m_spriteGenerator.template run <false, true> (spriteDescriptors);
+}
+
+template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (const Map & map) {
 	std::vector <std::tuple <std::string, std::string>> meshDescriptors;
 	std::vector <std::tuple <std::string, std::string, std::string>> textureDescriptors;
+	std::vector <std::tuple <std::string, std::string, double, double, double, double, double>> spriteDescriptors;
 
-	std::set <std::tuple <std::string, std::string>> defaultTextureMeshDescriptors;
+	std::vector <std::tuple <std::string, std::string, const PropLibrary::PropSprite *>> spritePropDescriptors;
+	std::map <std::string, std::vector <std::tuple <std::string, const PropLibrary::PropSprite *>>> spriteProps;
+
+	std::vector <std::tuple <std::string, std::string>> defaultTextureMeshDescriptors;
 	std::map <std::string, std::vector <std::string>> defaultTexturesMeshes;
 
 	for (const auto & [libraryName, groupNames] : map.mapObjects ()) {
@@ -199,7 +211,7 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 						}
 						else {
 							if (true == m_resourceSettings.dropCPUResources) {
-								defaultTextureMeshDescriptors.emplace (libraryName, mIt->second.file);
+								defaultTextureMeshDescriptors.emplace_back (libraryName, mIt->second.file);
 							}
 							else {
 								defaultTexturesMeshes [libraryName].push_back (mIt->second.file);
@@ -220,6 +232,13 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 					}
 
 					textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
+
+					if (true == m_resourceSettings.dropCPUResources) {
+						spritePropDescriptors.emplace_back (libraryName, diffuseFile, & sprite);
+					}
+					else {
+						spriteProps [libraryName].emplace_back (diffuseFile, & sprite);
+					}
 				}
 			}
 		}
@@ -228,41 +247,37 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::sort (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ());
 	meshDescriptors.erase (std::unique (std::execution::par_unseq, meshDescriptors.begin (), meshDescriptors.end ()), meshDescriptors.end ());
 
+	std::sort (std::execution::par_unseq, defaultTextureMeshDescriptors.begin (), defaultTextureMeshDescriptors.end ());
+	defaultTextureMeshDescriptors.erase (std::unique (std::execution::par_unseq, defaultTextureMeshDescriptors.begin (), defaultTextureMeshDescriptors.end ()), defaultTextureMeshDescriptors.end ());
+
 	if (true == m_resourceSettings.dropCPUResources) {
 		std::vector <std::shared_ptr <PropMetaData::Mesh>> meshResourceMetaDatas;
-
 		loadMeshResources (meshDescriptors, meshResourceMetaDatas);
 
-		auto defaultTexturesIt = defaultTextureMeshDescriptors.cbegin ();
+		std::size_t mdI = 0;
 
-		for (std::size_t i = 0; i < meshDescriptors.size (); i++) {
-			while (defaultTextureMeshDescriptors.cend () != defaultTexturesIt) {
-				if (* defaultTexturesIt < meshDescriptors [i]) {
-					++defaultTexturesIt;
+		for (const auto & defaultTextureMeshDescriptor : defaultTextureMeshDescriptors) {
+			while (mdI < meshDescriptors.size ()) {
+				if (meshDescriptors.at (mdI) < defaultTextureMeshDescriptor) {
+					mdI++;
 				}
 				else {
 					break;
 				}
 			}
 
-			if (defaultTextureMeshDescriptors.cend () == defaultTexturesIt) {
-				break;
-			}
+			const std::string & libraryName = std::get <0> (meshDescriptors.at (mdI));
+			const PropLibrary & library = * m_propLibraries.at (libraryName);
+			std::string diffuseFile = meshResourceMetaDatas.at (mdI)->textureFile;
+			std::string alphaFile;
 
-			if (* defaultTexturesIt == meshDescriptors [i]) {
-				const std::string & libraryName = std::get <0> (meshDescriptors [i]);
-				const PropLibrary & library = * m_propLibraries.at (libraryName);
-				std::string diffuseFile = meshResourceMetaDatas [i]->textureFile;
-				std::string alphaFile;
-
-				if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
-					alphaFile = it->second;
-				}
-				if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
-					diffuseFile = it->second;
-				}
-				textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
+			if (auto it = library.alphaMap ().find (diffuseFile); it != library.alphaMap ().end ()) {
+				alphaFile = it->second;
 			}
+			if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
+				diffuseFile = it->second;
+			}
+			textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 		}
 	}
 	else {
@@ -290,10 +305,73 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 	std::sort (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ());
 	textureDescriptors.erase (std::unique (std::execution::par_unseq, textureDescriptors.begin (), textureDescriptors.end ()), textureDescriptors.end ());
 
-	loadTextureResources (textureDescriptors);
+	std::sort (std::execution::par_unseq, spritePropDescriptors.begin (), spritePropDescriptors.end ());
+	spritePropDescriptors.erase (std::unique (std::execution::par_unseq, spritePropDescriptors.begin (), spritePropDescriptors.end ()), spritePropDescriptors.end ());
 
-	// load sprite primitives...
-	// load collision primitives...
+	// TODO: store texture meta datas for sprites
+	if (true == m_resourceSettings.dropCPUResources) {
+		std::vector <std::shared_ptr <PropMetaData::Texture>> textureResourceMetaDatas;
+		loadTextureResources (textureDescriptors, textureResourceMetaDatas);
+
+		std::size_t tdI = 0;
+
+		for (const auto & spritePropDescriptor : spritePropDescriptors) {
+			const std::string & libraryName = std::get <0> (spritePropDescriptor);
+			const std::string & diffuseFile = std::get <1> (spritePropDescriptor);
+			const PropLibrary::PropSprite & spriteInfo = * std::get <2> (spritePropDescriptor);
+
+			while (tdI < textureDescriptors.size ()) {
+				const auto & td = textureDescriptors.at (tdI);
+
+				const std::string & tdLibraryName = std::get <0> (td);
+				const std::string & tdDiffuseFile = std::get <1> (td);
+
+				if (
+					tdLibraryName < libraryName ||
+					(tdLibraryName == libraryName && tdDiffuseFile < diffuseFile)
+				) {
+					tdI++;
+				}
+				else {
+					break;
+				}
+			}
+
+			const std::shared_ptr <PropMetaData::Texture> & metaData = textureResourceMetaDatas.at (tdI);
+			spriteDescriptors.emplace_back (libraryName
+				, diffuseFile
+				, metaData->width
+				, metaData->height
+				, spriteInfo.originX
+				, spriteInfo.originY
+				, spriteInfo.scale
+			);
+		}
+	}
+	else {
+		loadTextureResources (textureDescriptors);
+
+		for (const auto & [libraryName, textureDiffuseFiles] : spriteProps) {
+			const PropLibrary & library = * m_propLibraries.at (libraryName);
+			const std::map <std::string, std::shared_ptr <PropTextureResource>> & libraryTextureResources = m_propTextureResources.at (libraryName);
+
+			for (const auto & [textureDiffuseFile, spriteInfo] : textureDiffuseFiles) {
+				std::shared_ptr <PropMetaData::Texture> metaData = libraryTextureResources.at (textureDiffuseFile)->meta;
+				spriteDescriptors.emplace_back (libraryName
+					, textureDiffuseFile
+					, metaData->width
+					, metaData->height
+					, spriteInfo->originX
+					, spriteInfo->originY
+					, spriteInfo->scale
+				);
+			}
+		}
+	}
+
+	generateSpriteResources (spriteDescriptors);
+
+	// TODO: load collision primitives...
 }
 
 template <class PropCPUResourceManagerBackend>
@@ -356,6 +434,16 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResource Prop
 	return resource;
 }
 
+template <class PropCPUResourceManagerBackend>
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropSpriteResource PropCPUResourceManager <PropCPUResourceManagerBackend>::generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const double & width, const double & height, const double & originX, const double & originY, const double & scale) const {
+	return PropCPUResourceManagerBackend::GenerateSpriteResource (
+		width * scale,
+		height * scale,
+		originX * scale,
+		(1 - originY) * scale
+	);
+}
+
 
 
 //   _____ ______ _______ _______ ______ _____   _____
@@ -416,4 +504,9 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::MeshLoaderTask & PropCPU
 template <class PropCPUResourceManagerBackend>
 PropCPUResourceManager <PropCPUResourceManagerBackend>::TextureLoaderTask & PropCPUResourceManager <PropCPUResourceManagerBackend>::textureLoader () {
 	return m_textureLoader;
+}
+
+template <class PropCPUResourceManagerBackend>
+PropCPUResourceManager <PropCPUResourceManagerBackend>::SpriteGeneratorTask & PropCPUResourceManager <PropCPUResourceManagerBackend>::spriteGenerator () {
+	return m_spriteGenerator;
 }

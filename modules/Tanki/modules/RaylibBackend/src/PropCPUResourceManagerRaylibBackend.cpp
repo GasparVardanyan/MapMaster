@@ -323,5 +323,16 @@ namespace Utils {
 		std::string,
 		std::string
 	>;
+	template class ParallelTask <
+		PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>,
+		PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>::PropSpriteResource,
+		std::string,
+		std::string,
+		double,
+		double,
+		double,
+		double,
+		double
+	>;
 } // namespace Utils
 }  // namespace MapMaster::Tanki

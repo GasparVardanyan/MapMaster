@@ -60,16 +60,6 @@ struct Texture {
 	SizeType width, height, channels;
 };
 
-struct Sprite {
-	using OriginType = double;
-	using SizeType = double;
-
-	OriginType originX, originY;
-	SizeType width, height;
-
-	std::string textureFile;
-};
-
 } // namespace PropMetaData
 
 }  // namespace MapMaster::Tanki

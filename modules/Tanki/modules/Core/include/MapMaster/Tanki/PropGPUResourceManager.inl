@@ -90,6 +90,23 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 		}
 	});
 
+	m_resourceManager.spriteGenerator ().listen ([this] (std::vector <std::tuple <
+		std::string,
+		std::string,
+		double,
+		double,
+		double,
+		double,
+		double,
+		std::shared_ptr <typename CPUResourceManager::PropSpriteResource>
+	>> && spritesToProcess) -> void {
+		for (auto & [libraryName, textureFile, _1, _2, _3, _4, _5, spriteRes] : spritesToProcess) {
+			m_spriteResources [std::move (libraryName)] [std::move (textureFile)] = PropGPUResourceManagerBackend::CreateSpriteResource (
+				* spriteRes
+			);
+		}
+	});
+
 	resLoaderThread.join ();
 
 	if (true == m_resourceSettings.dropCPUResources) {

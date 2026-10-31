@@ -8,7 +8,6 @@
 # include <limits>
 # include <memory>
 # include <string>
-# include <vector>
 
 # include <assimp/config.h>
 # include <assimp/material.h>
@@ -21,6 +20,7 @@
 
 # include <raylib.h>
 # include <raymath.h>
+
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 
@@ -247,6 +247,10 @@ PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DB
 	};
 }
 
+PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (double width, double height, double originX, double originY) {
+	return {};
+}
+
 
 
 namespace MapMaster::Tanki {
@@ -266,6 +270,17 @@ namespace Utils {
 		std::string,
 		std::string,
 		std::string
+	>;
+	template class ParallelTask <
+		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>,
+		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>::PropSpriteResource,
+		std::string,
+		std::string,
+		double,
+		double,
+		double,
+		double,
+		double
 	>;
 } // namespace Utils
 
