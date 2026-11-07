@@ -7,7 +7,6 @@
 
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.inl" // IWYU pragma: keep
-# include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
 using namespace MapMaster::Tanki;
@@ -66,6 +65,16 @@ PropGPUResourceManagerRaylibBackend::TextureResource PropGPUResourceManagerRayli
 	return t;
 }
 
+PropGPUResourceManagerRaylibBackend::SpriteResource PropGPUResourceManagerRaylibBackend::CreateSpriteResource (const CPUResourceManager::PropSpriteResource & spriteResource) {
+	return {
+		.size = spriteResource.size,
+		.origin = {
+			.x = spriteResource.origin.x * spriteResource.size.x,
+			.y = (1 - spriteResource.origin.y) * spriteResource.size.y,
+		},
+	};
+}
+
 void PropGPUResourceManagerRaylibBackend::unloadMeshResource (Mesh * mesh) {
 	mesh->vertices = nullptr;
 	mesh->vertexCount = 0;
@@ -85,21 +94,6 @@ void PropGPUResourceManagerRaylibBackend::unloadTextureResource (Texture2D * tex
 	UnloadTexture (* texture);
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
-}
-
-PropGPUResourceManagerRaylibBackend::SpriteInfo PropGPUResourceManagerRaylibBackend::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropMetaData::Texture & meta) {
-	const Vector2 size = {
-		.x = static_cast <float> (meta.width * sprite.scale),
-		.y = static_cast <float> (meta.height * sprite.scale),
-	};
-
-	return {
-		.origin = {
-			.x = static_cast <float> (sprite.originX * size.x),
-			.y = static_cast <float> ((1 - sprite.originY) * size.y),
-		},
-		.size = size,
-	};
 }
 
 namespace MapMaster::Tanki {

@@ -56,12 +56,12 @@ public:
 	};
 
 	struct PropSpriteResource {
-
+		std::shared_ptr <R3D_MeshData> mesh;
 	};
 
 	static PropMeshResource ParseMeshResource (const aiScene * scene);
 	static PropTextureResource ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle);
-	static PropSpriteResource GenerateSpriteResource (double width, double height, double originX, double originY);
+	static PropSpriteResource GenerateSpriteResource (double width, double height, double originX, double originY, double scale);
 };
 // cppcheck-suppress-end unusedStructMember
 

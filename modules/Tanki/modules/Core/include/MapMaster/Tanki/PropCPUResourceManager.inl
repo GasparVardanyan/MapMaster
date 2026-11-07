@@ -338,7 +338,8 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 			}
 
 			const std::shared_ptr <PropMetaData::Texture> & metaData = textureResourceMetaDatas.at (tdI);
-			spriteDescriptors.emplace_back (libraryName
+			spriteDescriptors.emplace_back (
+				libraryName
 				, diffuseFile
 				, metaData->width
 				, metaData->height
@@ -352,12 +353,12 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 		loadTextureResources (textureDescriptors);
 
 		for (const auto & [libraryName, textureDiffuseFiles] : spriteProps) {
-			const PropLibrary & library = * m_propLibraries.at (libraryName);
 			const std::map <std::string, std::shared_ptr <PropTextureResource>> & libraryTextureResources = m_propTextureResources.at (libraryName);
 
 			for (const auto & [textureDiffuseFile, spriteInfo] : textureDiffuseFiles) {
 				std::shared_ptr <PropMetaData::Texture> metaData = libraryTextureResources.at (textureDiffuseFile)->meta;
-				spriteDescriptors.emplace_back (libraryName
+				spriteDescriptors.emplace_back (
+					libraryName
 					, textureDiffuseFile
 					, metaData->width
 					, metaData->height
@@ -437,10 +438,11 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResource Prop
 template <class PropCPUResourceManagerBackend>
 PropCPUResourceManager <PropCPUResourceManagerBackend>::PropSpriteResource PropCPUResourceManager <PropCPUResourceManagerBackend>::generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const double & width, const double & height, const double & originX, const double & originY, const double & scale) const {
 	return PropCPUResourceManagerBackend::GenerateSpriteResource (
-		width * scale,
-		height * scale,
-		originX * scale,
-		(1 - originY) * scale
+		width,
+		height,
+		originX,
+		originY,
+		scale
 	);
 }
 

@@ -1,5 +1,6 @@
 # include "MapMaster/Tanki/PropGPUResourceManagerR3DBackend.hpp"
 
+# include <cstddef>
 # include <memory>
 
 # include <raylib.h>
@@ -9,13 +10,11 @@
 
 # include "MapMaster/Tanki/PropGPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropGPUResourceManager.inl" // IWYU pragma: keep
-# include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
 using namespace MapMaster::Tanki;
 
 PropGPUResourceManagerR3DBackend::MeshResource PropGPUResourceManagerR3DBackend::CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource) {
-	// #FIXME: aabb must be alive along with the r3d mesh
 	MeshResource m = {
 		.mesh = std::shared_ptr <R3D_Mesh> (
 			new R3D_Mesh (R3D_LoadMesh (R3D_PrimitiveType::R3D_PRIMITIVE_TRIANGLES, * meshResource.mesh, & meshResource.aabb)),
@@ -58,6 +57,15 @@ PropGPUResourceManagerR3DBackend::TextureResource PropGPUResourceManagerR3DBacke
 	return t;
 }
 
+PropGPUResourceManagerR3DBackend::SpriteResource PropGPUResourceManagerR3DBackend::CreateSpriteResource (const CPUResourceManager::PropSpriteResource & spriteResource) {
+	return {
+		.mesh = std::shared_ptr <R3D_Mesh> (
+			new R3D_Mesh (R3D_LoadMesh (R3D_PrimitiveType::R3D_PRIMITIVE_TRIANGLES, * spriteResource.mesh, NULL)),
+			unloadMeshResource
+		),
+	};
+}
+
 void PropGPUResourceManagerR3DBackend::unloadMeshResource (R3D_Mesh * mesh) {
 	R3D_UnloadMesh (* mesh);
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
@@ -68,21 +76,6 @@ void PropGPUResourceManagerR3DBackend::unloadTextureResource (Texture2D * textur
 	R3D_UnloadTexture (* texture);
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
-}
-
-PropGPUResourceManagerR3DBackend::SpriteInfo PropGPUResourceManagerR3DBackend::CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropMetaData::Texture & meta) {
-	const Vector2 size = {
-		.x = static_cast <float> (meta.width * sprite.scale),
-		.y = static_cast <float> (meta.height * sprite.scale),
-	};
-
-	return {
-		.origin = {
-			.x = static_cast <float> (sprite.originX * size.x),
-			.y = static_cast <float> ((1 - sprite.originY) * size.y),
-		},
-		.size = size,
-	};
 }
 
 namespace MapMaster::Tanki {

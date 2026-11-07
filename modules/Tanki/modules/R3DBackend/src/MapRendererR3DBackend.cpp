@@ -22,7 +22,7 @@ void MapRendererR3DBackend::loadScene (float scale) {
 
 	const auto & raylibMeshResources = m_gpuResourceManager->meshResources ();
 	const auto & raylibTextureResources = m_gpuResourceManager->textureResources ();
-	const auto & raylibSpriteInfos = m_gpuResourceManager->spriteInfos ();
+	const auto & raylibSpriteResources = m_gpuResourceManager->spriteResources ();
 
 	const auto & propLibraries = m_gpuResourceManager->propLibraries ();
 
@@ -139,34 +139,30 @@ void MapRendererR3DBackend::loadScene (float scale) {
 					}
 				}
 				else if (true == group.sprites.contains (propName)) {
-					// std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
-					// const GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
-					// const GPUResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
-					//
-					// for (const Map::MapObject & prop : propInfo) {
-					// 	m_sceneObjects.sprites.push_back ({
-					// 		.position = {
-					// 			.x = scale * static_cast <float> (prop.positionX),
-					// 			.y = scale * static_cast <float> (prop.positionY),
-					// 			.z = scale * static_cast <float> (prop.positionZ),
-					// 		},
-					// 		.size = {
-					// 			.x = spriteInfo.size.x * scale,
-					// 			.y = spriteInfo.size.y * scale,
-					// 		},
-					// 		.rect = {
-					// 			.x = 0,
-					// 			.y = 0,
-					// 			.width = static_cast <float> (raylibTextureResource.texture->width),
-					// 			.height = static_cast <float> (raylibTextureResource.texture->height),
-					// 		},
-					// 		.origin = {
-					// 			.x = spriteInfo.origin.x * scale,
-					// 			.y = spriteInfo.origin.y * scale,
-					// 		},
-					// 		.texture = raylibTextureResource.texture,
-					// 	});
-					// }
+					std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
+					const GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+					const GPUResourceManager::SpriteResource & raylibSpriteResource = raylibSpriteResources.at (libraryName).at (textureFile);
+
+					for (const Map::MapObject & mapObject : propInfo) {
+						const Matrix transform = MatrixMultiply (
+							MatrixTranslate (
+								static_cast <float> (mapObject.positionX),
+								static_cast <float> (mapObject.positionY),
+								static_cast <float> (mapObject.positionZ) + 300
+							),
+							MatrixScale (scale, scale, scale)
+						);
+
+						SceneSprite sceneSprite = {
+							.transform = transform,
+							.mesh = raylibSpriteResource.mesh,
+							.texture = raylibTextureResource.texture,
+							.material = R3D_GetDefaultMaterial (),
+						};
+						sceneSprite.material.albedo.texture = * sceneSprite.texture;
+						sceneSprite.material.billboardMode = R3D_BILLBOARD_FRONT;
+						m_sceneObjects.sprites.push_back (std::move (sceneSprite));
+					}
 				}
 			}
 		}
@@ -179,17 +175,18 @@ void MapRendererR3DBackend::render (Camera & camera) {
 	}
 
 	for (const SceneSprite & sprite : m_sceneObjects.sprites) {
-		DrawBillboardPro (
-			camera,
-			* sprite.texture,
-			sprite.rect,
-			sprite.position,
-			{ .x = 0, .y = 0, .z = 1 },
-			sprite.size,
-			sprite.origin,
-			0,
-			sprite.tint
-		);
+		R3D_DrawMeshPro (* sprite.mesh, sprite.material, sprite.transform);
+		// DrawBillboardPro (
+		// 	camera,
+		// 	* sprite.texture,
+		// 	sprite.rect,
+		// 	sprite.position,
+		// 	{ .x = 0, .y = 0, .z = 1 },
+		// 	sprite.size,
+		// 	sprite.origin,
+		// 	0,
+		// 	sprite.tint
+		// );
 	}
 }
 

@@ -38,19 +38,12 @@ public:
 	};
 
 	struct SpriteResource {
-
-	};
-
-	struct SpriteInfo {
-		Vector2 origin;
-		Vector2 size;
+		std::shared_ptr <R3D_Mesh> mesh;
 	};
 
 	static MeshResource CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource);
 	static TextureResource CreateTextureResource (const CPUResourceManager::PropTextureResource & textureResource);
-	static SpriteResource CreateSpriteResource (const CPUResourceManager::PropSpriteResource & spriteResource) { return {}; }
-
-	static SpriteInfo CreateSpriteInfo (const PropLibrary::PropSprite & sprite, const PropMetaData::Texture & meta);
+	static SpriteResource CreateSpriteResource (const CPUResourceManager::PropSpriteResource & spriteResource);
 
 private:
 	static void unloadMeshResource (R3D_Mesh * mesh);

@@ -29,6 +29,7 @@
 # include "MapMaster/Tanki/PropMetaData.hpp"
 # include "MapMaster/Tanki/Utils/ParallelTask.hpp"
 # include "MapMaster/Tanki/Utils/ParallelTask.inl" // IWYU pragma: keep
+# include "MapMaster/Tanki/Utils/R3DMeshUtils.hpp"
 
 using namespace MapMaster::Tanki;
 
@@ -247,8 +248,16 @@ PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DB
 	};
 }
 
-PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (double width, double height, double originX, double originY) {
-	return {};
+PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (double width, double height, double originX, double originY, double scale) {
+	return {
+		// .mesh = std::make_shared <R3D_MeshData> (R3D_GenMeshDataPlane (static_cast <float> (width), static_cast <float> (height), 1, 1)),
+		.mesh = std::shared_ptr <R3D_MeshData> (new R3D_MeshData (Utils::R3DMeshUtils::GenerateSpriteMesh (
+			width, height, originX, originY, scale
+		)), [] (R3D_MeshData * meshData) -> void {
+			R3D_UnloadMeshData (* meshData);
+			delete meshData;
+		}),
+	};
 }
 
 

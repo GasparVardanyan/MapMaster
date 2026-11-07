@@ -69,7 +69,7 @@ struct IsPropCPUResourceManagerBackend <
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
-			double, double, double, double
+			double, double, double, double, double
 		>>,
 
 		std::enable_if_t <std::is_same_v <
@@ -90,7 +90,7 @@ struct IsPropCPUResourceManagerBackend <
 			typename PropCPUResourceManagerBackend::PropSpriteResource,
 			std::invoke_result_t <
 				decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
-				double, double, double, double
+				double, double, double, double, double
 			>
 		>>
 	>
@@ -203,6 +203,7 @@ private:
 	TextureLoaderTask m_textureLoader;
 	SpriteGeneratorTask m_spriteGenerator;
 
+	// TODO: implement the OverlapBehaviour functionality
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;
 	// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 	const ResourceSettings m_resourceSettings;

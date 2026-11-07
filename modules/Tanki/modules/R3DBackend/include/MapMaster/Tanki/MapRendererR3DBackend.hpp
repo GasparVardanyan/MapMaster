@@ -56,12 +56,10 @@ public:
 	};
 
 	struct SceneSprite {
-		Vector3 position = {};
-		Vector2 size = {};
-		Rectangle rect = {};
-		Vector2 origin = {};
+		Matrix transform = {};
+		std::shared_ptr <R3D_Mesh> mesh = nullptr;
 		std::shared_ptr <Texture2D> texture = nullptr;
-		Color tint = WHITE;
+		R3D_Material material = {};
 	};
 	[[nodiscard]] std::shared_ptr <GPUResourceManager> resourceManager () const;
 	void setResourceManager (std::shared_ptr <GPUResourceManager> resourceManager);

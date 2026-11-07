@@ -200,7 +200,7 @@ void CloseMapWindow () {
 		|| std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>
 	) {
 		if constexpr (std::is_same_v <MapRendererBackend, MapMaster::Tanki::MapRendererR3DBackend>) {
-			R3D_Close();
+			R3D_Close ();
 		}
 
 		CloseWindow ();
@@ -235,7 +235,7 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 		rmap->loadScene (scale);
 	}
 	else {
-		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (MapMaster::Tanki::ResourceSettings { .loadPropColliderData = true, .dropCPUResources = false }));
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (MapMaster::Tanki::ResourceSettings { .loadPropColliderData = true, .dropCPUResources = true }));
 		rmap->map ()->loadFile (mapFile);
 
 		PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraryPaths (libraryRootPath);

@@ -304,6 +304,19 @@ PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerR
 	};
 }
 
+PropCPUResourceManagerRaylibBackend::PropSpriteResource PropCPUResourceManagerRaylibBackend::GenerateSpriteResource (double width, double height, double originX, double originY, double scale) {
+	return {
+		.size = {
+			.x = static_cast <float> (width * scale),
+			.y = static_cast <float> (height * scale),
+		},
+		.origin = {
+			.x = static_cast <float> (originX),
+			.y = static_cast <float> (originY),
+		},
+	};
+}
+
 
 
 namespace MapMaster::Tanki {

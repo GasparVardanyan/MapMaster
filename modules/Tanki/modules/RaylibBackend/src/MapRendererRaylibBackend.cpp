@@ -20,7 +20,7 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 
 	const auto & raylibMeshResources = m_gpuResourceManager->meshResources ();
 	const auto & raylibTextureResources = m_gpuResourceManager->textureResources ();
-	const auto & raylibSpriteInfos = m_gpuResourceManager->spriteInfos ();
+	const auto & raylibSpriteResources = m_gpuResourceManager->spriteResources ();
 
 	const auto & propLibraries = m_gpuResourceManager->propLibraries ();
 
@@ -138,8 +138,8 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 				}
 				else if (true == group.sprites.contains (propName)) {
 					std::string textureFile = library.getActualTextureFileName (group.sprites.at (propName).diffuseFile);
-					const typename GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
-					const typename GPUResourceManager::SpriteInfo & spriteInfo = raylibSpriteInfos.at (libraryName).at (textureFile);
+					const GPUResourceManager::TextureResource & raylibTextureResource = raylibTextureResources.at (libraryName).at (textureFile);
+					const GPUResourceManager::SpriteResource & raylibSpriteResource = raylibSpriteResources.at (libraryName).at (textureFile);
 
 					for (const Map::MapObject & prop : propInfo) {
 						m_sceneObjects.sprites.push_back ({
@@ -149,8 +149,8 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 								.z = scale * static_cast <float> (prop.positionZ),
 							},
 							.size = {
-								.x = spriteInfo.size.x * scale,
-								.y = spriteInfo.size.y * scale,
+								.x = raylibSpriteResource.size.x * scale,
+								.y = raylibSpriteResource.size.y * scale,
 							},
 							.rect = {
 								.x = 0,
@@ -159,8 +159,8 @@ void MapRendererRaylibBackend::loadScene (float scale) {
 								.height = static_cast <float> (raylibTextureResource.texture->height),
 							},
 							.origin = {
-								.x = spriteInfo.origin.x * scale,
-								.y = spriteInfo.origin.y * scale,
+								.x = raylibSpriteResource.origin.x * scale,
+								.y = raylibSpriteResource.origin.y * scale,
 							},
 							.texture = raylibTextureResource.texture,
 						});

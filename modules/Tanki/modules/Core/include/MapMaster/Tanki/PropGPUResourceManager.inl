@@ -112,30 +112,6 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 	if (true == m_resourceSettings.dropCPUResources) {
 		m_resourceManager.dropResources ();
 	}
-
-	const std::map <std::string, std::shared_ptr <PropLibrary>> & libraries = m_resourceManager.propLibraries ();
-	const std::map <std::string, std::map <std::string, std::shared_ptr <typename CPUResourceManager::PropTextureResource>>> & textureResources = m_resourceManager.propTextureResources ();
-
-	for (const auto & [libraryName, groups] : map.mapObjects ()) {
-		const PropLibrary & library = * libraries.at (libraryName);
-		const std::map <std::string, PropLibrary::Group> & libraryGroups = library.groups ();
-		for (const auto & [groupName, props] : groups) {
-			const std::map <std::string, PropLibrary::PropSprite> & groupSprites = libraryGroups.at (groupName).sprites;
-			for (const auto & [propName, propInfo] : props) {
-				if (const auto & sIt = groupSprites.find (propName); groupSprites.end () != sIt) {
-					const PropLibrary::PropSprite & sprite = sIt->second;
-					std::string textureFile = library.getActualTextureFileName (sprite.diffuseFile);
-
-					// FIXME: use propName since theoretically multiple sprites can use the same file with different origins and scales
-					if (false == m_spriteInfos.contains (libraryName) || false == m_spriteInfos.at (libraryName).contains (textureFile)) {
-						const TextureResource & textureResource = m_textureResources.at (libraryName).at (textureFile);
-
-						m_spriteInfos [libraryName] [textureFile] = PropGPUResourceManagerBackend::CreateSpriteInfo (sprite, * textureResource.meta);
-					}
-				}
-			}
-		}
-	}
 }
 
 template <class PropGPUResourceManagerBackend>
@@ -221,8 +197,8 @@ const std::map <std::string, std::map <std::string, typename PropGPUResourceMana
 }
 
 template <class PropGPUResourceManagerBackend>
-const std::map <std::string, std::map <std::string, typename PropGPUResourceManager <PropGPUResourceManagerBackend>::SpriteInfo>> & PropGPUResourceManager <PropGPUResourceManagerBackend>::spriteInfos () const {
-	return m_spriteInfos;
+const std::map <std::string, std::map <std::string, typename PropGPUResourceManager <PropGPUResourceManagerBackend>::SpriteResource>> & PropGPUResourceManager <PropGPUResourceManagerBackend>::spriteResources () const {
+	return m_spriteResources;
 }
 
 }  // namespace MapMaster::Tanki
