@@ -2,7 +2,7 @@
 
 Tanki Online map editor
 
-![MapMaster](https://raw.githubusercontent.com/GasparVardanyan/temporary/refs/heads/master/MapMaster.webp)
+![MapMaster](screenshots/MapMaster.webp)
 
 ## Features
 - Performance-oriented modern C++20 implementation of Tanki Online map and
