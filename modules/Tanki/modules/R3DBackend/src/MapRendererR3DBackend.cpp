@@ -148,7 +148,7 @@ void MapRendererR3DBackend::loadScene (float scale) {
 							MatrixTranslate (
 								static_cast <float> (mapObject.positionX),
 								static_cast <float> (mapObject.positionY),
-								static_cast <float> (mapObject.positionZ) + 300
+								static_cast <float> (mapObject.positionZ)
 							),
 							MatrixScale (scale, scale, scale)
 						);
