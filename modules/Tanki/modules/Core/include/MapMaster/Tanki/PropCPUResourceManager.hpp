@@ -11,6 +11,7 @@
 # include <utility>
 # include <vector>
 
+# include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
 # include "MapMaster/Tanki/Utils/ParallelTask.hpp"
@@ -140,12 +141,18 @@ public:
 		Ignore, Override,
 	};
 
+private:
+	using MeshDescriptor = std::tuple <std::string, std::string>;
+	using TextureDescriptor = std::tuple <std::string, std::string, std::string>;
+	using SpriteDescriptor = std::tuple <std::string, std::string, double, double, double, double, double>;
+
 public:
 	explicit PropCPUResourceManager (const ResourceSettings & resourceSettings = ResourceSettings {.loadPropColliderData = true, .dropCPUResources = true});
 
 	void addPropLibrary (std::shared_ptr <PropLibrary> propLibrary);
 	void dropResources ();
 	void removePropLibrary (const std::string & name);
+	void dropPropLibraryResources (const std::string & name);
 	void clearPropLibraries ();
 	void setOverlapBehaviour (OverlapBehaviour overlapBehaviour);
 
@@ -174,7 +181,7 @@ public:
 	);
 
 	void loadMapResources (const Map & map);
-	void loadPropLibraryResources (const PropLibrary & propLibrary);
+	void loadPropLibraryResources (const std::optional <std::string> & libraryName = {});
 
 	[[nodiscard]] const std::map <std::string, std::shared_ptr <PropLibrary>> & propLibraries () const;
 	[[nodiscard]] const std::map <std::string, std::map <std::string, std::shared_ptr <PropMeshResource>>> & propMeshResources () const;
@@ -192,6 +199,20 @@ private:
 	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile) const;
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) const;
 	PropSpriteResource generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const double & width, const double & height, const double & originX, const double & originY, const double & scale) const;
+
+	void loadResourcesAndDrop (
+		std::vector <MeshDescriptor> && meshDescriptors,
+		std::vector <TextureDescriptor> && textureDescriptors,
+		std::vector <std::tuple <std::string, std::string, const PropLibrary::PropSprite *>> && spritePropDescriptors,
+		std::vector <std::tuple <std::string, std::string>> && defaultTextureMeshDescriptors
+	);
+
+	void loadResources (
+		std::vector <MeshDescriptor> && meshDescriptors,
+		std::vector <TextureDescriptor> && textureDescriptors,
+		std::map <std::string, std::vector <std::tuple <std::string, const PropLibrary::PropSprite *>>> && spriteProps,
+		std::map <std::string, std::vector <std::string>> && defaultTexturesMeshes
+	);
 
 private:
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;

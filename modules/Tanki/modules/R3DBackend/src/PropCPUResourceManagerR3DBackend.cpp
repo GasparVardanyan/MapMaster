@@ -20,7 +20,6 @@
 
 # include <raylib.h>
 # include <raymath.h>
-
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 

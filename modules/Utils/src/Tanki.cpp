@@ -212,10 +212,14 @@ void CloseMapWindow () {
 template <class MapRendererBackend>
 std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRenderer (const std::string & libraryRootPath, const std::string & mapFile, float scale, bool haveCanonicalLibraryStructure) {
 	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = std::make_shared <MapMaster::Tanki::MapRenderer <MapRendererBackend>> ();
+	MapMaster::Tanki::ResourceSettings resourceSettings {
+		.loadPropColliderData = true,
+		.dropCPUResources = false,
+	};
 
 	if (true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
-		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (MapMaster::Tanki::ResourceSettings { .loadPropColliderData = true, .dropCPUResources = true }));
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (resourceSettings));
 
 		// this loads the map xml data
 		rmap->map ()->loadFile (mapFile);
@@ -235,7 +239,7 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 		rmap->loadScene (scale);
 	}
 	else {
-		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (MapMaster::Tanki::ResourceSettings { .loadPropColliderData = true, .dropCPUResources = true }));
+		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (resourceSettings));
 		rmap->map ()->loadFile (mapFile);
 
 		PropLibraryNameToPathVectorMap libraryInfo = FindPropLibraryPaths (libraryRootPath);
