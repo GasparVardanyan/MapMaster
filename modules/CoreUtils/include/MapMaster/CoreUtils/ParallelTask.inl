@@ -1,4 +1,4 @@
-# include "MapMaster/Tanki/Utils/ParallelTask.hpp"
+# include "MapMaster/CoreUtils/ParallelTask.hpp"
 
 # include <algorithm>
 # include <cstddef>
@@ -10,7 +10,7 @@
 # include <utility>
 # include <vector>
 
-namespace MapMaster::Tanki::Utils {
+namespace MapMaster::CoreUtils {
 
 namespace ParallelTaskRunner_detail {
 template <
@@ -182,4 +182,4 @@ void ParallelTask <Producer, OutputType, InputArgTypes ...>::listen (
 	}
 }
 
-} // namespace MapMaster::Tanki::Utils
+} // namespace MapMaster::CoreUtils

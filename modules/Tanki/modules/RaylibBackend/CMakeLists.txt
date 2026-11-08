@@ -15,6 +15,7 @@ include (MapMasterBuildUtils)
 MapMaster_Build_ModuleConfig (MapMaster_Module_TankiRaylibBackend)
 
 target_link_libraries (MapMaster_Module_TankiRaylibBackend PRIVATE
+	MapMaster_Module_CoreUtils
 	MapMaster_Module_TankiCore
 )
 

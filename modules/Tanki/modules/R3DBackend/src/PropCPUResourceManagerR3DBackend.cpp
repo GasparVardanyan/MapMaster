@@ -26,8 +26,8 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropMetaData.hpp"
-# include "MapMaster/Tanki/Utils/ParallelTask.hpp"
-# include "MapMaster/Tanki/Utils/ParallelTask.inl" // IWYU pragma: keep
+# include "MapMaster/CoreUtils/ParallelTask.hpp"
+# include "MapMaster/CoreUtils/ParallelTask.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/Utils/R3DMeshUtils.hpp"
 
 using namespace MapMaster::Tanki;
@@ -262,10 +262,11 @@ PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBa
 
 
 namespace MapMaster::Tanki {
-
 template class PropCPUResourceManager <PropCPUResourceManagerR3DBackend>;
 
-namespace Utils {
+} // end namespace MapMaster::Tanki
+
+namespace MapMaster::CoreUtils {
 	template class ParallelTask <
 		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>,
 		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>::PropMeshResource,
@@ -290,6 +291,4 @@ namespace Utils {
 		double,
 		double
 	>;
-} // namespace Utils
-
-} // end namespace MapMaster::Tanki
+}  // namespace MapMaster::CoreUtils

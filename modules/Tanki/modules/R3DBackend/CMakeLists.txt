@@ -19,6 +19,7 @@ include (MapMasterBuildUtils)
 MapMaster_Build_ModuleConfig (MapMaster_Module_TankiR3DBackend)
 
 target_link_libraries (MapMaster_Module_TankiR3DBackend PRIVATE
+	MapMaster_Module_CoreUtils
 	MapMaster_Module_TankiCore
 )
 

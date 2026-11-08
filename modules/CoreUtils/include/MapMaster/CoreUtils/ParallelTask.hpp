@@ -10,7 +10,7 @@
 
 
 
-namespace MapMaster::Tanki::Utils {
+namespace MapMaster::CoreUtils {
 
 namespace ParallelTaskRunner_detail {
 
@@ -75,4 +75,4 @@ private:
 	Processor m_processor;
 };
 
-}  // namespace MapMaster::Tanki::Utils
+}  // namespace MapMaster::CoreUtils

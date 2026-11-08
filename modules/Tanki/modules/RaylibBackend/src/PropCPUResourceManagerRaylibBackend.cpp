@@ -22,8 +22,8 @@
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropMetaData.hpp"
-# include "MapMaster/Tanki/Utils/ParallelTask.hpp"
-# include "MapMaster/Tanki/Utils/ParallelTask.inl" // IWYU pragma: keep
+# include "MapMaster/CoreUtils/ParallelTask.hpp"
+# include "MapMaster/CoreUtils/ParallelTask.inl" // IWYU pragma: keep
 
 using namespace MapMaster::Tanki;
 
@@ -321,8 +321,9 @@ PropCPUResourceManagerRaylibBackend::PropSpriteResource PropCPUResourceManagerRa
 
 namespace MapMaster::Tanki {
 template class PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>;
+}  // namespace MapMaster::Tanki
 
-namespace Utils {
+namespace MapMaster::CoreUtils {
 	template class ParallelTask <
 		PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>,
 		PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>::PropMeshResource,
@@ -347,5 +348,4 @@ namespace Utils {
 		double,
 		double
 	>;
-} // namespace Utils
-}  // namespace MapMaster::Tanki
+}  // namespace MapMaster::CoreUtils

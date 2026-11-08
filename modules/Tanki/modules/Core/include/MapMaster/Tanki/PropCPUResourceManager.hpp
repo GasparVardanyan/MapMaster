@@ -14,7 +14,7 @@
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
-# include "MapMaster/Tanki/Utils/ParallelTask.hpp"
+# include "MapMaster/CoreUtils/ParallelTask.hpp"
 
 
 
@@ -111,7 +111,7 @@ public:
 	using PropSpriteResource = Backend::PropSpriteResource;
 
 	template <typename ... Ts>
-	using ParallelTask = Utils::ParallelTask <PropCPUResourceManager, Ts ...>;
+	using ParallelTask = CoreUtils::ParallelTask <PropCPUResourceManager, Ts ...>;
 
 	using MeshLoaderTask = ParallelTask <
 		PropMeshResource,

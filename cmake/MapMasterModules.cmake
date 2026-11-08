@@ -1,4 +1,9 @@
 add_subdirectory (
+	${CMAKE_CURRENT_LIST_DIR}/../modules/CoreUtils
+	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_Module_CoreUtils
+)
+
+add_subdirectory (
 	${CMAKE_CURRENT_LIST_DIR}/../modules/Tanki
 	${CMAKE_CURRENT_BINARY_DIR}/MapMaster_Module_Tanki
 )
@@ -13,6 +18,7 @@ add_subdirectory (
 )
 
 set (MAP_MASTER_MODULES
+	MapMaster_Module_CoreUtils
 	MapMaster_Module_Tanki
 	MapMaster_Module_Scene3D
 	MapMaster_Module_Utils
