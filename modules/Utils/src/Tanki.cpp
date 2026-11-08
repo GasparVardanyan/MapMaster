@@ -214,10 +214,10 @@ std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> LoadMapRend
 	std::shared_ptr <MapMaster::Tanki::MapRenderer <MapRendererBackend>> rmap = std::make_shared <MapMaster::Tanki::MapRenderer <MapRendererBackend>> ();
 	MapMaster::Tanki::ResourceSettings resourceSettings {
 		.loadPropColliderData = true,
-		.dropCPUResources = false,
+		.dropCPUResources = true,
 	};
 
-	if (true == haveCanonicalLibraryStructure) {
+	if (true || true == haveCanonicalLibraryStructure) {
 		// enable collision geometry loading
 		rmap->setResourceManager (std::make_shared <typename MapRendererBackend::GPUResourceManager> (resourceSettings));
 
