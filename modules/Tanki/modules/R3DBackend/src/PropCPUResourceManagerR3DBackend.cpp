@@ -3,11 +3,12 @@
 # include <algorithm>
 # include <cctype>
 # include <cmath>
+# include <cstddef>
 # include <cstdint>
-# include <cstdio>
 # include <limits>
 # include <memory>
 # include <string>
+# include <utility>
 
 # include <assimp/config.h>
 # include <assimp/material.h>
@@ -16,13 +17,13 @@
 # include <assimp/scene.h>
 # include <assimp/types.h>
 # include <assimp/vector3.h>
-# include <stb_image.h>
 
 # include <raylib.h>
 # include <raymath.h>
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 
+# include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropMetaData.hpp"
@@ -198,51 +199,22 @@ PropCPUResourceManagerR3DBackend::PropMeshResource PropCPUResourceManagerR3DBack
 	// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
 }
 
-PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DBackend::ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle) {
-	int width = 0;
-	int height = 0;
-	int channels = 0;
-	int desiredChannels = 3;
-
-	if (nullptr != alphaFileHandle) {
-		desiredChannels = 4;
-	}
-
-	unsigned char * pixels = stbi_load_from_file (
-		diffuseFileHandle,
-		& width,
-		& height,
-		& channels,
-		desiredChannels
+PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DBackend::ParseTextureResource (
+	CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr diffuseFileHandle,
+	CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr alphaFileHandle
+) {
+	CoreUtils::PropCPUResourceManagerUtils::Texture texture =  CoreUtils::PropCPUResourceManagerUtils::Texture::FromFileHandles (
+		std::move (diffuseFileHandle),
+		std::move (alphaFileHandle)
 	);
 
-	if (nullptr != alphaFileHandle) {
-		int alphaWidth = 0;
-		int alphaHeight = 0;
-		int alphaChannels = 0;
-
-		unsigned char * alphaPixels = stbi_load_from_file (
-			alphaFileHandle,
-			& alphaWidth,
-			& alphaHeight,
-			& alphaChannels,
-			STBI_grey
-		);
-
-		for (int i = 0; i < width * height; i++) {
-			// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic,readability-math-missing-parentheses)
-			pixels [i * 4 + 3] = alphaPixels [i];
-		}
-
-		stbi_image_free (alphaPixels);
-	}
-
 	return {
-		.pixBuffer = std::shared_ptr <unsigned char> (pixels, stbi_image_free),
+		.pixBuffer = texture.pixels,
 		.meta = std::make_shared <PropMetaData::Texture> (PropMetaData::Texture {
-			.width = width,
-			.height = height,
-			.channels = desiredChannels,
+			.width = texture.width,
+			.height = texture.height,
+			.channels = texture.channels,
+			.valid = texture.valid,
 		}),
 	};
 }

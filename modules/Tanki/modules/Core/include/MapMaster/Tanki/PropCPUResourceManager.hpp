@@ -11,6 +11,7 @@
 # include <utility>
 # include <vector>
 
+# include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
@@ -66,7 +67,8 @@ struct IsPropCPUResourceManagerBackend <
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::ParseTextureResource),
-			std::FILE *, std::FILE *
+			CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr,
+			CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
@@ -84,7 +86,8 @@ struct IsPropCPUResourceManagerBackend <
 			typename PropCPUResourceManagerBackend::PropTextureResource,
 			std::invoke_result_t <
 				decltype (PropCPUResourceManagerBackend::ParseTextureResource),
-				std::FILE *, std::FILE *
+				CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr,
+				CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr
 			>
 		>>,
 		std::enable_if_t <std::is_same_v <

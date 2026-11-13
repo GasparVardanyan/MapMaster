@@ -11,6 +11,7 @@
 # include <r3d/r3d_mesh_data.h>
 # include <r3d/r3d_vertex.h>
 
+# include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
 struct aiScene;
@@ -60,7 +61,7 @@ public:
 	};
 
 	static PropMeshResource ParseMeshResource (const aiScene * scene);
-	static PropTextureResource ParseTextureResource (std::FILE * diffuseFileHandle, std::FILE * alphaFileHandle);
+	static PropTextureResource ParseTextureResource (CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr diffuseFileHandle, CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr alphaFileHandle);
 	static PropSpriteResource GenerateSpriteResource (double width, double height, double originX, double originY, double scale);
 };
 // cppcheck-suppress-end unusedStructMember

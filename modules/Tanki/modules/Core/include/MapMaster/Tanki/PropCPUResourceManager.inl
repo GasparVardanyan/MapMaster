@@ -28,6 +28,7 @@
 # include <assimp/types.h>
 # include <assimp/vector3.h>
 
+# include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
@@ -282,22 +283,33 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMapResources (c
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadPropLibraryResources (const std::optional <std::string> & libraryName) {
+	std::vector <MeshDescriptor> meshDescriptors;
+	std::vector <TextureDescriptor> textureDescriptors;
+
+	std::vector <std::tuple <std::string, std::string, const PropLibrary::PropSprite *>> spritePropDescriptors;
+	std::vector <std::tuple <std::string, std::string>> defaultTextureMeshDescriptors;
+
+	std::map <std::string, std::vector <std::tuple <std::string, const PropLibrary::PropSprite *>>> spriteProps;
+	std::map <std::string, std::vector <std::string>> defaultTexturesMeshes;
+
+	std::vector <std::string> libraries;
+
 	if (true == libraryName.has_value ()) {
-		std::vector <MeshDescriptor> meshDescriptors;
-		std::vector <TextureDescriptor> textureDescriptors;
+		libraries.emplace_back (libraryName.value ());
+	}
+	else {
+		for (const auto & [libraryName, library] : m_propLibraries) {
+			libraries.emplace_back (libraryName);
+		}
+	}
 
-		std::vector <std::tuple <std::string, std::string, const PropLibrary::PropSprite *>> spritePropDescriptors;
-		std::vector <std::tuple <std::string, std::string>> defaultTextureMeshDescriptors;
-
-		std::map <std::string, std::vector <std::tuple <std::string, const PropLibrary::PropSprite *>>> spriteProps;
-		std::map <std::string, std::vector <std::string>> defaultTexturesMeshes;
-
-		const PropLibrary & library = * m_propLibraries.at (libraryName.value ());
+	for (const std::string & libraryName : libraries) {
+		const PropLibrary & library = * m_propLibraries.at (libraryName);
 
 		for (const auto & [groupName, group] : library.groups ()) {
 			for (const auto & [propName, mesh] : group.meshes) {
-				meshDescriptors.emplace_back (library.name (), mesh.file);
-				defaultTextureMeshDescriptors.emplace_back (library.name (), mesh.file);
+				meshDescriptors.emplace_back (libraryName, mesh.file);
+				defaultTextureMeshDescriptors.emplace_back (libraryName, mesh.file);
 
 				for (const auto & [textureName, textureFile] : mesh.textures) {
 					std::string diffuseFile = textureFile;
@@ -307,9 +319,9 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadPropLibraryReso
 						alphaFile = it->second;
 					}
 					if (auto it = library.diffuseMap ().find (diffuseFile); it != library.diffuseMap ().end ()) {
-
+						diffuseFile = it->second;
 					}
-					textureDescriptors.emplace_back (library.name (), diffuseFile, alphaFile);
+					textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 				}
 			}
 			for (const auto & [propName, sprite] : group.sprites) {
@@ -323,41 +335,33 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadPropLibraryReso
 					diffuseFile = it->second;
 				}
 
-				textureDescriptors.emplace_back (library.name (), diffuseFile, alphaFile);
+				textureDescriptors.emplace_back (libraryName, diffuseFile, alphaFile);
 
 				if (true == m_resourceSettings.dropCPUResources) {
-					spritePropDescriptors.emplace_back (library.name (), diffuseFile, & sprite);
+					spritePropDescriptors.emplace_back (libraryName, diffuseFile, & sprite);
 				}
 				else {
-					spriteProps [library.name ()].emplace_back (diffuseFile, & sprite);
+					spriteProps [libraryName].emplace_back (diffuseFile, & sprite);
 				}
 			}
 		}
+	}
 
-		// NOTE: some of the meshes have non existent image file names embedded in them
-		throw;
-
-		if (true == m_resourceSettings.dropCPUResources) {
-			loadResourcesAndDrop (
-				std::move (meshDescriptors),
-				std::move (textureDescriptors),
-				std::move (spritePropDescriptors),
-				std::move (defaultTextureMeshDescriptors)
-			);
-		}
-		else {
-			loadResources (
-				std::move (meshDescriptors),
-				std::move (textureDescriptors),
-				std::move (spriteProps),
-				std::move (defaultTexturesMeshes)
-			);
-		}
+	if (true == m_resourceSettings.dropCPUResources) {
+		loadResourcesAndDrop (
+			std::move (meshDescriptors),
+			std::move (textureDescriptors),
+			std::move (spritePropDescriptors),
+			std::move (defaultTextureMeshDescriptors)
+		);
 	}
 	else {
-		for (const auto & [libraryName, library] : m_propLibraries) {
-			loadPropLibraryResources (libraryName);
-		}
+		loadResources (
+			std::move (meshDescriptors),
+			std::move (textureDescriptors),
+			std::move (spriteProps),
+			std::move (defaultTexturesMeshes)
+		);
 	}
 }
 
@@ -373,21 +377,21 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadPropLibraryReso
 
 template <class PropCPUResourceManagerBackend>
 PropCPUResourceManager <PropCPUResourceManagerBackend>::PropMeshResource PropCPUResourceManager <PropCPUResourceManagerBackend>::loadMeshResource (const std::string & libraryName, const std::string & meshFile) const {
-	const std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
+	std::string meshPath = m_propLibraries.at (libraryName)->path () + "/" + meshFile;
 
-	Assimp::Importer importer;
-	importer.SetPropertyInteger (
-		AI_CONFIG_PP_RVC_FLAGS,
+	CoreUtils::PropCPUResourceManagerUtils::Mesh mesh (
+		meshPath,
+		PropCPUResourceManagerBackend::AssimpPostProcessorSteps,
 		PropCPUResourceManagerBackend::AssimpImporterRemoveComponentFlags
 	);
 
-	const aiScene * scene = importer.ReadFile (meshPath, PropCPUResourceManagerBackend::AssimpPostProcessorSteps);
-
-	PropMeshResource resource = PropCPUResourceManagerBackend::ParseMeshResource (scene);
+	PropMeshResource resource = PropCPUResourceManagerBackend::ParseMeshResource (mesh.scene);
 
 	if (true == m_resourceSettings.loadPropColliderData) {
-		resource.meta->collider = PropMetaData::Mesh::ParseCollider (scene);
+		resource.meta->collider = PropMetaData::Mesh::ParseCollider (mesh.scene);
 	}
+
+	resource.meta->valid = mesh.valid;
 
 	return resource;
 }
@@ -404,14 +408,10 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResource Prop
 		}
 	}
 
-	PropTextureResource resource = PropCPUResourceManagerBackend::ParseTextureResource (diffuseFileHandle, alphaFileHandle);
-
-	// NOLINTNEXTLINE(cert-err33-c,cppcoreguidelines-owning-memory)
-	std::fclose (diffuseFileHandle);
-	if (nullptr != alphaFileHandle) {
-		// NOLINTNEXTLINE(cert-err33-c,cppcoreguidelines-owning-memory)
-		std::fclose (alphaFileHandle);
-	}
+	PropTextureResource resource = PropCPUResourceManagerBackend::ParseTextureResource (
+		CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr (diffuseFileHandle),
+		CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr (alphaFileHandle)
+	);
 
 	return resource;
 }
@@ -429,10 +429,12 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropSpriteResource PropC
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadResourcesAndDrop (
+	// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
 	std::vector <MeshDescriptor> && meshDescriptors,
 	std::vector <TextureDescriptor> && textureDescriptors,
 	std::vector <std::tuple <std::string, std::string, const PropLibrary::PropSprite *>> && spritePropDescriptors,
 	std::vector <std::tuple <std::string, std::string>> && defaultTextureMeshDescriptors
+	// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 ) {
 	std::sort (
 		std::execution::par_unseq,
@@ -565,10 +567,12 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadResourcesAndDro
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadResources (
+	// NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
 	std::vector <MeshDescriptor> && meshDescriptors,
 	std::vector <TextureDescriptor> && textureDescriptors,
 	std::map <std::string, std::vector <std::tuple <std::string, const PropLibrary::PropSprite *>>> && spriteProps,
 	std::map <std::string, std::vector <std::string>> && defaultTexturesMeshes
+	// NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 ) {
 	std::sort (
 		std::execution::par_unseq,

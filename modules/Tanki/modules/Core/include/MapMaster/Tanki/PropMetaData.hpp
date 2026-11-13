@@ -51,6 +51,8 @@ struct Mesh {
 
 	std::string textureFile;
 	Collider collider;
+
+	bool valid = false;
 };
 
 struct Texture {
@@ -58,6 +60,8 @@ struct Texture {
 	static_assert (std::is_integral_v <SizeType>);
 
 	SizeType width, height, channels;
+
+	bool valid = false;
 };
 
 } // namespace PropMetaData

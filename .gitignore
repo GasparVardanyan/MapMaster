@@ -1,5 +1,6 @@
 out/**
 .cache/**
+.ccls-cache/**
 compile_commands.json
 .vim.session
 .exrc

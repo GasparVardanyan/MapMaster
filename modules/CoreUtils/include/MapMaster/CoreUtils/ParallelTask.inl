@@ -68,7 +68,7 @@ void ParallelTask <Producer, OutputType, InputArgTypes ...>::reset () {
 }
 
 template <class Producer, typename OutputType, typename ... InputArgTypes>
-template <bool Collect, bool PassToCallback, auto ResultMutator >
+template <bool Collect, bool PassToCallback, auto ResultMutator>
 std::enable_if_t <
 	std::is_invocable_v <decltype (ResultMutator), std::shared_ptr <typename ParallelTask <Producer, OutputType, InputArgTypes ...>::Output>>,
 	std::conditional_t <Collect, std::vector <

@@ -4,7 +4,7 @@
 - [x] better camera controller
 - [ ] parse occluders
 - [x] R3D backend for PropGPUResourceManager
-- [ ] R3D map rendering - half done
+- [x] R3D map rendering - half done
 - [ ] imgui docking and rlImgui
 - [ ] 3d backend cmake toggles
 - [ ] helper cpu resource backend for utils
