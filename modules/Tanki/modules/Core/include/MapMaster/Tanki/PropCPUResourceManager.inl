@@ -170,13 +170,13 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadTextureResource
 
 template <class PropCPUResourceManagerBackend>
 void PropCPUResourceManager <PropCPUResourceManagerBackend>::generateSpriteResources (
-	const std::vector <std::tuple <std::string, std::string, double, double, double, double, double>> & spriteDescriptors
+	const std::vector <std::tuple <std::string, std::string, PropMetaData::Sprite>> & spriteDescriptors
 ) {
 	if (false == m_resourceSettings.dropCPUResources) {
 		std::vector <std::shared_ptr <PropSpriteResource>> resources = m_spriteGenerator.template run <true, true> (spriteDescriptors);
 
 		std::size_t sI = 0;
-		for (const auto & [libraryName, diffuseFile, _1, _2, _3, _4, _5] : spriteDescriptors) {
+		for (const auto & [libraryName, diffuseFile, _] : spriteDescriptors) {
 			m_propSpriteResources [libraryName] [diffuseFile] = std::move (resources [sI]);
 		}
 	}
@@ -417,14 +417,8 @@ PropCPUResourceManager <PropCPUResourceManagerBackend>::PropTextureResource Prop
 }
 
 template <class PropCPUResourceManagerBackend>
-PropCPUResourceManager <PropCPUResourceManagerBackend>::PropSpriteResource PropCPUResourceManager <PropCPUResourceManagerBackend>::generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const double & width, const double & height, const double & originX, const double & originY, const double & scale) const {
-	return PropCPUResourceManagerBackend::GenerateSpriteResource (
-		width,
-		height,
-		originX,
-		originY,
-		scale
-	);
+PropCPUResourceManager <PropCPUResourceManagerBackend>::PropSpriteResource PropCPUResourceManager <PropCPUResourceManagerBackend>::generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const PropMetaData::Sprite & meta) const {
+	return PropCPUResourceManagerBackend::GenerateSpriteResource (meta);
 }
 
 template <class PropCPUResourceManagerBackend>
@@ -554,11 +548,13 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadResourcesAndDro
 		spriteDescriptors.emplace_back (
 			libraryName
 			, diffuseFile
-			, metaData->width
-			, metaData->height
-			, spriteInfo.originX
-			, spriteInfo.originY
-			, spriteInfo.scale
+			, PropMetaData::Sprite {
+				.width = metaData->width,
+				.height = metaData->height,
+				.scale = spriteInfo.originX,
+				.originX = spriteInfo.originY,
+				.originY = spriteInfo.scale,
+			}
 		);
 	}
 
@@ -661,11 +657,13 @@ void PropCPUResourceManager <PropCPUResourceManagerBackend>::loadResources (
 			spriteDescriptors.emplace_back (
 				libraryName
 				, textureDiffuseFile
-				, metaData->width
-				, metaData->height
-				, spriteInfo->originX
-				, spriteInfo->originY
-				, spriteInfo->scale
+				, PropMetaData::Sprite {
+					.width = metaData->width,
+					.height = metaData->height,
+					.scale = spriteInfo->originX,
+					.originX = spriteInfo->originY,
+					.originY = spriteInfo->scale,
+				}
 			);
 		}
 	}

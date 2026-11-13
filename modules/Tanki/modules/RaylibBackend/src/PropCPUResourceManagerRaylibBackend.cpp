@@ -276,15 +276,15 @@ PropCPUResourceManagerRaylibBackend::PropTextureResource PropCPUResourceManagerR
 	};
 }
 
-PropCPUResourceManagerRaylibBackend::PropSpriteResource PropCPUResourceManagerRaylibBackend::GenerateSpriteResource (double width, double height, double originX, double originY, double scale) {
+PropCPUResourceManagerRaylibBackend::PropSpriteResource PropCPUResourceManagerRaylibBackend::GenerateSpriteResource (PropMetaData::Sprite meta) {
 	return {
 		.size = {
-			.x = static_cast <float> (width * scale),
-			.y = static_cast <float> (height * scale),
+			.x = static_cast <float> (meta.width * meta.scale),
+			.y = static_cast <float> (meta.height * meta.scale),
 		},
 		.origin = {
-			.x = static_cast <float> (originX),
-			.y = static_cast <float> (originY),
+			.x = static_cast <float> (meta.originX),
+			.y = static_cast <float> (meta.originY),
 		},
 	};
 }
@@ -314,10 +314,6 @@ namespace MapMaster::CoreUtils {
 		PropCPUResourceManager <PropCPUResourceManagerRaylibBackend>::PropSpriteResource,
 		std::string,
 		std::string,
-		double,
-		double,
-		double,
-		double,
-		double
+		PropMetaData::Sprite
 	>;
 }  // namespace MapMaster::CoreUtils

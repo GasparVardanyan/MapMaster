@@ -219,11 +219,11 @@ PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DB
 	};
 }
 
-PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (double width, double height, double originX, double originY, double scale) {
+PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (PropMetaData::Sprite meta) {
 	return {
 		// .mesh = std::make_shared <R3D_MeshData> (R3D_GenMeshDataPlane (static_cast <float> (width), static_cast <float> (height), 1, 1)),
 		.mesh = std::shared_ptr <R3D_MeshData> (new R3D_MeshData (Utils::R3DMeshUtils::GenerateSpriteMesh (
-			width, height, originX, originY, scale
+			meta.width, meta.height, meta.originX, meta.originY, meta.scale
 		)), [] (R3D_MeshData * meshData) -> void {
 			R3D_UnloadMeshData (* meshData);
 			delete meshData;
@@ -257,10 +257,6 @@ namespace MapMaster::CoreUtils {
 		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>::PropSpriteResource,
 		std::string,
 		std::string,
-		double,
-		double,
-		double,
-		double,
-		double
+		PropMetaData::Sprite
 	>;
 }  // namespace MapMaster::CoreUtils

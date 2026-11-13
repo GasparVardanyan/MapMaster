@@ -12,6 +12,7 @@
 # include <vector>
 
 # include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
+# include "MapMaster/Tanki/PrimitiveCPUFactory.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
@@ -27,6 +28,8 @@ namespace PropMetaData { struct Mesh; struct Texture; }
 
 class Map;
 class PropLibrary;
+
+template <class PrimitiveCPUFactoryBackend> class PrimitiveCPUFactory;
 
 template <class PropCPUResourceManagerBackend, typename = void>
 struct IsPropCPUResourceManagerBackend : std::false_type {};
@@ -51,6 +54,14 @@ struct IsPropCPUResourceManagerBackend <
 		decltype (PropCPUResourceManagerBackend::PropMeshResource::meta),
 		decltype (PropCPUResourceManagerBackend::PropTextureResource::meta),
 
+		typename PropCPUResourceManagerBackend::PrimitiveCPUFactoryBackend,
+		typename PropCPUResourceManagerBackend::PrimitiveCPUFactory,
+
+		std::enable_if_t <std::is_same_v <
+			typename PropCPUResourceManagerBackend::PrimitiveCPUFactory,
+			PrimitiveCPUFactory <typename PropCPUResourceManagerBackend::PrimitiveCPUFactoryBackend>
+		>>,
+
 		std::enable_if_t <std::is_same_v <
 			decltype (PropCPUResourceManagerBackend::PropMeshResource::meta),
 			std::shared_ptr <PropMetaData::Mesh>
@@ -72,7 +83,7 @@ struct IsPropCPUResourceManagerBackend <
 		>>,
 		std::enable_if_t <std::is_invocable_v <
 			decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
-			double, double, double, double, double
+			PropMetaData::Sprite
 		>>,
 
 		std::enable_if_t <std::is_same_v <
@@ -94,7 +105,7 @@ struct IsPropCPUResourceManagerBackend <
 			typename PropCPUResourceManagerBackend::PropSpriteResource,
 			std::invoke_result_t <
 				decltype (PropCPUResourceManagerBackend::GenerateSpriteResource),
-				double, double, double, double, double
+				PropMetaData::Sprite
 			>
 		>>
 	>
@@ -112,6 +123,7 @@ public:
 	using PropMeshResource = Backend::PropMeshResource;
 	using PropTextureResource = Backend::PropTextureResource;
 	using PropSpriteResource = Backend::PropSpriteResource;
+	using PrimitiveCPUFactory = Backend::PrimitiveCPUFactory;
 
 	template <typename ... Ts>
 	using ParallelTask = CoreUtils::ParallelTask <PropCPUResourceManager, Ts ...>;
@@ -133,11 +145,7 @@ public:
 		PropSpriteResource,
 		std::string,
 		std::string,
-		double,
-		double,
-		double,
-		double,
-		double
+		PropMetaData::Sprite
 	>;
 
 	enum class OverlapBehaviour : unsigned char {
@@ -147,7 +155,7 @@ public:
 private:
 	using MeshDescriptor = std::tuple <std::string, std::string>;
 	using TextureDescriptor = std::tuple <std::string, std::string, std::string>;
-	using SpriteDescriptor = std::tuple <std::string, std::string, double, double, double, double, double>;
+	using SpriteDescriptor = std::tuple <std::string, std::string, PropMetaData::Sprite>;
 
 public:
 	explicit PropCPUResourceManager (const ResourceSettings & resourceSettings = ResourceSettings {.loadPropColliderData = true, .dropCPUResources = true});
@@ -180,7 +188,7 @@ public:
 	);
 
 	void generateSpriteResources (
-		const std::vector <std::tuple <std::string, std::string, double, double, double, double, double>> & spriteDescriptors
+		const std::vector <std::tuple <std::string, std::string, PropMetaData::Sprite>> & spriteDescriptors
 	);
 
 	void loadMapResources (const Map & map);
@@ -201,7 +209,7 @@ public:
 private:
 	PropMeshResource loadMeshResource (const std::string & libraryName, const std::string & meshFile) const;
 	PropTextureResource loadTextureResource (const std::string & libraryName, const std::string & diffuseFile, const std::string & alphaFile) const;
-	PropSpriteResource generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const double & width, const double & height, const double & originX, const double & originY, const double & scale) const;
+	PropSpriteResource generateSpriteResource (const std::string & libraryName, const std::string & diffuseFile, const PropMetaData::Sprite &) const;
 
 	void loadResourcesAndDrop (
 		std::vector <MeshDescriptor> && meshDescriptors,
@@ -226,6 +234,7 @@ private:
 	MeshLoaderTask m_meshLoader;
 	TextureLoaderTask m_textureLoader;
 	SpriteGeneratorTask m_spriteGenerator;
+	PrimitiveCPUFactory m_primitiveFactory;
 
 	// TODO: implement the OverlapBehaviour functionality
 	OverlapBehaviour m_overlapBehaviour = OverlapBehaviour::Ignore;

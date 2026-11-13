@@ -8,7 +8,7 @@ set_source_files_properties (
 add_library (MapMaster_Module_TankiCore SHARED
 	include/MapMaster/Tanki/Map.hpp
 	include/MapMaster/Tanki/MapRenderer.hpp
-	include/MapMaster/Tanki/PrimitiveFactory.hpp
+	include/MapMaster/Tanki/PrimitiveCPUFactory.hpp
 	include/MapMaster/Tanki/PropCPUResourceManager.hpp
 	include/MapMaster/Tanki/PropCPUResourceManager.inl
 	include/MapMaster/Tanki/PropGPUResourceManager.hpp

@@ -7,7 +7,6 @@
 # include <utility>
 # include <vector>
 
-# include "MapMaster/Tanki/PrimitiveFactory.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
@@ -21,7 +20,6 @@ namespace PropMetaData { struct Texture; }
 class Map;
 
 template <class PropCPUResourceManagerBackend> class PropCPUResourceManager;
-template <class PrimitiveFactoryBackend> class PrimitiveFactory;
 
 template <class PropGPUResourceManagerBackend, typename = void>
 struct IsPropGPUResourceManagerBackend : std::false_type {};
@@ -36,14 +34,6 @@ struct IsPropGPUResourceManagerBackend <
 		std::enable_if_t <std::is_same_v <
 			typename PropGPUResourceManagerBackend::CPUResourceManager,
 			PropCPUResourceManager <typename PropGPUResourceManagerBackend::CPUResourceManagerBackend>
-		>>,
-
-		typename PropGPUResourceManagerBackend::PrimitiveFactoryBackend,
-		typename PropGPUResourceManagerBackend::PrimitiveFactory,
-
-		std::enable_if_t <std::is_same_v <
-			typename PropGPUResourceManagerBackend::PrimitiveFactory,
-			PrimitiveFactory <typename PropGPUResourceManagerBackend::PrimitiveFactoryBackend>
 		>>,
 
 		typename PropGPUResourceManagerBackend::MeshResource,
@@ -99,7 +89,6 @@ public:
 	using MeshResource = Backend::MeshResource;
 	using TextureResource = Backend::TextureResource;
 	using SpriteResource = Backend::SpriteResource;
-	using PrimitiveFactory = Backend::PrimitiveFactory;
 
 public:
 	explicit PropGPUResourceManager (const ResourceSettings & resourceSettings = ResourceSettings {.loadPropColliderData = true, .dropCPUResources = true});
@@ -132,7 +121,6 @@ private:
 	std::string m_libraryRootDir;
 	std::map <std::string, std::shared_ptr <PropLibrary>> m_propLibraries;
 	CPUResourceManager m_resourceManager;
-	PrimitiveFactory m_primitiveFactory;
 
 	std::map <std::string, std::map <std::string, MeshResource>> m_meshResources;
 	std::map <std::string, std::map <std::string, TextureResource>> m_textureResources;
