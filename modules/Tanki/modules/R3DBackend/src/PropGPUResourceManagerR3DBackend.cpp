@@ -12,6 +12,12 @@
 # include "MapMaster/Tanki/PropGPUResourceManager.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
+
+
+PROPGPURESOURCEMANAGER_SPECIALIZE_BACKEND(MapMaster::Tanki::PropGPUResourceManagerR3DBackend)
+
+
+
 using namespace MapMaster::Tanki;
 
 PropGPUResourceManagerR3DBackend::MeshResource PropGPUResourceManagerR3DBackend::CreateMeshResource (CPUResourceManager::PropMeshResource & meshResource) {
@@ -77,7 +83,3 @@ void PropGPUResourceManagerR3DBackend::unloadTextureResource (Texture2D * textur
 	// NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
 	delete texture;
 }
-
-namespace MapMaster::Tanki {
-template class PropGPUResourceManager <PropGPUResourceManagerR3DBackend>;
-}  // namespace MapMaster::Tanki

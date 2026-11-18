@@ -14,7 +14,18 @@
 # include "MapMaster/Tanki/Map.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
+# include "MapMaster/Tanki/PropMetaData.hpp"
 # include "MapMaster/Tanki/ResourceSettings.hpp"
+
+# ifdef PROPGPURESOURCEMANAGER_SPECIALIZE_BACKEND
+# error conflicting macro names
+# else
+# define PROPGPURESOURCEMANAGER_SPECIALIZE_BACKEND(BACKEND)   \
+namespace MapMaster::Tanki {                                  \
+template class PropGPUResourceManager <BACKEND>;              \
+}                                                             \
+
+# endif // PROPGPURESOURCEMANAGER_SPECIALIZE_BACKEND
 
 namespace MapMaster::Tanki {
 
@@ -93,14 +104,10 @@ void PropGPUResourceManager <PropGPUResourceManagerBackend>::loadMapResources (c
 	m_resourceManager.spriteGenerator ().listen ([this] (std::vector <std::tuple <
 		std::string,
 		std::string,
-		double,
-		double,
-		double,
-		double,
-		double,
+		PropMetaData::Sprite,
 		std::shared_ptr <typename CPUResourceManager::PropSpriteResource>
 	>> && spritesToProcess) -> void {
-		for (auto & [libraryName, textureFile, _1, _2, _3, _4, _5, spriteRes] : spritesToProcess) {
+		for (auto & [libraryName, textureFile, _, spriteRes] : spritesToProcess) {
 			m_spriteResources [std::move (libraryName)] [std::move (textureFile)] = PropGPUResourceManagerBackend::CreateSpriteResource (
 				* spriteRes
 			);

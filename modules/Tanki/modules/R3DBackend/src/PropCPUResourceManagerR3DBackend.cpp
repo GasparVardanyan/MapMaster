@@ -31,6 +31,13 @@
 # include "MapMaster/CoreUtils/ParallelTask.inl" // IWYU pragma: keep
 # include "MapMaster/Tanki/Utils/R3DMeshUtils.hpp"
 
+
+
+// cppcheck-suppress unknownMacro
+PROPCPURESOURCEMANAGER_SPECIALIZE_BACKEND(MapMaster::Tanki::PropCPUResourceManagerR3DBackend)
+
+
+
 using namespace MapMaster::Tanki;
 
 
@@ -219,48 +226,14 @@ PropCPUResourceManagerR3DBackend::PropTextureResource PropCPUResourceManagerR3DB
 	};
 }
 
-PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (double width, double height, double originX, double originY, double scale) {
+PropCPUResourceManagerR3DBackend::PropSpriteResource PropCPUResourceManagerR3DBackend::GenerateSpriteResource (PropMetaData::Sprite meta) {
 	return {
 		// .mesh = std::make_shared <R3D_MeshData> (R3D_GenMeshDataPlane (static_cast <float> (width), static_cast <float> (height), 1, 1)),
 		.mesh = std::shared_ptr <R3D_MeshData> (new R3D_MeshData (Utils::R3DMeshUtils::GenerateSpriteMesh (
-			width, height, originX, originY, scale
+			meta.width, meta.height, meta.originX, meta.originY, meta.scale
 		)), [] (R3D_MeshData * meshData) -> void {
 			R3D_UnloadMeshData (* meshData);
 			delete meshData;
 		}),
 	};
 }
-
-
-
-namespace MapMaster::Tanki {
-template class PropCPUResourceManager <PropCPUResourceManagerR3DBackend>;
-
-} // end namespace MapMaster::Tanki
-
-namespace MapMaster::CoreUtils {
-	template class ParallelTask <
-		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>,
-		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>::PropMeshResource,
-		std::string,
-		std::string
-	>;
-	template class ParallelTask <
-		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>,
-		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>::PropTextureResource,
-		std::string,
-		std::string,
-		std::string
-	>;
-	template class ParallelTask <
-		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>,
-		PropCPUResourceManager <PropCPUResourceManagerR3DBackend>::PropSpriteResource,
-		std::string,
-		std::string,
-		double,
-		double,
-		double,
-		double,
-		double
-	>;
-}  // namespace MapMaster::CoreUtils

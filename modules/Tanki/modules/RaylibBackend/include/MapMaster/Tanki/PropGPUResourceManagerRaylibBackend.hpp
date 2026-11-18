@@ -4,8 +4,6 @@
 
 # include <raylib.h>
 
-# include "MapMaster/Tanki/PrimitiveFactory.hpp"
-# include "MapMaster/Tanki/PrimitiveFactoryRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManagerRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropLibrary.hpp"
 # include "MapMaster/Tanki/PropCPUResourceManager.hpp"
@@ -22,8 +20,6 @@ class PropGPUResourceManagerRaylibBackend {
 public:
 	using CPUResourceManagerBackend = PropCPUResourceManagerRaylibBackend;
 	using CPUResourceManager = PropCPUResourceManager <CPUResourceManagerBackend>;
-	using PrimitiveFactoryBackend = PrimitiveFactoryRaylibBackend;
-	using PrimitiveFactory = PrimitiveFactory <PrimitiveFactoryBackend>;
 
 	struct MeshResource {
 		std::shared_ptr <Mesh> mesh;

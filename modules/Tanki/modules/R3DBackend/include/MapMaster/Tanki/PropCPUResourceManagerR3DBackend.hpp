@@ -12,6 +12,8 @@
 # include <r3d/r3d_vertex.h>
 
 # include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
+# include "MapMaster/Tanki/PrimitiveCPUFactory.hpp"
+# include "MapMaster/Tanki/PrimitiveCPUFactoryR3DBackend.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
 struct aiScene;
@@ -60,9 +62,12 @@ public:
 		std::shared_ptr <R3D_MeshData> mesh;
 	};
 
+	using PrimitiveCPUFactoryBackend = PrimitiveCPUFactoryR3DBackend;
+	using PrimitiveCPUFactory = PrimitiveCPUFactory <PrimitiveCPUFactoryBackend>;
+
 	static PropMeshResource ParseMeshResource (const aiScene * scene);
 	static PropTextureResource ParseTextureResource (CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr diffuseFileHandle, CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr alphaFileHandle);
-	static PropSpriteResource GenerateSpriteResource (double width, double height, double originX, double originY, double scale);
+	static PropSpriteResource GenerateSpriteResource (PropMetaData::Sprite);
 };
 // cppcheck-suppress-end unusedStructMember
 

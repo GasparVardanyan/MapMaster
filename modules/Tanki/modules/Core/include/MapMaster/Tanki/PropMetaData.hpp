@@ -1,5 +1,6 @@
 # pragma once // NOLINT(portability-avoid-pragma-once)
 
+# include "MapMaster/Tanki/PropLibrary.hpp"
 # include <string>
 # include <type_traits>
 # include <vector>
@@ -62,6 +63,17 @@ struct Texture {
 	SizeType width, height, channels;
 
 	bool valid = false;
+};
+
+struct Sprite {
+	using SizeType = int;
+	static_assert (std::is_integral_v <SizeType>);
+
+	SizeType width;
+	SizeType height;
+	PropLibrary::PropSprite::ScaleType scale;
+	PropLibrary::PropSprite::OriginType originX;
+	PropLibrary::PropSprite::OriginType originY;
 };
 
 } // namespace PropMetaData

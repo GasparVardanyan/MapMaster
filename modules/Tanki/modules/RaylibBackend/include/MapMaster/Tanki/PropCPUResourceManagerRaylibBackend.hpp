@@ -9,6 +9,8 @@
 # include <raylib.h>
 
 # include "MapMaster/CoreUtils/PropCPUResourceManagerUtils.hpp"
+# include "MapMaster/Tanki/PrimitiveCPUFactory.hpp"
+# include "MapMaster/Tanki/PrimitiveCPUFactoryRaylibBackend.hpp"
 # include "MapMaster/Tanki/PropMetaData.hpp"
 
 struct aiScene;
@@ -55,9 +57,12 @@ public:
 		Vector2 origin;
 	};
 
+	using PrimitiveCPUFactoryBackend = PrimitiveCPUFactoryRaylibBackend;
+	using PrimitiveCPUFactory = PrimitiveCPUFactory <PrimitiveCPUFactoryBackend>;
+
 	static PropMeshResource ParseMeshResource (const aiScene * scene);
 	static PropTextureResource ParseTextureResource (CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr diffuseFileHandle, CoreUtils::PropCPUResourceManagerUtils::Texture::FileUniquePtr alphaFileHandle);
-	static PropSpriteResource GenerateSpriteResource (double width, double height, double originX, double originY, double scale);
+	static PropSpriteResource GenerateSpriteResource (PropMetaData::Sprite meta);
 };
 // cppcheck-suppress-end unusedStructMember
 
